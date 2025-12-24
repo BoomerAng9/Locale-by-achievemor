@@ -1,0 +1,146 @@
+/**
+ * Firestore Schema Types for the "Nervous System"
+ * Partner Architecture + System Audit Logs
+ */
+
+import { Timestamp } from 'firebase/firestore';
+
+// ==========================================
+// PARTNER/AFFILIATE ARCHITECTURE
+// ==========================================
+
+export interface PartnerProfile {
+  // Core fields (extend existing Profile)
+  affiliate_code: string | null;      // Unique code for partner referrals
+  parent_partner_id: string | null;   // Reference to the partner who referred this user
+  commission_rate_override: number | null; // Custom commission rate (default: 0.15 = 15%)
+  stripe_connect_id: string | null;   // For receiving payouts
+  
+  // Partner tier progression
+  partner_tier: 'none' | 'bronze' | 'silver' | 'gold';
+  total_referrals: number;
+  total_earnings_cents: number;
+}
+
+// Default partner fields for new profiles
+export const DEFAULT_PARTNER_FIELDS: PartnerProfile = {
+  affiliate_code: null,
+  parent_partner_id: null,
+  commission_rate_override: null,
+  stripe_connect_id: null,
+  partner_tier: 'none',
+  total_referrals: 0,
+  total_earnings_cents: 0,
+};
+
+// ==========================================
+// SYSTEM AUDIT LOGS (Nervous System Memory)
+// ==========================================
+
+export type LogSeverity = 'debug' | 'info' | 'warn' | 'error' | 'critical';
+export type LogSource = 'stripe' | 'auth' | 'admin' | 'verification' | 'ai' | 'system';
+
+export interface SystemLog {
+  id?: string;
+  event_type: string;
+  source: LogSource;
+  severity: LogSeverity;
+  payload: Record<string, any>;
+  user_id?: string;
+  created_at: Timestamp;
+}
+
+// ==========================================
+// BOOKING WITH FINANCIAL SPLIT DATA
+// ==========================================
+
+export interface BookingFinancials {
+  total_cents: number;           // What the client pays
+  platform_fee_cents: number;    // Platform's cut
+  expert_share_cents: number;    // What the NURD receives
+  partner_share_cents: number;   // 15% of platform fee to affiliate
+  stripe_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  payout_status: 'pending' | 'processing' | 'completed' | 'failed';
+}
+
+// ==========================================
+// VERIFICATION STATUS (Ballerine Integration)
+// ==========================================
+
+export type VerificationLevel = 'unverified' | 'pending' | 'verified' | 'rejected';
+
+export interface VerificationData {
+  verification_status: VerificationLevel;
+  verification_id: string | null;
+  verified_at: Timestamp | null;
+  verification_provider: 'ballerine' | 'manual';
+  verification_documents: string[]; // Cloud Storage paths
+}
+
+// ==========================================
+// CONCIERGE AI CONTEXT
+// ==========================================
+
+export interface ConciergeQuery {
+  query: string;
+  user_id?: string;
+  context: {
+    current_page: string;
+    user_role?: 'client' | 'nurd' | 'partner' | 'admin';
+    location?: string;
+  };
+}
+
+export interface ConciergeResponse {
+  response: string;
+  suggested_actions: Array<{
+    type: 'search' | 'navigate' | 'calculate';
+    label: string;
+    payload: any;
+  }>;
+  related_categories?: string[];
+  related_professionals?: string[];
+}
+
+// --- NERVOUS SYSTEM (AGENTS) ---
+
+export interface AgentState {
+  id: string; // e.g., 'finder-ang', 'acheevy-core'
+  name: string;
+  role: 'orchestrator' | 'finder' | 'maker' | 'debugger' | 'visualizer';
+  status: 'active' | 'idle' | 'busy' | 'offline' | 'error';
+  current_task_id?: string;
+  last_heartbeat: string; // ISO date
+  capabilities: string[];
+  metrics: {
+    tasks_completed: number;
+    uptime_seconds: number;
+    error_count: number;
+  };
+}
+
+export interface AgentTask {
+  id: string;
+  type: string; // e.g., 'research_request', 'code_generation'
+  target_agent_id?: string; // If null, Orchestrator delegates
+  status: 'queued' | 'in_progress' | 'completed' | 'failed';
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  payload: any; // The input data (prompt, constraints)
+  result?: any; // The output data
+  error?: string;
+  created_by: string; // User ID or System
+  created_at: string;
+  started_at?: string;
+  completed_at?: string;
+  logs: string[]; // Progression logs for the UI
+}
+
+export interface SystemBreaker {
+  id: string;
+  name: string;
+  category: 'core' | 'external' | 'financial';
+  is_active: boolean; // TRUE = Circuit Closed (Working), FALSE = Open (Broken/Off)
+  load_percentage: number;
+  last_trip?: string;
+}

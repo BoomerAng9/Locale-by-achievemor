@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Locale by: ACHIEVEMOR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              carbon: {
+                900: '#121212', // Main Background
+                800: '#1A1D21', // Card Background
+                700: '#2A2D31', // Borders
+                600: '#3F4246', // Inputs
+              },
+              locale: {
+                blue: '#3B82F6', // Primary Action
+                darkBlue: '#2563EB',
+                lightBlue: '#60A5FA',
+                success: '#10B981',
+              }
+            },
+            boxShadow: {
+              'glow': '0 0 20px -5px rgba(59, 130, 246, 0.5)',
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        background-color: #121212;
+        color: #e2e8f0;
+        margin: 0;
+        min-height: 100vh;
+      }
+      .glass-panel {
+        background: rgba(26, 29, 33, 0.8);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      #root:empty::before {
+        content: 'Initializing Locale...';
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        color: #3B82F6;
+        letter-spacing: 0.1em;
+        animation: pulse 1.5s infinite;
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
+      }
+      /* Runtime Error Overlay */
+      #error-display {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: #121212;
+        color: #ef4444;
+        padding: 2rem;
+        z-index: 9999;
+        font-family: 'JetBrains Mono', monospace;
+        overflow: auto;
+      }
+    </style>
+    <!-- Global Error Handler -->
+    <script>
+      window.addEventListener('error', function(event) {
+        const errorDisplay = document.getElementById('error-display');
+        if (errorDisplay) {
+          errorDisplay.style.display = 'block';
+          errorDisplay.innerHTML = '<h1 style="font-size:1.5rem; margin-bottom:1rem; border-bottom:1px solid #333; padding-bottom:0.5rem">Runtime Error</h1><pre style="white-space:pre-wrap; background:#1A1D21; padding:1rem; border-radius:0.5rem">' + event.message + '</pre><p style="margin-top:1rem; color:#888">Check console for full stack trace.</p>';
+        }
+      });
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.2.0",
+    "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "react-router-dom": "https://esm.sh/react-router-dom@6.22.3?external=react,react-dom",
+    "firebase/app": "https://esm.sh/firebase@10.8.1/app",
+    "firebase/auth": "https://esm.sh/firebase@10.8.1/auth",
+    "firebase/firestore": "https://esm.sh/firebase@10.8.1/firestore"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+    <div id="error-display"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>
+

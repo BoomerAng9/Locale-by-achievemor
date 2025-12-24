@@ -1,0 +1,7 @@
+{
+  "name": "Locale by: ACHIEVEMOR",
+  "description": "The professional freelance marketplace connecting local and remote talent. Features 'Garage to Global' progression, Localator earnings calculator, and AI-powered support.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
