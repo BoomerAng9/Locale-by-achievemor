@@ -128,38 +128,50 @@ export async function callGeminiDirect(
     return mockChatResponse(messages);
   }
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: messages.map(m => ({
-            role: m.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: m.content }],
-          })),
-          systemInstruction: systemInstruction ? {
-            parts: [{ text: systemInstruction }]
-          } : undefined,
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 500,
-          }
-        }),
+  // Try multiple model endpoints
+  const models = ['gemini-1.5-flash-latest', 'gemini-pro', 'gemini-1.5-flash'];
+  
+  for (const model of models) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: messages.map(m => ({
+              role: m.role === 'assistant' ? 'model' : 'user',
+              parts: [{ text: m.content }],
+            })),
+            systemInstruction: systemInstruction ? {
+              parts: [{ text: systemInstruction }]
+            } : undefined,
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 500,
+            }
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          console.log(`[Gemini] Success with model: ${model}`);
+          return text;
+        }
+      } else {
+        console.warn(`[Gemini] Model ${model} returned ${response.status}, trying next...`);
       }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`);
+    } catch (error) {
+      console.warn(`[Gemini] Model ${model} failed, trying next...`);
     }
-
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'I could not generate a response.';
-  } catch (error) {
-    console.error('[Gemini] API call failed:', error);
-    return mockChatResponse(messages);
   }
+  
+  // All models failed, use mock
+  console.error('[Gemini] All models failed, using mock response');
+  return mockChatResponse(messages);
 }
 
 /**
