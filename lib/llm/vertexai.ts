@@ -38,7 +38,7 @@ export async function callConciergeAI(
   query: ConciergeQuery
 ): Promise<ConciergeResponse> {
   try {
-    // Try to call the Cloud Run backend
+    // Try to call the Cloud Run backend first
     const response = await fetch('/api/ai/concierge', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -55,9 +55,62 @@ export async function callConciergeAI(
 
     return await response.json();
   } catch (error) {
-    console.warn('[Concierge] Backend unavailable, using local inference');
+    console.warn('[Concierge] Backend unavailable, trying direct Gemini API');
+    
+    // Try direct Gemini API call
+    const apiKey = getApiKey();
+    if (apiKey) {
+      try {
+        const geminiResponse = await callGeminiDirect(
+          [{ role: 'user', content: query.query, id: Date.now().toString(), timestamp: Date.now() }],
+          CONCIERGE_SYSTEM_PROMPT
+        );
+        
+        return {
+          response: geminiResponse,
+          suggested_actions: detectSuggestedActions(query.query),
+          related_categories: detectCategories(query.query),
+        };
+      } catch (geminiError) {
+        console.warn('[Concierge] Direct Gemini failed, using mock');
+      }
+    }
+    
     return mockConciergeResponse(query);
   }
+}
+
+// Helper to detect suggested actions from query
+function detectSuggestedActions(query: string): Array<{type: 'search' | 'navigate' | 'calculate'; label: string; payload: any}> {
+  const q = query.toLowerCase();
+  const actions: Array<{type: 'search' | 'navigate' | 'calculate'; label: string; payload: any}> = [];
+  
+  if (q.includes('rate') || q.includes('price') || q.includes('earn')) {
+    actions.push({ type: 'navigate', label: 'Open Localator', payload: '/localator' });
+  }
+  if (q.includes('find') || q.includes('talent') || q.includes('search')) {
+    actions.push({ type: 'search', label: 'Find Talent', payload: { query: query } });
+  }
+  if (q.includes('verify')) {
+    actions.push({ type: 'navigate', label: 'Start Verification', payload: '/verification' });
+  }
+  
+  return actions.length > 0 ? actions : [
+    { type: 'navigate', label: 'Explore', payload: '/explore' }
+  ];
+}
+
+// Helper to detect relevant categories
+function detectCategories(query: string): string[] {
+  const q = query.toLowerCase();
+  const categories = [];
+  
+  if (q.includes('web') || q.includes('code') || q.includes('develop')) categories.push('Technology');
+  if (q.includes('design') || q.includes('creative')) categories.push('Design');
+  if (q.includes('market') || q.includes('growth')) categories.push('Marketing');
+  if (q.includes('verify') || q.includes('trust')) categories.push('Trust');
+  
+  return categories.length > 0 ? categories : ['General'];
 }
 
 /**
@@ -114,15 +167,17 @@ export async function callGeminiDirect(
  */
 function getApiKey(): string | null {
   try {
+    // Vite environment variable (browser)
+    if (typeof (import.meta as any).env !== 'undefined') {
+      const viteKey = (import.meta as any).env.VITE_GEMINI_API_KEY;
+      if (viteKey) return viteKey;
+    }
+    // Node.js environment
     if (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) {
       return process.env.GEMINI_API_KEY;
     }
-    // Check for Vite-injected env
-    if (typeof process !== 'undefined' && process.env?.API_KEY) {
-      return process.env.API_KEY;
-    }
   } catch (e) {
-    // Browser environment without process.env
+    // Browser environment without proper env access
   }
   return null;
 }
