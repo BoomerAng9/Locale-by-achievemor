@@ -31,91 +31,47 @@ AVAILABLE ACTIONS YOU CAN SUGGEST:
 CONTEXT: You are on a freelance marketplace connecting local and remote talent. Users progress from Garage (new) → Community (verified) → Global (established).`;
 
 /**
- * Call Vertex AI / Gemini API for chat completion
- * Uses the Gemini API format compatible with Cloud Run
+ * Call OpenRouter API for chat completion (Primary AI Backend)
  */
-export async function callConciergeAI(
-  query: ConciergeQuery
-): Promise<ConciergeResponse> {
-  try {
-    // Try to call the Cloud Run backend first
-    const response = await fetch('/api/ai/concierge', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: query.query,
-        context: query.context,
-        system_prompt: CONCIERGE_SYSTEM_PROMPT,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Concierge API unavailable');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.warn('[Concierge] Backend unavailable, trying direct Gemini API');
-    
-    // Try direct Gemini API call
-    const apiKey = getApiKey();
-    if (apiKey) {
-      try {
-        const geminiResponse = await callGeminiDirect(
-          [{ role: 'user', content: query.query, id: Date.now().toString(), timestamp: Date.now() }],
-          CONCIERGE_SYSTEM_PROMPT
-        );
-        
-        return {
-          response: geminiResponse,
-          suggested_actions: detectSuggestedActions(query.query),
-          related_categories: detectCategories(query.query),
-        };
-      } catch (geminiError) {
-        console.warn('[Concierge] Direct Gemini failed, using mock');
-      }
-    }
-    
-    return mockConciergeResponse(query);
-  }
-}
-
-// Helper to detect suggested actions from query
-function detectSuggestedActions(query: string): Array<{type: 'search' | 'navigate' | 'calculate'; label: string; payload: any}> {
-  const q = query.toLowerCase();
-  const actions: Array<{type: 'search' | 'navigate' | 'calculate'; label: string; payload: any}> = [];
+async function callOpenRouter(
+  messages: ChatMessage[],
+  systemInstruction?: string
+): Promise<string> {
+  const apiKey = (import.meta as any).env?.VITE_OPENROUTER_API_KEY;
   
-  if (q.includes('rate') || q.includes('price') || q.includes('earn')) {
-    actions.push({ type: 'navigate', label: 'Open Localator', payload: '/localator' });
+  if (!apiKey) {
+    throw new Error('OpenRouter API key not found');
   }
-  if (q.includes('find') || q.includes('talent') || q.includes('search')) {
-    actions.push({ type: 'search', label: 'Find Talent', payload: { query: query } });
-  }
-  if (q.includes('verify')) {
-    actions.push({ type: 'navigate', label: 'Start Verification', payload: '/verification' });
-  }
-  
-  return actions.length > 0 ? actions : [
-    { type: 'navigate', label: 'Explore', payload: '/explore' }
-  ];
-}
 
-// Helper to detect relevant categories
-function detectCategories(query: string): string[] {
-  const q = query.toLowerCase();
-  const categories = [];
-  
-  if (q.includes('web') || q.includes('code') || q.includes('develop')) categories.push('Technology');
-  if (q.includes('design') || q.includes('creative')) categories.push('Design');
-  if (q.includes('market') || q.includes('growth')) categories.push('Marketing');
-  if (q.includes('verify') || q.includes('trust')) categories.push('Trust');
-  
-  return categories.length > 0 ? categories : ['General'];
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': window.location.origin,
+      'X-Title': 'Locale Concierge'
+    },
+    body: JSON.stringify({
+      model: 'anthropic/claude-3-haiku:beta',
+      messages: [
+        ...(systemInstruction ? [{ role: 'system', content: systemInstruction }] : []),
+        ...messages.map(m => ({ role: m.role, content: m.content }))
+      ],
+      temperature: 0.7,
+      max_tokens: 500
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenRouter API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0]?.message?.content || 'I apologize, but I couldn\'t generate a response right now.';
 }
 
 /**
- * Direct Gemini API call (for environments with API key)
- * Uses process.env.GEMINI_API_KEY
+ * Call Vertex AI / Gemini API for chat completion (Fallback)
  */
 export async function callGeminiDirect(
   messages: ChatMessage[],
@@ -124,8 +80,7 @@ export async function callGeminiDirect(
   const apiKey = getApiKey();
   
   if (!apiKey) {
-    console.warn('[Gemini] No API key found, using mock response');
-    return mockChatResponse(messages);
+    throw new Error('Gemini API key not found');
   }
 
   // Try multiple model endpoints
@@ -169,13 +124,84 @@ export async function callGeminiDirect(
     }
   }
   
-  // All models failed, use mock
-  console.error('[Gemini] All models failed, using mock response');
-  return mockChatResponse(messages);
+  throw new Error('All Gemini models failed');
 }
 
 /**
- * Safely get API key from environment
+ * Call Concierge AI with OpenRouter as primary, Gemini as fallback
+ */
+export async function callConciergeAI(
+  query: ConciergeQuery
+): Promise<ConciergeResponse> {
+  try {
+    // Try OpenRouter first
+    const openRouterResponse = await callOpenRouter(
+      [{ role: 'user', content: query.query, id: Date.now().toString(), timestamp: Date.now() }],
+      CONCIERGE_SYSTEM_PROMPT
+    );
+    
+    return {
+      response: openRouterResponse,
+      suggested_actions: detectSuggestedActions(query.query),
+      related_categories: detectCategories(query.query),
+    };
+  } catch (error) {
+    console.warn('[Concierge] OpenRouter failed, trying Gemini fallback');
+    
+    try {
+      const geminiResponse = await callGeminiDirect(
+        [{ role: 'user', content: query.query, id: Date.now().toString(), timestamp: Date.now() }],
+        CONCIERGE_SYSTEM_PROMPT
+      );
+      
+      return {
+        response: geminiResponse,
+        suggested_actions: detectSuggestedActions(query.query),
+        related_categories: detectCategories(query.query),
+      };
+    } catch (geminiError) {
+      console.warn('[Concierge] Gemini fallback failed, using mock');
+      return mockConciergeResponse(query);
+    }
+  }
+}
+
+// Helper to detect suggested actions from query
+function detectSuggestedActions(query: string): Array<{type: 'search' | 'navigate' | 'calculate'; label: string; payload: any}> {
+  const q = query.toLowerCase();
+  const actions: Array<{type: 'search' | 'navigate' | 'calculate'; label: string; payload: any}> = [];
+  
+  if (q.includes('rate') || q.includes('price') || q.includes('earn')) {
+    actions.push({ type: 'navigate', label: 'Open Localator', payload: '/localator' });
+  }
+  if (q.includes('find') || q.includes('talent') || q.includes('search')) {
+    actions.push({ type: 'search', label: 'Find Talent', payload: { query: query } });
+  }
+  if (q.includes('verify')) {
+    actions.push({ type: 'navigate', label: 'Start Verification', payload: '/verification' });
+  }
+  
+  return actions.length > 0 ? actions : [
+    { type: 'navigate', label: 'Explore', payload: '/explore' }
+  ];
+}
+
+// Helper to detect relevant categories
+function detectCategories(query: string): string[] {
+  const q = query.toLowerCase();
+  const categories = [];
+  
+  if (q.includes('web') || q.includes('code') || q.includes('develop')) categories.push('Technology');
+  if (q.includes('design') || q.includes('creative')) categories.push('Design');
+  if (q.includes('market') || q.includes('growth')) categories.push('Marketing');
+  if (q.includes('verify') || q.includes('trust')) categories.push('Trust');
+  
+  return categories.length > 0 ? categories : ['General'];
+}
+
+/**
+ * Direct Gemini API call (for environments with API key)
+ * Uses process.env.GEMINI_API_KEY
  */
 function getApiKey(): string | null {
   try {

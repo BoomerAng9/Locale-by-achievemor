@@ -11,6 +11,8 @@ import { AgentState, AgentTask } from '../../lib/firestore/schema';
 import { subscribeToAgents, subscribeToTaskQueue, dispatchTask, registerAgentHeartbeat, subscribeToBreakers, updateBreakerState } from '../../lib/agents/manager';
 import { PROCESS_FINDER_TASK } from '../../lib/agents/finder';
 import { PROCESS_THESYS_TASK } from '../../lib/agents/thesys';
+import { AI_PLUG_REGISTRY, AIPlug } from '../../lib/ai-plugs/registry';
+import { aiPlugEngine } from '../../lib/ai-plugs/engine';
 
 import SystemLogsViewer from './SystemLogsViewer';
 
@@ -47,7 +49,7 @@ const CircuitBox: React.FC = () => {
   const [agents, setAgents] = useState<AgentState[]>([]);
   const [tasks, setTasks] = useState<AgentTask[]>([]);
   const [breakers, setBreakers] = useState<CircuitBreaker[]>(DEFAULT_BREAKERS);
-  const [activeTab, setActiveTab] = useState<'overview' | 'wiring' | 'logs'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'wiring' | 'ai-plugs' | 'logs'>('overview');
   
   // Real-time subscriptions
   useEffect(() => {
@@ -134,7 +136,7 @@ const CircuitBox: React.FC = () => {
            </p>
         </div>
         <div className="flex gap-2">
-           {['overview', 'wiring', 'logs'].map(tab => (
+           {['overview', 'wiring', 'ai-plugs', 'logs'].map(tab => (
              <button
                key={tab}
                onClick={() => setActiveTab(tab as any)}
@@ -144,7 +146,7 @@ const CircuitBox: React.FC = () => {
                    : 'bg-carbon-800 text-gray-500 hover:text-white'
                }`}
              >
-               {tab.toUpperCase()}
+               {tab === 'ai-plugs' ? 'AI PLUGS' : tab.toUpperCase()}
              </button>
            ))}
         </div>
@@ -386,6 +388,134 @@ const CircuitBox: React.FC = () => {
                  </table>
               </div>
            </div>
+        </div>
+      )}
+
+      {activeTab === 'ai-plugs' && (
+        <div className="space-y-8">
+          {/* AI Plugs Overview */}
+          <div className="bg-gradient-to-br from-carbon-800 to-carbon-900 border border-carbon-700 rounded-2xl p-6">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-purple-500">🔌</span>
+              AI Plug Registry
+              <span className="text-gray-500 text-sm font-normal ml-2">// 100 Automated Business Ideas</span>
+            </h3>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-carbon-900/50 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-white">{AI_PLUG_REGISTRY.length}</div>
+                <div className="text-xs text-gray-500 uppercase">Total Plugs</div>
+              </div>
+              <div className="bg-carbon-900/50 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-green-400">
+                  {AI_PLUG_REGISTRY.filter(p => p.status === 'active').length}
+                </div>
+                <div className="text-xs text-gray-500 uppercase">Active</div>
+              </div>
+              <div className="bg-carbon-900/50 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-blue-400">
+                  {AI_PLUG_REGISTRY.reduce((sum, p) => sum + p.metrics.totalExecutions, 0)}
+                </div>
+                <div className="text-xs text-gray-500 uppercase">Total Executions</div>
+              </div>
+              <div className="bg-carbon-900/50 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-yellow-400">
+                  ${AI_PLUG_REGISTRY.reduce((sum, p) => sum + p.metrics.revenueGenerated, 0).toFixed(2)}
+                </div>
+                <div className="text-xs text-gray-500 uppercase">Revenue Generated</div>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Plugs by Category */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              'content-creation',
+              'legal-compliance',
+              'ecommerce-retail',
+              'marketing-seo',
+              'voice-chatbots',
+              'education-training',
+              'healthcare-wellness',
+              'finance-accounting',
+              'real-estate',
+              'hr-recruiting',
+              'creative-media',
+              'operations-workflow'
+            ].map(category => {
+              const categoryPlugs = AI_PLUG_REGISTRY.filter(p => p.category === category);
+              const activePlugs = categoryPlugs.filter(p => p.status === 'active');
+
+              return (
+                <div key={category} className="bg-carbon-800 border border-carbon-700 rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-bold text-white capitalize">
+                      {category.replace('-', ' ')}
+                    </h4>
+                    <span className="text-xs bg-carbon-900 text-gray-400 px-2 py-1 rounded">
+                      {activePlugs.length}/{categoryPlugs.length}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {categoryPlugs.slice(0, 3).map(plug => (
+                      <div key={plug.id} className="flex items-center justify-between p-3 bg-carbon-900/50 rounded-lg">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-300 truncate">
+                            {plug.name}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {plug.metrics.totalExecutions} executions
+                          </div>
+                        </div>
+                        <div className={`w-2 h-2 rounded-full ${
+                          plug.status === 'active' ? 'bg-green-500' :
+                          plug.status === 'standby' ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}></div>
+                      </div>
+                    ))}
+
+                    {categoryPlugs.length > 3 && (
+                      <div className="text-xs text-gray-500 text-center pt-2 border-t border-carbon-700">
+                        +{categoryPlugs.length - 3} more plugs
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Top Performing Plugs */}
+          <div className="bg-carbon-800 border border-carbon-700 rounded-2xl p-6">
+            <h3 className="text-lg font-bold text-white mb-4">Top Performing AI Plugs</h3>
+            <div className="space-y-3">
+              {AI_PLUG_REGISTRY
+                .sort((a, b) => b.metrics.revenueGenerated - a.metrics.revenueGenerated)
+                .slice(0, 10)
+                .map((plug, index) => (
+                  <div key={plug.id} className="flex items-center justify-between p-3 bg-carbon-900/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-bold text-gray-500 w-6">#{index + 1}</span>
+                      <div>
+                        <div className="text-sm font-medium text-white">{plug.name}</div>
+                        <div className="text-xs text-gray-500 capitalize">
+                          {plug.category.replace('-', ' ')}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-green-400">
+                        ${plug.metrics.revenueGenerated.toFixed(2)}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {plug.metrics.totalExecutions} exec
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
         </div>
       )}
 

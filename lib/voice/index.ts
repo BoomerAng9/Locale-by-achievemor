@@ -6,6 +6,7 @@
 
 // ElevenLabs Configuration
 const ELEVENLABS_API_KEY = (import.meta as any).env?.VITE_ELEVENLABS_API_KEY;
+const DEEPGRAM_API_KEY = (import.meta as any).env?.VITE_DEEPGRAM_API_KEY;
 
 // === VOICE LIBRARY ===
 // Human-sounding premium voices from ElevenLabs
@@ -115,8 +116,58 @@ export const listenToSpeech = async (onTranscript: (text: string) => void): Prom
         return;
     }
 
+    // Try Deepgram first if API key is available
+    if (DEEPGRAM_API_KEY) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            const audioChunks: Blob[] = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const formData = new FormData();
+                formData.append('audio', audioBlob);
+
+                try {
+                    const response = await fetch('https://api.deepgram.com/v1/listen?model=nova-2&smart_format=true', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Token ${DEEPGRAM_API_KEY}`,
+                        },
+                        body: formData,
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const transcript = data.results?.channels?.[0]?.alternatives?.[0]?.transcript;
+                        if (transcript) {
+                            onTranscript(transcript);
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.warn("Deepgram STT failed, falling back to Web Speech API");
+                }
+
+                // Stop all tracks
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            // Start recording for 5 seconds
+            mediaRecorder.start();
+            setTimeout(() => mediaRecorder.stop(), 5000);
+            return;
+        } catch (error) {
+            console.warn("Deepgram setup failed, falling back to Web Speech API");
+        }
+    }
+
+    // Fallback to Web Speech API
     try {
-        // Using Web Speech API as fallback (Deepgram would need backend for secure key handling)
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         
         if (!SpeechRecognition) {

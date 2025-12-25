@@ -7,12 +7,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { callConciergeAI } from '../../lib/llm/vertexai';
 import { listenToSpeech, speakText, getSelectedVoice, VOICE_LIBRARY } from '../../lib/voice';
+import { AI_PLUG_REGISTRY, searchPlugs } from '../../lib/ai-plugs/registry';
+import { aiPlugEngine } from '../../lib/ai-plugs/engine';
 import type { ConciergeResponse } from '../../lib/firestore/schema';
 import { useLocation, useNavigate } from 'react-router-dom';
 import VoiceSelector from '../voice/VoiceSelector';
 
 interface SuggestedAction {
-  type: 'search' | 'navigate' | 'calculate';
+  type: 'search' | 'navigate' | 'calculate' | 'ai-plug';
   label: string;
   payload: any;
 }
@@ -25,6 +27,9 @@ const ConciergeBot: React.FC = () => {
   const [showVoicePanel, setShowVoicePanel] = useState(false);
   const [currentVoice, setCurrentVoice] = useState(getSelectedVoice());
   const [response, setResponse] = useState<ConciergeResponse | null>(null);
+  const [showAIPlugs, setShowAIPlugs] = useState(false);
+  const [aiPlugSearch, setAiPlugSearch] = useState('');
+  const [executingPlug, setExecutingPlug] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -45,6 +50,90 @@ const ConciergeBot: React.FC = () => {
       });
   };
 
+  const enhanceWithAIPlugs = async (result: ConciergeResponse, query: string): Promise<ConciergeResponse> => {
+    // Find relevant AI Plugs based on the query
+    const relevantPlugs = findRelevantAIPlugs(query);
+
+    if (relevantPlugs.length > 0) {
+      const aiPlugActions: SuggestedAction[] = relevantPlugs.slice(0, 3).map(plug => ({
+        type: 'ai-plug' as const,
+        label: `Execute: ${plug.name}`,
+        payload: { plugId: plug.id, plugName: plug.name }
+      }));
+
+      return {
+        ...result,
+        suggested_actions: [
+          ...result.suggested_actions,
+          ...aiPlugActions
+        ]
+      };
+    }
+
+    return result;
+  };
+
+  const findRelevantAIPlugs = (query: string): typeof AI_PLUG_REGISTRY => {
+    const queryLower = query.toLowerCase();
+
+    // Keyword mapping for better matching
+    const keywordMap: Record<string, string[]> = {
+      'content': ['content-creation'],
+      'blog': ['content-blog-generator'],
+      'social': ['social-media-manager'],
+      'video': ['video-script-writer'],
+      'email': ['email-copy-generator'],
+      'product': ['product-description-writer'],
+      'ad': ['ad-copy-generator'],
+      'legal': ['legal-compliance'],
+      'contract': ['contract-generator'],
+      'compliance': ['compliance-checker'],
+      'ecommerce': ['ecommerce-retail'],
+      'shop': ['ecommerce-retail'],
+      'retail': ['ecommerce-retail'],
+      'marketing': ['marketing-seo'],
+      'seo': ['seo-optimizer'],
+      'ads': ['google-ads-manager'],
+      'chatbot': ['voice-chatbots'],
+      'voice': ['voice-chatbots'],
+      'education': ['education-training'],
+      'training': ['education-training'],
+      'health': ['healthcare-wellness'],
+      'finance': ['finance-accounting'],
+      'accounting': ['finance-accounting'],
+      'real estate': ['real-estate'],
+      'property': ['real-estate'],
+      'hr': ['hr-recruiting'],
+      'recruiting': ['hr-recruiting'],
+      'creative': ['creative-media'],
+      'media': ['creative-media'],
+      'operations': ['operations-workflow'],
+      'workflow': ['operations-workflow']
+    };
+
+    // Find matching categories and specific plugs
+    const matchingPlugs: typeof AI_PLUG_REGISTRY = [];
+
+    for (const [keyword, targets] of Object.entries(keywordMap)) {
+      if (queryLower.includes(keyword)) {
+        targets.forEach(target => {
+          if (target.includes('-')) {
+            // It's a category
+            const categoryPlugs = AI_PLUG_REGISTRY.filter(p => p.category === target);
+            matchingPlugs.push(...categoryPlugs);
+          } else {
+            // It's a specific plug ID
+            const plug = AI_PLUG_REGISTRY.find(p => p.id === target);
+            if (plug) matchingPlugs.push(plug);
+          }
+        });
+      }
+    }
+
+    // Remove duplicates and return top matches
+    return [...new Set(matchingPlugs)].slice(0, 5);
+  };
+
   const handleSubmit = async (e: React.FormEvent, overrideQuery?: string) => {
     e.preventDefault();
     const activeQuery = overrideQuery || query;
@@ -60,13 +149,17 @@ const ConciergeBot: React.FC = () => {
           current_page: location.pathname,
         },
       });
-      setResponse(result);
-      
+
+      // Enhance response with AI Plug suggestions
+      const enhancedResult = await enhanceWithAIPlugs(result, activeQuery.trim());
+
+      setResponse(enhancedResult);
+
       // Auto-Speak Response with selected voice
-      if (result.response) {
-          speakText(result.response);
+      if (enhancedResult.response) {
+          speakText(enhancedResult.response);
       }
-      
+
     } catch (error) {
       console.error('[Concierge] Error:', error);
       setResponse({
