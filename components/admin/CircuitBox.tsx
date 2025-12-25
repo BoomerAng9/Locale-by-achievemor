@@ -13,6 +13,7 @@ import { PROCESS_FINDER_TASK } from '../../lib/agents/finder';
 import { PROCESS_THESYS_TASK } from '../../lib/agents/thesys';
 import { AI_PLUG_REGISTRY, AIPlug } from '../../lib/ai-plugs/registry';
 import { aiPlugEngine } from '../../lib/ai-plugs/engine';
+import { delegationManager, DelegationRequest } from '../../lib/ai-plugs/delegation';
 
 import SystemLogsViewer from './SystemLogsViewer';
 
@@ -50,6 +51,15 @@ const CircuitBox: React.FC = () => {
   const [tasks, setTasks] = useState<AgentTask[]>([]);
   const [breakers, setBreakers] = useState<CircuitBreaker[]>(DEFAULT_BREAKERS);
   const [activeTab, setActiveTab] = useState<'overview' | 'wiring' | 'ai-plugs' | 'logs'>('overview');
+  const [delegations, setDelegations] = useState<DelegationRequest[]>([]);
+  const [delegationStats, setDelegationStats] = useState({
+    totalDelegations: 0,
+    completed: 0,
+    failed: 0,
+    pending: 0,
+    inProgress: 0,
+    averageCompletionTime: 0
+  });
   
   // Real-time subscriptions
   useEffect(() => {
@@ -95,10 +105,16 @@ const CircuitBox: React.FC = () => {
         setBreakers(merged);
      });
 
+     // 4. Track delegation updates (poll every 2 seconds)
+     const delegationInterval = setInterval(() => {
+        setDelegationStats(delegationManager.getStatistics());
+     }, 2000);
+
      return () => {
         unsubAgents();
         unsubTasks();
         unsubBreakers();
+        clearInterval(delegationInterval);
      };
   }, []);
 
@@ -393,6 +409,42 @@ const CircuitBox: React.FC = () => {
 
       {activeTab === 'ai-plugs' && (
         <div className="space-y-8">
+          {/* Delegation System Status */}
+          <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-700/50 rounded-2xl p-6">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <span className="text-purple-400">🔀</span>
+              AI Delegation System
+              <span className="text-gray-500 text-sm font-normal ml-2">// Task Distribution to Boomer_Ang</span>
+            </h3>
+
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+              <div className="bg-purple-900/20 border border-purple-700/30 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-purple-300">{delegationStats.totalDelegations}</div>
+                <div className="text-xs text-gray-400 uppercase">Total Tasks</div>
+              </div>
+              <div className="bg-blue-900/20 border border-blue-700/30 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-blue-300">{delegationStats.inProgress}</div>
+                <div className="text-xs text-gray-400 uppercase">In Progress</div>
+              </div>
+              <div className="bg-green-900/20 border border-green-700/30 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-green-300">{delegationStats.completed}</div>
+                <div className="text-xs text-gray-400 uppercase">Completed</div>
+              </div>
+              <div className="bg-yellow-900/20 border border-yellow-700/30 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-yellow-300">{delegationStats.pending}</div>
+                <div className="text-xs text-gray-400 uppercase">Pending</div>
+              </div>
+              <div className="bg-red-900/20 border border-red-700/30 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-red-300">{delegationStats.failed}</div>
+                <div className="text-xs text-gray-400 uppercase">Failed</div>
+              </div>
+              <div className="bg-orange-900/20 border border-orange-700/30 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-orange-300">{delegationStats.averageCompletionTime}s</div>
+                <div className="text-xs text-gray-400 uppercase">Avg Time</div>
+              </div>
+            </div>
+          </div>
+
           {/* AI Plugs Overview */}
           <div className="bg-gradient-to-br from-carbon-800 to-carbon-900 border border-carbon-700 rounded-2xl p-6">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">

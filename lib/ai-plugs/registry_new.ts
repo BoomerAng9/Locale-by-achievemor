@@ -104,24 +104,3 @@ import { ALL_AI_PLUGS } from './comprehensive-registry';
 
 // Export the comprehensive registry as the main AI_PLUG_REGISTRY
 export const AI_PLUG_REGISTRY: AIPlug[] = ALL_AI_PLUGS;
-// Helper functions
-export const getPlugById = (id: string): AIPlug | undefined => {
-  return AI_PLUG_REGISTRY.find(plug => plug.id === id);
-};
-
-export const getPlugsByCategory = (category: string): AIPlug[] => {
-  return AI_PLUG_REGISTRY.filter(plug => plug.category === category);
-};
-
-export const getPlugsByAccessLevel = (accessLevel: 'ownership' | 'partners' | 'clients'): AIPlug[] => {
-  return AI_PLUG_REGISTRY.filter(plug => plug.accessLevel === accessLevel);
-};
-
-export const searchPlugs = (query: string): AIPlug[] => {
-  const lowerQuery = query.toLowerCase();
-  return AI_PLUG_REGISTRY.filter(plug =>
-    plug.name.toLowerCase().includes(lowerQuery) ||
-    plug.description.toLowerCase().includes(lowerQuery) ||
-    plug.category.toLowerCase().includes(lowerQuery)
-  );
-};
