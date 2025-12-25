@@ -30,6 +30,7 @@ import AdminControlPanel from './components/admin/AdminControlPanel';
 import AboutPage from './components/pages/AboutPage';
 import GarageToGlobalPage from './components/pages/GarageToGlobalPage';
 import PlaygroundPage from './components/pages/PlaygroundPage'; 
+import TaskWorkspace from './components/workspace/TaskWorkspace'; 
 
 // --- DATA ENRICHMENT ---
 const ENHANCED_PROFILES: Profile[] = MOCK_PROFILES.map((p, i) => ({
@@ -370,6 +371,9 @@ const App = () => {
             <Route path="/admin/circuit-box" element={<CircuitBox />} />
             <Route path="/admin/control-panel" element={<AdminControlPanel />} />
             <Route path="/admin" element={<Navigate to="/admin/control-panel" replace />} />
+            
+            {/* AI Task Workspace - Manus-style Thinking UI */}
+            <Route path="/workspace" element={<TaskWorkspace />} />
 
             {/* Legal */}
             <Route path="/legal/terms" element={<Terms />} />
