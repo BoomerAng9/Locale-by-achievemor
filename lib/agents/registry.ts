@@ -20,69 +20,69 @@ export const AGENT_REGISTRY: BoomerAng[] = [
     name: 'ACHEEVY',
     role: 'orchestrator',
     repo_source: 'ii-agent',
-    description: 'Main Orchestrator powered by II-Agent framework. Delegates tasks to specialized Angs.',
+    description: 'Master Orchestrator. Manages the nervous system and delegates tasks.',
     status: 'active',
     capabilities: ['Task Delegation', 'Context Management', 'User Intent Analysis'],
     icon: '🤖'
   },
   {
-    id: 'finder-ang',
-    name: 'Finder_Ang',
-    role: 'finder',
-    repo_source: 'ii-researcher',
-    description: 'Deep research and information retrieval agent.',
-    status: 'standby',
-    capabilities: ['Web Search', 'Data Scrape', 'Fact Checking'],
-    icon: '🔍'
+    id: 'voice-agent',
+    name: 'Voice Agent',
+    role: 'finder', // harnessing 'finder' role for input/output for now
+    repo_source: 'eleven-labs-integration',
+    description: 'Handles STT/TTS and voice stream processing.',
+    status: 'active',
+    capabilities: ['Speech-to-Text', 'Text-to-Speech', 'Voice Cloning'],
+    icon: '🎙️'
   },
   {
-    id: 'execution-ang',
-    name: 'Execution_Ang',
+    id: 'code-gen-agent',
+    name: 'Code Generation Agent',
     role: 'maker',
     repo_source: 'codex-as-mcp',
-    description: 'Coding and execution agent running in terminal/container.',
+    description: 'Generates and refactors code across the stack.',
     status: 'active',
-    capabilities: ['Code Generation', 'Script Execution', 'File Manipulation'],
+    capabilities: ['Code Generation', 'Refactoring', 'Unit Testing'],
     icon: '⚡'
   },
   {
-    id: 'debugger-ang',
-    name: 'Debugger_Ang',
-    role: 'debugger',
-    repo_source: 'litellm-debugger',
-    description: 'Monitors LLM calls and traces errors.',
+    id: 'backend-agent',
+    name: 'Backend Agent',
+    role: 'maker',
+    repo_source: 'firebase-functions',
+    description: 'Manages API endpoints, database schemas, and serverless functions.',
     status: 'active',
-    capabilities: ['Error Tracing', 'API Logging', 'Cost Analysis'],
-    icon: '🐞'
+    capabilities: ['API Design', 'DB Schema', 'Serverless'],
+    icon: '⚙️'
   },
   {
-    id: 'viz-ang',
-    name: 'Presentation_Ang',
-    role: 'visualizer',
-    repo_source: 'PPTist',
-    description: 'Generates visual presentations and slides.',
-    status: 'offline',
-    capabilities: ['Slide Generation', 'Chart Creation', 'Layout Design'],
-    icon: '📊'
-  },
-  {
-    id: 'trae-ang',
-    name: 'Trae_Ang',
+    id: 'frontend-agent',
+    name: 'Frontend Agent',
     role: 'maker',
-    repo_source: 'trae-agent',
-    description: 'Specialized coding agent. Generates React components and backend functions.',
-    status: 'standby',
-    capabilities: ['code_gen', 'refactoring', 'react', 'typescript'],
-    icon: '👨‍💻'
+    repo_source: 'react-shadcn',
+    description: 'Constructs UI components and manages client-side state.',
+    status: 'active',
+    capabilities: ['React', 'CSS/Tailwind', 'State Management'],
+    icon: '🎨'
   },
   {
-    id: 'thesys-ang',
-    name: 'Thesys_Ang', // C1 System
-    role: 'maker',
-    repo_source: 'c1-thesys',
-    description: 'Deliverables Architect. Manages Client build-outs and implementation plans.',
+    id: 'testing-agent',
+    name: 'Testing Agent',
+    role: 'debugger',
+    repo_source: 'playwright-suite',
+    description: 'Runs E2E tests and verifies system integrity.',
     status: 'standby',
-    capabilities: ['project_planning', 'doc_generation', 'deliverables', 'architecture'],
-    icon: '📐'
+    capabilities: ['E2E Testing', 'Visual Regression', 'Load Testing'],
+    icon: '🧪'
+  },
+  {
+    id: 'deploy-agent',
+    name: 'Deploy Agent',
+    role: 'maker',
+    repo_source: 'firebase-tools',
+    description: 'Manages CI/CD pipelines and deployment targets (Firebase/GCP).',
+    status: 'standby',
+    capabilities: ['CI/CD', 'Hosting Config', 'Environment Sync'],
+    icon: '🚀'
   }
 ];

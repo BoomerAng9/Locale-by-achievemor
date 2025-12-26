@@ -1,11 +1,12 @@
 /**
- * Voice Interface for Locale - Enhanced with Human Voices
- * Handles Text-to-Speech (ElevenLabs) and Speech-to-Text (Deepgram/WebSpeech)
- * Supports voice selection and custom voice cloning
+ * Voice Agent Integration (ElevenLabs & Deepgram)
+ * Handles TTS (ElevenLabs) and STT (Deepgram)
+ * NO HARDCODING - All API keys from environment variables
  */
 
-// ElevenLabs Configuration
-const ELEVENLABS_API_KEY = (import.meta as any).env?.VITE_ELEVENLABS_API_KEY;
+// === API KEYS FROM ENVIRONMENT ===
+const ELEVENLABS_API_KEY = import.meta.env.VITE_ELEVENLABS_API_KEY || '';
+const DEEPGRAM_API_KEY = import.meta.env.VITE_DEEPGRAM_API_KEY || '';
 
 // === VOICE LIBRARY ===
 // Human-sounding premium voices from ElevenLabs
@@ -46,10 +47,10 @@ export const setCustomVoiceId = (voiceId: string): void => {
     localStorage.setItem('acheevy_custom_voice_id', voiceId);
 };
 
-// === TEXT-TO-SPEECH ===
+// === TEXT-TO-SPEECH (ElevenLabs) ===
 export const speakText = async (text: string, voiceOverride?: string): Promise<void> => {
     if (!ELEVENLABS_API_KEY) {
-        console.warn("ElevenLabs API Key missing, using browser TTS fallback");
+        console.warn("[Voice] ElevenLabs API Key missing, using browser TTS fallback");
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.rate = 1.0;
         utterance.pitch = 1.0;
@@ -71,6 +72,7 @@ export const speakText = async (text: string, voiceOverride?: string): Promise<v
     }
 
     try {
+        console.log('[Voice] Calling ElevenLabs TTS...');
         const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
             method: 'POST',
             headers: {
@@ -100,27 +102,107 @@ export const speakText = async (text: string, voiceOverride?: string): Promise<v
         
         audio.onended = () => URL.revokeObjectURL(audioUrl);
         await audio.play();
+        console.log('[Voice] TTS playback started');
     } catch (err) {
-        console.error("TTS Failed:", err);
+        console.error("[Voice] TTS Failed:", err);
         // Fallback to browser TTS
         const utterance = new SpeechSynthesisUtterance(text);
         window.speechSynthesis.speak(utterance);
     }
 };
 
-// === SPEECH-TO-TEXT ===
+// === SPEECH-TO-TEXT (Deepgram) ===
 export const listenToSpeech = async (onTranscript: (text: string) => void): Promise<void> => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.warn("Browser does not support audio recording");
+        console.warn("[Voice] Browser does not support audio recording");
+        // Fallback to Web Speech immediately if media devices not available
+        fallbackToWebSpeech(onTranscript);
         return;
     }
 
+    // If Deepgram API key is available, use Deepgram SDK
+    if (DEEPGRAM_API_KEY) {
+        try {
+            console.log('[Voice] Using Deepgram SDK...');
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            const audioChunks: Blob[] = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                
+                try {
+                    // Dynamic import to avoid SSR issues if any, though likely client-side only
+                    const { createClient } = await import('@deepgram/sdk');
+                    const deepgram = createClient(DEEPGRAM_API_KEY);
+
+                    console.log('[Voice] Sending audio to Deepgram...');
+                    // Cast to any to avoid TypeScript error as SDK types seem to favor Node.js Buffer
+                    const source = audioBlob as any; 
+                    
+                    const { result, error } = await deepgram.listen.prerecorded.transcribeFile(
+                        source,
+                        {
+                            model: 'nova-2',
+                            smart_format: true,
+                            mimetype: 'audio/webm',
+                        }
+                    );
+
+                    if (error) {
+                        console.error('[Voice] Deepgram error:', error);
+                        throw new Error(error.message);
+                    }
+
+                    const transcript = result?.results?.channels?.[0]?.alternatives?.[0]?.transcript || '';
+                    console.log('[Voice] Deepgram transcript:', transcript);
+                    if (transcript) {
+                        onTranscript(transcript);
+                    } else {
+                        console.warn('[Voice] No transcript received');
+                    }
+
+                } catch (err) {
+                    console.error('[Voice] Deepgram STT failed:', err);
+                    // Could fallback to Web Speech here if needed, but better to show error
+                }
+
+                // Stop all tracks
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            // Record for 5 seconds then stop
+            // TODO: In future, implement VAD (Voice Activity Detection) or manual stop
+            mediaRecorder.start();
+            setTimeout(() => {
+                if (mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+            }, 5000);
+
+            return;
+        } catch (err) {
+            console.error('[Voice] Deepgram setup failed, falling back to Web Speech API:', err);
+            fallbackToWebSpeech(onTranscript);
+        }
+    } else {
+        fallbackToWebSpeech(onTranscript);
+    }
+};
+
+// Fallback Helper
+const fallbackToWebSpeech = (onTranscript: (text: string) => void) => {
     try {
-        // Using Web Speech API as fallback (Deepgram would need backend for secure key handling)
+        console.log('[Voice] Using Web Speech API fallback...');
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         
         if (!SpeechRecognition) {
-            console.warn("Speech recognition not supported");
+            console.warn("[Voice] Speech recognition not supported in this browser");
+            alert("Voice input not supported in this browser. Please type your query.");
             return;
         }
 
@@ -132,16 +214,17 @@ export const listenToSpeech = async (onTranscript: (text: string) => void): Prom
 
         recognition.onresult = (event: any) => {
             const transcript = event.results[0][0].transcript;
+            console.log('[Voice] Web Speech transcript:', transcript);
             onTranscript(transcript);
         };
 
         recognition.onerror = (event: any) => {
-            console.error("Speech recognition error:", event.error);
+            console.error("[Voice] Speech recognition error:", event.error);
         };
 
         recognition.start();
     } catch (err) {
-        console.error("STT Failed:", err);
+        console.error("[Voice] STT Failed:", err);
     }
 };
 
@@ -152,7 +235,7 @@ export const createVoiceClone = async (
     description?: string
 ): Promise<string | null> => {
     if (!ELEVENLABS_API_KEY) {
-        console.error("ElevenLabs API Key required for voice cloning");
+        console.error("[Voice] ElevenLabs API Key required for voice cloning");
         return null;
     }
 
@@ -160,7 +243,7 @@ export const createVoiceClone = async (
     formData.append('name', name);
     formData.append('description', description || 'Custom ACHEEVY voice');
     
-    audioFiles.forEach((file, index) => {
+    audioFiles.forEach((file) => {
         formData.append('files', file);
     });
 
@@ -175,7 +258,7 @@ export const createVoiceClone = async (
 
         if (!response.ok) {
             const error = await response.json();
-            console.error("Voice clone failed:", error);
+            console.error("[Voice] Clone failed:", error);
             return null;
         }
 
@@ -187,7 +270,7 @@ export const createVoiceClone = async (
         
         return voiceId;
     } catch (err) {
-        console.error("Voice cloning error:", err);
+        console.error("[Voice] Cloning error:", err);
         return null;
     }
 };
@@ -203,11 +286,18 @@ export const previewVoice = async (voiceKey: string): Promise<void> => {
     await speakText(text, voiceKey);
 };
 
+// === CHECK API STATUS ===
+export const getVoiceApiStatus = () => ({
+    elevenlabs: !!ELEVENLABS_API_KEY,
+    deepgram: !!DEEPGRAM_API_KEY,
+});
+
 export default {
     speakText,
     listenToSpeech,
     createVoiceClone,
     previewVoice,
+    getVoiceApiStatus,
     VOICE_LIBRARY,
     DEFAULT_VOICE,
     getSelectedVoice,

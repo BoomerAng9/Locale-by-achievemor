@@ -62,9 +62,13 @@ const ConciergeBot: React.FC = () => {
       });
       setResponse(result);
       
-      // Auto-Speak Response with selected voice
+      // Auto-Speak Response with selected voice (non-blocking)
       if (result.response) {
+        try {
           speakText(result.response);
+        } catch (ttsError) {
+          console.warn('[Concierge] TTS error (non-fatal):', ttsError);
+        }
       }
       
     } catch (error) {
@@ -77,6 +81,7 @@ const ConciergeBot: React.FC = () => {
       setIsLoading(false);
     }
   };
+
 
   const handleAction = (action: SuggestedAction) => {
     switch (action.type) {

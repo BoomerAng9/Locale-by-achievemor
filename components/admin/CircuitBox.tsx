@@ -1,401 +1,386 @@
 /**
- * The Circuit Box - Central Command for Nervous System
- * Controls all AI Agents (Boomer_Angs) and System Modules
- * 
- * PRODUCTION MODE: Connected to Firestore 'agent_registry'
+ * Circuit Box - System Management Interface
+ * Refactored to match High-Fidelity "Metallic/Industrial" Design
  */
 
 import React, { useState, useEffect } from 'react';
 import { AGENT_REGISTRY } from '../../lib/agents/registry';
 import { AgentState, AgentTask } from '../../lib/firestore/schema';
-import { subscribeToAgents, subscribeToTaskQueue, dispatchTask, registerAgentHeartbeat, subscribeToBreakers, updateBreakerState } from '../../lib/agents/manager';
-import { PROCESS_FINDER_TASK } from '../../lib/agents/finder';
-import { PROCESS_THESYS_TASK } from '../../lib/agents/thesys';
+import { subscribeToAgents, subscribeToTaskQueue, updateBreakerState } from '../../lib/agents/manager';
 
-import SystemLogsViewer from './SystemLogsViewer';
+// --- Types & Mock Data for UI Panels ---
 
-interface CircuitBreaker {
+interface BreakerSwitch {
   id: string;
   name: string;
-  category: 'core' | 'external' | 'financial';
-  is_active: boolean; // Changed from status to match schema
-  load_percentage: number;
+  category: 'core' | 'financial' | 'external' | 'voice' | 'infra';
+  isOn: boolean;
+  status: 'healthy' | 'warning' | 'error';
+  lastCheck?: string;
+  meta?: any; // Extra data like "load", "cost", etc.
 }
 
-const DEFAULT_BREAKERS: CircuitBreaker[] = [
-    { id: 'auth', name: 'Auth System', category: 'core', is_active: true, load_percentage: 12 },
-    { id: 'vertex', name: 'LLM Gateway (Multi-Model)', category: 'core', is_active: true, load_percentage: 45 }, // Gemini/Claude/OpenRouter
-    { id: 'db', name: 'Firestore Sync', category: 'core', is_active: true, load_percentage: 23 },
-    
-    // Financial
-    { id: 'stripe', name: 'Global Payments Router', category: 'financial', is_active: true, load_percentage: 5 }, // Stripe/PayPal
-    { id: 'payouts', name: 'Payout Engine', category: 'financial', is_active: true, load_percentage: 0 },
-    
-    // External Tools
-    { id: 'voice_synth', name: 'Voice Synthesis Engine', category: 'external', is_active: true, load_percentage: 15 }, // ElevenLabs
-    { id: 'voice_recog', name: 'Voice Recognition Relay', category: 'external', is_active: true, load_percentage: 8 }, // Deepgram
-    { id: 'serverless', name: 'Serverless Compute Grid', category: 'external', is_active: true, load_percentage: 2 }, // Modal
-    { id: 'comms', name: 'Comms Relay (Email/Chat)', category: 'external', is_active: true, load_percentage: 1 }, // Resend/Telegram
+const MOCK_BREAKERS: BreakerSwitch[] = [
+    // Panel 3: External Integrations
+    { id: 'stripe', name: 'Stripe (Payments)', category: 'financial', isOn: true, status: 'healthy' },
+    { id: 'github', name: 'GitHub', category: 'external', isOn: true, status: 'healthy' },
+    { id: 'gcp_functions', name: 'GCP Functions', category: 'infra', isOn: true, status: 'healthy' },
+    { id: 'postgres', name: 'PostgreSQL Database', category: 'core', isOn: true, status: 'healthy' },
+    { id: 'websocket', name: 'WebSocket Service', category: 'core', isOn: true, status: 'healthy' },
 
-    // C1 System
-    { id: 'c1_system', name: 'C1 Implementation Core', category: 'core', is_active: true, load_percentage: 30 }, // C1 Thesys
+    // Panel 4: Voice
+    { id: 'voice_stt', name: 'Scribe STT', category: 'voice', isOn: true, status: 'healthy' },
+    { id: 'voice_tts', name: 'TTS Circuit', category: 'voice', isOn: true, status: 'healthy' },
+    { id: 'voice_stream', name: 'Real-time Streaming', category: 'voice', isOn: true, status: 'healthy' },
 
-    { id: 'ballerine', name: 'Identity Verification', category: 'external', is_active: true, load_percentage: 8 },
+    { id: 'cloud_run', name: 'GCP Cloud Run', category: 'infra', isOn: true, status: 'healthy', meta: { lastCheck: '3m ago' } },
+    { id: 'firebase_hosting', name: 'Firebase Hosting', category: 'infra', isOn: true, status: 'healthy', meta: { lastCheck: '3m ago' } },
+    { id: 'function_deploy', name: 'Function Deployment', category: 'infra', isOn: true, status: 'healthy', meta: { lastCheck: '3m ago' } },
+    { id: 'db_backup', name: 'Database Backups', category: 'core', isOn: true, status: 'healthy', meta: { lastCheck: '3m ago' } },
+    { id: 'health_check', name: 'Health Check Circuit', category: 'core', isOn: true, status: 'healthy', meta: { lastCheck: '3m ago' } },
 ];
 
-const CircuitBox: React.FC = () => {
-  const [agents, setAgents] = useState<AgentState[]>([]);
-  const [tasks, setTasks] = useState<AgentTask[]>([]);
-  const [breakers, setBreakers] = useState<CircuitBreaker[]>(DEFAULT_BREAKERS);
-  const [activeTab, setActiveTab] = useState<'overview' | 'wiring' | 'logs'>('overview');
-  
-  // Real-time subscriptions
-  useEffect(() => {
-     // 1. Subscribe to Agent Registry
-     const unsubAgents = subscribeToAgents((updatedAgents) => {
-        const fullList = AGENT_REGISTRY.map(staticAgent => {
-           const live = updatedAgents.find(a => a.id === staticAgent.id);
-           return live || { 
-              ...staticAgent, 
-              last_heartbeat: new Date().toISOString(), 
-              metrics: { tasks_completed: 0, uptime_seconds: 0, error_count: 0 } 
-           } as AgentState;
-        });
-        setAgents(fullList);
-     });
+const REPO_GRID = Array.from({ length: 17 }).map((_, i) => ({
+    id: `repo-${i+1}`,
+    name: i === 0 ? 'Repo 1 - Core' : i === 1 ? 'Repo 2 - UI' : `Repo ${i+1} - Mod`,
+    status: i === 2 ? 'error' : i === 1 ? 'warning' : 'healthy', // Mock some errors
+    lastSync: i < 5 ? 'Just now' : '3m ago',
+    errors: i === 2 ? 3 : 0
+}));
 
-     // 2. Subscribe to Active Task Queue
-     const unsubTasks = subscribeToTaskQueue((updatedTasks) => {
-        setTasks(updatedTasks);
-        
-        // --- SIMULATION RUNNER ---
-        // automatically process queued tasks for demo agents
-        updatedTasks.forEach(t => {
-            if (t.status === 'queued') {
-                if (t.target_agent_id === 'finder-ang') {
-                    PROCESS_FINDER_TASK(t.id);
-                } else if (t.target_agent_id === 'thesys-ang') {
-                    PROCESS_THESYS_TASK(t.id);
-                }
-            }
-        });
-     });
+// --- Sub-Components ---
 
-     // 3. Subscribe to System Breakers
-     const unsubBreakers = subscribeToBreakers((updatedBreakers) => {
-        if (updatedBreakers.length === 0) return; // Keep defaults if empty
-        
-        // Merge defaults with live data
-        const merged = DEFAULT_BREAKERS.map(def => {
-            const live = updatedBreakers.find(b => b.id === def.id);
-            return live ? { ...def, ...live } : def;
-        });
-        setBreakers(merged);
-     });
+const PanelHeader = ({ title, subTitle }: { title: string, subTitle?: string }) => (
+    <div className="bg-gray-300 border-b-2 border-gray-400 p-2 flex items-center justify-between shadow-sm">
+        <h3 className="text-gray-800 font-bold text-xs uppercase tracking-tighter">{title}</h3>
+        {subTitle && <span className="text-[10px] text-gray-600 font-mono">{subTitle}</span>}
+        <div className="w-2 h-2 rounded-full bg-gray-400/50 box-shadow-inner"></div>
+    </div>
+);
 
-     return () => {
-        unsubAgents();
-        unsubTasks();
-        unsubBreakers();
-     };
-  }, []);
-
-  const toggleBreaker = async (id: string, currentStatus: boolean) => {
-    // Optimistic update
-    setBreakers(prev => prev.map(b => b.id === id ? { ...b, is_active: !currentStatus } : b));
-    await updateBreakerState(id, !currentStatus);
-  };
-
-  const toggleAgent = async (id: string, currentStatus: string) => {
-     // In production, this sets a 'desired_status' flag in DB that the agent reads.
-     // For now, we simulate the agent responding to a command by updating its heartbeat status directly.
-     const newStatus = currentStatus === 'active' ? 'offline' : 'active';
-     await registerAgentHeartbeat(id, newStatus);
-  };
-
-  const handleTestDispatch = async () => {
-     const taskId = await dispatchTask('research_request', { query: 'React developers in Austin, TX' }, 'finder-ang');
-     console.log('Task Dispatched:', taskId);
-     // Simulate the "Worker" picking it up (since we don't have the Python script running)
-     setTimeout(() => PROCESS_FINDER_TASK(taskId), 2000); 
-  };
-
-  return (
-    <div className="min-h-screen bg-carbon-900 text-white p-6 pb-20">
-      {/* Header */}
-      <div className="mb-8 flex justify-between items-end">
-        <div>
-           <h1 className="text-4xl font-black text-white mb-2 tracking-tighter flex items-center gap-3">
-             <span className="text-orange-500">⚡</span> CIRCUIT BOX
-           </h1>
-           <p className="text-gray-400 font-mono text-sm max-w-xl">
-             INTERNAL OPERATIONS // NERVOUS SYSTEM CONTROL<br/>
-             Authorized Personnel Only. Orchestrated by ACHEEVY.
-           </p>
-        </div>
-        <div className="flex gap-2">
-           {['overview', 'wiring', 'logs'].map(tab => (
-             <button
-               key={tab}
-               onClick={() => setActiveTab(tab as any)}
-               className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
-                 activeTab === tab 
-                   ? 'bg-locale-blue text-white shadow-lg shadow-locale-blue/20' 
-                   : 'bg-carbon-800 text-gray-500 hover:text-white'
-               }`}
-             >
-               {tab.toUpperCase()}
-             </button>
-           ))}
-        </div>
-      </div>
-
-      {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Main Orchestrator */}
-          <div className="md:col-span-2 bg-gradient-to-br from-carbon-800 to-carbon-900 border border-carbon-700 rounded-2xl p-6 relative overflow-hidden group">
-             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <svg className="w-64 h-64 text-locale-blue" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg>
-             </div>
-             
-             <div className="relative z-10 flex items-start gap-6">
-                <div className="w-24 h-24 rounded-2xl bg-black border-2 border-locale-blue flex items-center justify-center text-5xl shadow-[0_0_30px_rgba(59,130,246,0.3)] animate-pulse">
-                   🤖
-                </div>
-                <div>
-                   <h2 className="text-2xl font-bold text-white mb-1">ACHEEVY <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded ml-2 align-middle">ONLINE</span></h2>
-                   <p className="text-locale-blue font-mono text-sm mb-4">Master Orchestrator // ii-agent framework</p>
-                   <p className="text-gray-400 text-sm max-w-md leading-relaxed">
-                      Monitoring system health. Delegating tasks to {agents.filter(a => a.status === 'active' && a.role !== 'orchestrator').length} active Boomer_Angs.
-                      Running Tasks: <span className="text-white font-bold">{tasks.length}</span>
-                   </p>
-                </div>
-             </div>
-             
-             {/* Quick Stats */}
-             <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-carbon-700/50">
-                <div>
-                   <div className="text-xs text-gray-500 uppercase tracking-wide">System Load</div>
-                   <div className="text-2xl font-mono text-white">14%</div>
-                </div>
-                <div>
-                   <div className="text-xs text-gray-500 uppercase tracking-wide">Active Threads</div>
-                   <div className="text-2xl font-mono text-locale-blue">{tasks.length}</div>
-                </div>
-                <div>
-                   <div className="text-xs text-gray-500 uppercase tracking-wide">Uptime</div>
-                   <div className="text-2xl font-mono text-green-400">99.9%</div>
-                </div>
-             </div>
-          </div>
-
-          {/* System Health / Breakers Summary */}
-          <div className="bg-carbon-800 border-l-4 border-orange-500 rounded-r-2xl p-6">
-             <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-                Active Breakers
-             </h3>
-             <div className="space-y-4">
-               {breakers.slice(0, 5).map(breaker => (
-                 <div key={breaker.id} className="flex items-center justify-between group">
-                    <span className={`text-sm ${breaker.is_active ? 'text-gray-300' : 'text-gray-600 line-through'}`}>{breaker.name}</span>
-                    <div className="flex items-center gap-2">
-                       {breaker.is_active && <span className="text-xs font-mono text-orange-500/80">{breaker.load_percentage}%</span>}
-                       <div className={`w-3 h-3 rounded-full ${breaker.is_active ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-red-900'}`}></div>
-                    </div>
-                 </div>
-               ))}
-             </div>
-             <button 
-                onClick={() => setActiveTab('wiring')}
-                className="mt-6 w-full py-2 bg-carbon-700 hover:bg-carbon-600 text-xs font-bold uppercase tracking-wider rounded transition-colors"
-             >
-                Configure Wiring
-             </button>
-             
-             {/* TEST DISPATCH BUTTON */}
-             <button 
-                onClick={handleTestDispatch}
-                className="mt-2 w-full py-2 bg-locale-blue/20 hover:bg-locale-blue/30 text-locale-blue text-xs font-bold uppercase tracking-wider rounded transition-colors border border-locale-blue/50"
-             >
-                Test Dispatch: Finder_Ang
-             </button>
-          </div>
-
-          {/* New: Pricing Tiers / Plans Check */}
-          <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-             {['Free', 'Coffee ($9)', 'Community', 'Pro'].map((tier, i) => (
-                <div key={tier} className="bg-carbon-800 border border-carbon-700 p-4 rounded-xl flex items-center justify-between">
-                   <span className="font-bold text-gray-300">{tier}</span>
-                   <span className="px-2 py-0.5 bg-green-500/10 text-green-400 text-xs rounded border border-green-500/20">ACTIVE</span>
-                </div>
-             ))}
-          </div>
-          
-          {/* Recent Tasks List */}
-          {tasks.length > 0 && (
-            <div className="md:col-span-3 bg-carbon-800 border border-carbon-700 rounded-xl p-6">
-                <h3 className="text-white font-bold mb-4">Live Task Queue</h3>
-                <div className="space-y-2">
-                    {tasks.map(task => (
-                        <div key={task.id} className="bg-carbon-900/50 p-3 rounded flex flex-col gap-2">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <span className={`text-xs px-2 py-1 rounded uppercase font-bold mr-3 ${
-                                        task.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400' :
-                                        task.status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400'
-                                    }`}>
-                                        {task.status}
-                                    </span>
-                                    <span className="text-sm font-mono text-gray-300">{task.type}</span>
-                                    <span className="text-xs text-gray-500 ml-2">via {task.target_agent_id}</span>
-                                </div>
-                                <div className="text-xs text-gray-500 font-mono">
-                                    {task.created_at.split('T')[1].split('.')[0]}
-                                </div>
-                            </div>
-                            
-                            {/* Result Preview (Thesys Output) */}
-                            {task.target_agent_id === 'thesys-ang' && task.status === 'completed' && task.result && (
-                                <div className="mt-2 p-3 bg-black/40 rounded border border-carbon-700 text-xs font-mono text-green-400 overflow-hidden">
-                                    <strong>Build Plan Generated:</strong>
-                                    <pre className="mt-1 whitespace-pre-wrap">{task.result.replace(/\\n/g, '\n').slice(0, 300)}...</pre>
-                                </div>
-                            )}
-                        </div>
-                    ))}
+const ToggleSwitch = ({ isOn, onToggle, label }: { isOn: boolean, onToggle: () => void, label?: string }) => (
+    <div className="flex items-center justify-between gap-3 bg-gray-800/90 rounded-md p-2 border border-gray-600 shadow-inner">
+        {label && <span className="text-gray-300 font-bold text-[10px] uppercase truncate max-w-[80px]">{label}</span>}
+        <button 
+            onClick={onToggle}
+            className={`relative w-12 h-6 rounded-sm transition-all shadow-md group ${isOn ? 'bg-green-600' : 'bg-red-900'}`}
+        >
+            <div className={`absolute top-0.5 bottom-0.5 w-[45%] bg-gray-200 rounded-sm transition-all shadow-sm ${isOn ? 'right-0.5' : 'left-0.5'}`}>
+                {/* Switch texture */}
+                <div className="absolute inset-0 flex items-center justify-center gap-[1px]">
+                   <div className="w-[1px] h-3 bg-gray-400"></div>
+                   <div className="w-[1px] h-3 bg-gray-400"></div>
+                   <div className="w-[1px] h-3 bg-gray-400"></div>
                 </div>
             </div>
-          )}
-
-        </div>
-      )}
-
-      {activeTab === 'wiring' && (
-        <div className="space-y-8">
-           
-           {/* Section 1: Boomer_Angs (Agents) */}
-           <div>
-              <h3 className="text-xl font-bold text-white mb-4 pl-2 border-l-4 border-locale-blue">
-                 Boomer_Angs <span className="text-gray-500 text-sm font-normal ml-2">// AI Agent Fleet</span>
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {agents.filter(a => a.role !== 'orchestrator').map(agent => (
-                    <div key={agent.id} className={`relative bg-carbon-800 border ${agent.status === 'active' ? 'border-locale-blue/50' : 'border-carbon-700'} rounded-2xl p-6 transition-all`}>
-                       {agent.status === 'active' && <div className="absolute top-3 right-3 w-2 h-2 bg-locale-blue rounded-full animate-ping"></div>}
-                       
-                       <div className="flex items-center gap-4 mb-4">
-                          <div className="text-3xl bg-carbon-900 w-12 h-12 flex items-center justify-center rounded-xl border border-carbon-700">
-                             {/* Emoji Icon based on role if missing */}
-                             {agent.role === 'finder' ? '🔍' : agent.role === 'debugger' ? '🐞' : '⚡'}
-                          </div>
-                          <div>
-                             <h4 className="font-bold text-white">{agent.name}</h4>
-                             <p className="text-xs text-locale-blue font-mono uppercase">{agent.role}</p>
-                          </div>
-                       </div>
-                       
-                       {/* Agent Metrics */}
-                       <div className="grid grid-cols-3 gap-2 mb-4 text-center">
-                          <div className="bg-carbon-900 rounded p-1">
-                             <div className="text-[10px] text-gray-500">TASKS</div>
-                             <div className="text-xs font-bold text-white">{agent.metrics?.tasks_completed || 0}</div>
-                          </div>
-                          <div className="bg-carbon-900 rounded p-1">
-                              <div className="text-[10px] text-gray-500">ERRORS</div>
-                              <div className="text-xs font-bold text-red-400">{agent.metrics?.error_count || 0}</div>
-                          </div>
-                          <div className="bg-carbon-900 rounded p-1">
-                              <div className="text-[10px] text-gray-500">PING</div>
-                              <div className="text-xs font-bold text-green-400">OK</div>
-                          </div>
-                       </div>
-                       
-                       <div className="mb-4 flex flex-wrap gap-1">
-                          {agent.capabilities?.map(cap => (
-                             <span key={cap} className="text-[10px] px-2 py-0.5 bg-carbon-900 text-gray-500 rounded border border-carbon-700">
-                                {cap}
-                             </span>
-                          ))}
-                       </div>
-
-                       <div className="flex items-center justify-between pt-4 border-t border-carbon-700">
-                          <div className="text-xs font-mono text-gray-600">
-                             ID: {agent.id}
-                          </div>
-                          <button 
-                             onClick={() => toggleAgent(agent.id, agent.status)}
-                             className={`px-3 py-1 rounded text-xs font-bold uppercase transition-colors ${
-                                agent.status === 'active' 
-                                  ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' 
-                                  : 'bg-green-500/10 text-green-400 hover:bg-green-500/20'
-                             }`}
-                          >
-                             {agent.status === 'active' ? 'Disable' : 'Activate'}
-                          </button>
-                       </div>
-                    </div>
-                 ))}
-              </div>
-           </div>
-
-           {/* Section 2: System Breakers */}
-           <div>
-              <h3 className="text-xl font-bold text-white mb-4 pl-2 border-l-4 border-orange-500">
-                 System Breakers <span className="text-gray-500 text-sm font-normal ml-2">// Manual Overrides</span>
-              </h3>
-              <div className="bg-carbon-800 rounded-2xl border border-carbon-700 overflow-hidden">
-                 <table className="w-full text-left">
-                    <thead className="bg-black/20 text-xs uppercase text-gray-500 font-mono">
-                       <tr>
-                          <th className="px-6 py-3">Module</th>
-                          <th className="px-6 py-3">Category</th>
-                          <th className="px-6 py-3">Load</th>
-                          <th className="px-6 py-3 text-right">State</th>
-                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-carbon-700">
-                       {breakers.map(breaker => (
-                          <tr key={breaker.id} className="hover:bg-active-row transition-colors">
-                             <td className="px-6 py-4 font-bold text-gray-300">{breaker.name}</td>
-                             <td className="px-6 py-4">
-                                <span className={`text-xs px-2 py-1 rounded uppercase font-bold
-                                   ${breaker.category === 'core' ? 'bg-purple-500/10 text-purple-400' : 
-                                     breaker.category === 'financial' ? 'bg-green-500/10 text-green-400' : 'bg-blue-500/10 text-blue-400'}
-                                `}>
-                                   {breaker.category}
-                                </span>
-                             </td>
-                             <td className="px-6 py-4 font-mono text-sm text-gray-500">
-                                <div className="w-24 h-1.5 bg-carbon-900 rounded-full overflow-hidden">
-                                   <div className={`h-full ${breaker.load_percentage > 80 ? 'bg-red-500' : 'bg-locale-blue'}`} style={{width: `${breaker.load_percentage}%`}}></div>
-                                </div>
-                             </td>
-                             <td className="px-6 py-4 text-right">
-                                <button
-                                   onClick={() => toggleBreaker(breaker.id, breaker.is_active)}
-                                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${breaker.is_active ? 'bg-locale-blue' : 'bg-gray-700'}`}
-                                >
-                                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${breaker.is_active ? 'translate-x-6' : 'translate-x-1'}`} />
-                                </button>
-                             </td>
-                          </tr>
-                       ))}
-                    </tbody>
-                 </table>
-              </div>
-           </div>
-        </div>
-      )}
-
-      {activeTab === 'logs' && (
-        <div>
-           <SystemLogsViewer maxLogs={100} />
-        </div>
-      )}
+        </button>
     </div>
-  );
+);
+
+const DigitalStatus = ({ status }: { status: 'healthy' | 'warning' | 'error' }) => {
+    const color = status === 'healthy' ? 'bg-green-500' : status === 'warning' ? 'bg-yellow-500' : 'bg-red-500';
+    const text = status === 'healthy' ? 'HEALTHY' : status === 'warning' ? 'WARNING' : 'ERROR';
+    return (
+        <div className={`flex items-center gap-1 ${status === 'healthy' ? 'bg-green-900/40 text-green-400' : 'bg-red-900/40 text-red-400'} px-2 py-0.5 rounded border border-white/5`}>
+            <div className={`w-1.5 h-1.5 rounded-full ${color} animate-pulse`}></div>
+            <span className="text-[9px] font-bold tracking-wider">{text}</span>
+        </div>
+    );
+};
+
+const LoadBar = ({ load }: { load: number }) => (
+    <div className="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden border border-gray-700">
+        <div 
+            className={`h-full ${load < 50 ? 'bg-green-500' : load < 80 ? 'bg-yellow-500' : 'bg-red-500'} transition-all duration-500`} 
+            style={{ width: `${load}%` }}
+        ></div>
+    </div>
+);
+
+
+const CircuitBox: React.FC = () => {
+    const [agents, setAgents] = useState<AgentState[]>([]);
+    const [breakers, setBreakers] = useState<BreakerSwitch[]>(MOCK_BREAKERS);
+    const [selectedAgentId, setSelectedAgentId] = useState<string | null>('voice-agent');
+
+    // Subscribe to Agents
+    useEffect(() => {
+        const unsub = subscribeToAgents((liveAgents) => {
+            // Merge live data with registry static data
+            const merged = AGENT_REGISTRY.map(staticA => {
+                const live = liveAgents.find(la => la.id === staticA.id);
+                return live || { 
+                    ...staticA, 
+                    metrics: { tasks_completed: 0, uptime_seconds: 0, error_count: 0 },
+                    last_heartbeat: new Date().toISOString()
+                } as AgentState;
+            });
+            setAgents(merged);
+        });
+        return () => unsub();
+    }, []);
+
+    const toggleBreaker = (id: string) => {
+        setBreakers(prev => prev.map(b => {
+             if (b.id === id) {
+                 const newState = !b.isOn;
+                 // Fire and forget update
+                 updateBreakerState(id, newState); 
+                 return { ...b, isOn: newState };
+             }
+             return b;
+        }));
+    };
+
+    const getAgent = (id: string) => agents.find(a => a.id === id);
+    const selectedAgent = agents.find(a => a.id === selectedAgentId) || agents[0];
+
+    return (
+        <div className="min-h-screen bg-[#dcdde1] p-4 font-sans select-none overflow-hidden flex flex-col">
+            {/* --- TOP HEADER --- */}
+            <div className="flex justify-between items-center mb-4 bg-gray-300 border border-gray-400 rounded-lg p-2 shadow-sm">
+                <div className="flex items-center gap-3">
+                   <div className="bg-gray-800 p-2 rounded text-white">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                   </div>
+                   <div>
+                       <h1 className="text-xl font-black text-gray-700 tracking-tight uppercase">Circuit Box <span className="font-light text-gray-500">- System Management</span></h1>
+                       <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_5px_rgba(34,197,94,0.6)]"></span>
+                            <span className="text-[10px] font-bold text-green-600 tracking-widest uppercase">System Optimal</span>
+                       </div>
+                   </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    {/* Search/Filter Mock */}
+                    <div className="hidden md:flex flex-col gap-1 w-48">
+                        <div className="bg-gray-700 text-white text-[10px] px-2 py-1 rounded shadow-inner">Search...</div>
+                        <div className="flex gap-1">
+                            <div className="bg-gray-400 text-gray-700 text-[9px] px-2 py-0.5 rounded flex-1 font-bold">Status v</div>
+                            <div className="bg-gray-400 text-gray-700 text-[9px] px-2 py-0.5 rounded flex-1 font-bold">Category v</div>
+                        </div>
+                    </div>
+                    {/* Big Red Button Mock */}
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-red-800 shadow-xl border-4 border-gray-300 flex items-center justify-center cursor-pointer hover:scale-95 transition-transform active:scale-90">
+                        <div className="w-8 h-8 rounded-full border-2 border-red-300/30"></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* --- MAIN DASHBOARD GRID --- */}
+            <div className="flex-1 grid grid-cols-12 gap-3 pb-20 overflow-y-auto">
+                
+                {/* PANEL 1: AI AGENTS (Left Column) */}
+                <div className="col-span-12 md:col-span-3 bg-gray-200 border-2 border-gray-400 rounded-lg shadow-md flex flex-col">
+                    <PanelHeader title="AI Agents Panel" />
+                    <div className="p-2 space-y-2 flex-1 overflow-y-auto bg-[#cfd1d6]">
+                        {agents.filter(a => a.role !== 'orchestrator').map(agent => (
+                            <div 
+                                key={agent.id} 
+                                onClick={() => setSelectedAgentId(agent.id)}
+                                className={`group p-2 rounded border-2 transition-all cursor-pointer ${
+                                    selectedAgentId === agent.id 
+                                        ? 'bg-gray-700 border-gray-600 shadow-inner' 
+                                        : 'bg-gray-300 border-gray-400 hover:bg-gray-200'
+                                }`}
+                            >
+                                <div className="flex justify-between items-start mb-1">
+                                    <span className={`text-[11px] font-bold uppercase ${selectedAgentId === agent.id ? 'text-white' : 'text-gray-700'}`}>
+                                        {agent.name}
+                                    </span>
+                                    <div className={`w-2 h-2 rounded-full ${agent.status === 'active' ? 'bg-green-500' : 'bg-gray-500'}`}></div>
+                                </div>
+                                
+                                <div className="flex items-center gap-2 mb-2">
+                                    <ToggleSwitch isOn={agent.status === 'active'} onToggle={() => {}} />
+                                    <div className="flex-1">
+                                        <div className="flex justify-between text-[9px] text-gray-500 mb-0.5 font-mono">
+                                            <span>Active Load</span>
+                                            <span>{Math.floor(Math.random() * 80)}%</span>
+                                        </div>
+                                        <LoadBar load={Math.floor(Math.random() * 80)} />
+                                    </div>
+                                </div>
+                                <div className="text-[9px] text-gray-500 flex justify-between">
+                                    <span>Last activity: 10:05 AM</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* MIDDLE COLUMN (Panels 2, 3, 4, 5) */}
+                <div className="col-span-12 md:col-span-6 grid grid-rows-2 gap-3">
+                    
+                    {/* PANEL 2: REPOSITORIES (Top Row) */}
+                    <div className="row-span-1 bg-gray-600 border-2 border-gray-500 rounded-lg shadow-md flex flex-col">
+                        <PanelHeader title="Repositories Panel" subTitle="17 Intelligent Repos" />
+                        <div className="p-3 bg-[#2b2e35] flex-1">
+                            <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+                                {REPO_GRID.map((repo, i) => (
+                                    <div key={repo.id} className="bg-gray-800 rounded p-1 border border-gray-700 flex flex-col items-center justify-center min-h-[50px]">
+                                        <div className="flex items-center justify-between w-full px-1 mb-1">
+                                            <div className={`w-2 h-2 rounded-full ${repo.status === 'healthy' ? 'bg-green-500' : repo.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'}`}></div>
+                                            <div className="flex gap-0.5">
+                                                <div className="w-0.5 h-2 bg-gray-600"></div>
+                                                <div className="w-0.5 h-3 bg-gray-600"></div>
+                                                <div className="w-0.5 h-1 bg-gray-600"></div>
+                                            </div>
+                                        </div>
+                                        <span className="text-[9px] text-gray-400 font-mono leading-tight text-center">{repo.name}</span>
+                                        {repo.errors > 0 && (
+                                            <span className="mt-1 bg-red-900/80 text-white text-[8px] px-1 rounded font-bold">{repo.errors}</span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* BOTTOM ROW (Panels 3, 4, 5) */}
+                    <div className="row-span-1 grid grid-cols-3 gap-3">
+                         {/* Panel 3: External Integrations */}
+                         <div className="bg-gray-200 border-2 border-gray-400 rounded-lg flex flex-col">
+                            <PanelHeader title="External Integrations" />
+                            <div className="p-2 space-y-2 bg-[#cfd1d6] flex-1 overflow-y-auto">
+                                {breakers.filter(b => b.category === 'external' || b.category === 'financial').map(b => (
+                                    <div key={b.id} className="bg-gray-300/50 p-2 rounded border border-gray-400/50">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-[10px] font-bold text-gray-700">{b.name}</span>
+                                            <div className={`w-1.5 h-1.5 rounded-full ${b.status === 'healthy' ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <ToggleSwitch isOn={b.isOn} onToggle={() => toggleBreaker(b.id)} label="ON" />
+                                            <span className="text-[9px] font-bold text-green-700 bg-green-200 px-1 rounded">HEALTHY</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                         </div>
+
+                         {/* Panel 4: Voice & STT/TTS */}
+                         <div className="bg-gray-800 border-2 border-gray-600 rounded-lg flex flex-col">
+                            <div className="bg-gray-900 border-b border-gray-700 p-2 flex justify-between">
+                                <h3 className="text-gray-300 font-bold text-xs">VOICE & STT/TTS</h3>
+                            </div>
+                            <div className="p-2 space-y-3 bg-gray-800 flex-1">
+                                {breakers.filter(b => b.category === 'voice').map(b => (
+                                    <div key={b.id} className="bg-gray-900/50 p-2 rounded border border-gray-700/50">
+                                         <div className="text-[10px] text-gray-400 mb-1">{b.name}</div>
+                                         <div className="flex items-center justify-between">
+                                            <ToggleSwitch isOn={b.isOn} onToggle={() => toggleBreaker(b.id)} label="ACTIVE" />
+                                         </div>
+                                    </div>
+                                ))}
+                                {/* Voice Mock Controls */}
+                                <div className="space-y-1">
+                                     <div className="flex justify-between items-center text-[10px] text-gray-400">
+                                        <span>Latency monitor</span>
+                                        <div className="w-8 h-4 bg-gray-700 rounded-full border border-gray-500 relative"><div className="w-3 h-3 bg-white rounded-full absolute left-0.5 top-0.5"></div></div>
+                                     </div>
+                                     <div className="text-[10px] text-gray-500 font-mono">Latency: 50ms</div>
+                                </div>
+                            </div>
+                         </div>
+
+                         {/* Panel 5: Infrastructure */}
+                         <div className="bg-gray-200 border-2 border-gray-400 rounded-lg flex flex-col">
+                            <PanelHeader title="Deploy & Infra" />
+                            <div className="p-2 space-y-2 bg-[#cfd1d6] flex-1 overflow-y-auto">
+                                {breakers.filter(b => b.category === 'infra' || b.category === 'core').slice(0, 4).map(b => (
+                                    <div key={b.id} className="bg-white/40 p-1.5 rounded border border-gray-300 flex items-center justify-between">
+                                        <div>
+                                            <div className="text-[10px] font-bold text-gray-700 leading-tight">{b.name}</div>
+                                            <div className="text-[8px] text-gray-500">Last check: {b.meta?.lastCheck || '1m ago'}</div>
+                                        </div>
+                                        <ToggleSwitch isOn={b.isOn} onToggle={() => toggleBreaker(b.id)} />
+                                    </div>
+                                ))}
+                            </div>
+                         </div>
+                    </div>
+                </div>
+
+                {/* RIGHT COLUMN: DETAIL VIEW */}
+                <div className="col-span-12 md:col-span-3 bg-gray-300 border-2 border-gray-400 rounded-lg shadow-xl p-4 flex flex-col">
+                    <div className="bg-gradient-to-b from-gray-100 to-gray-300 border border-gray-400 rounded-lg p-6 flex flex-col items-center shadow-inner mb-4">
+                        {/* BIG SWITCH */}
+                        <div className="w-24 h-40 bg-gradient-to-br from-gray-200 to-gray-400 rounded-lg border-2 border-gray-500 shadow-xl flex items-center justify-center p-2">
+                             <div className={`w-full h-full rounded border border-gray-400/50 flex flex-col items-center justify-between p-2 shadow-inner transition-all ${
+                                 selectedAgent?.status === 'active' ? 'bg-gradient-to-b from-green-100 to-green-200' : 'bg-gradient-to-b from-gray-200 to-gray-300'
+                             }`}>
+                                 <span className="text-[10px] font-bold text-gray-500">ON</span>
+                                 <div className={`w-12 h-16 bg-gradient-to-b from-white to-gray-200 rounded shadow-md transform transition-transform border border-gray-300 ${
+                                     selectedAgent?.status === 'active' ? 'translate-y-2' : '-translate-y-2'
+                                 }`}>
+                                     <div className="w-full h-1 bg-gray-300 mt-2"></div>
+                                     <div className="w-full h-1 bg-gray-300 mt-1"></div>
+                                 </div>
+                                 <span className="text-[10px] font-bold text-gray-500">OFF</span>
+                             </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-[#2b2e35] rounded-lg p-4 text-white flex-1 border border-gray-600 shadow-inner">
+                        <h2 className="text-center font-bold text-lg mb-1">{selectedAgent?.name}</h2>
+                        <div className="text-center text-xs text-blue-400 mb-6 font-mono">{selectedAgent?.role?.toUpperCase()}</div>
+
+                        <div className="space-y-3 text-xs font-mono text-gray-400">
+                             <div className="flex justify-between">
+                                 <span>API Keys</span>
+                                 <span>**********</span>
+                             </div>
+                             <div className="flex justify-between">
+                                 <span>Rate Limits</span>
+                                 <span>100 req/min</span>
+                             </div>
+                             <div className="flex justify-between">
+                                 <span>Timeout</span>
+                                 <span>5000ms</span>
+                             </div>
+                             <div className="flex justify-between">
+                                 <span>Retry</span>
+                                 <span>3 attempts</span>
+                             </div>
+
+                             <div className="pt-4 mt-4 border-t border-gray-700">
+                                 <div className="flex justify-between mb-1">
+                                     <span className="text-white">Current Load</span>
+                                     <span className="text-green-400">78%</span>
+                                 </div>
+                                 <div className="flex justify-between mb-1">
+                                     <span>Request Count</span>
+                                     <span>1,245</span>
+                                 </div>
+                                 <div className="flex justify-between mb-1">
+                                     <span>Error Rate</span>
+                                     <span>0.1%</span>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {/* --- BOTTOM PANEL: LOGS --- */}
+            <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#2b2e35] border-t-4 border-gray-500 p-2 flex items-center justify-between z-50 shadow-2xl">
+                 <div className="flex flex-col h-full justify-center flex-1 px-4 border-r border-gray-700">
+                     <div className="text-[10px] font-mono text-blue-400 truncate">[INFO] 10:10 AM: User 'Admin_JD' enabled 'Testing Agent' circuit.</div>
+                     <div className="text-[10px] font-mono text-red-400 truncate">[ALERT] 10:08 AM: 'Repo 2 - UI' circuit tripped due to connection timeout.</div>
+                 </div>
+                 <div className="w-64 h-full px-4 flex flex-col justify-center space-y-1">
+                     <div className="flex items-center gap-2 text-[10px] text-gray-300 font-bold">
+                         <span className="text-red-500">⚠ Alerts and warnings</span>
+                     </div>
+                     <div className="flex items-center gap-2 text-[9px] text-yellow-500">
+                         <span>⚠ 1 Critical, 2 Warnings</span>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    );
 };
 
 export default CircuitBox;

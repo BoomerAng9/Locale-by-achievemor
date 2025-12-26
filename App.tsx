@@ -6,6 +6,7 @@ import ProfessionalCard from './components/ProfessionalCard';
 import Localator from './components/Localator';
 import VerificationFlow from './components/verification/VerificationFlow';
 import ConciergeBot from './components/common/ConciergeBot';
+import TaskWorkspace from './components/workspace/TaskWorkspace';
 import { Footer } from './components/Navigation/Footer';
 import { useGeoLocation } from './lib/hooks/useGeoLocation';
 import { MOCK_PROFILES, MOCK_CATEGORIES } from './lib/constants';
@@ -379,6 +380,7 @@ const App = () => {
         </main>
         
         <ConciergeBot />
+        <TaskWorkspace userId="default" />
         <Footer />
       </div>
     </HashRouter>
