@@ -1,6 +1,17 @@
 
 export type UserRole = 'technician' | 'client' | 'admin' | 'professional';
 
+export interface IndustryTemplate {
+  id: string;
+  name: string;
+  icon: string; // Lucide icon name or emoji
+  system_prompt: string;
+  tools_enabled: string[];
+  quick_actions: { label: string; prompt: string }[];
+  dashboard_layout: 'map_heavy' | 'data_heavy' | 'media_heavy' | 'standard';
+  theme_color: string; // Tailwind class e.g. 'cyan-500'
+}
+
 export type ProgressionStage = 'garage' | 'community' | 'global';
 
 export type VerificationStatus = 'pending' | 'verified' | 'rejected' | 'unverified';

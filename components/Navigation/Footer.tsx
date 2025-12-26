@@ -11,11 +11,6 @@ export const Footer = () => (
         <p className="text-gray-500 text-sm leading-relaxed">
           Empowering communities through technology. From Garage to Global, we provide the infrastructure for the next generation of workforce networking.
         </p>
-        {/* Made in PLR Badge */}
-        <div className="pt-4 flex items-center gap-2">
-          <img src="/assets/locale-icon.png" alt="Locale" className="h-8 w-8 opacity-80" />
-          <span className="text-gray-500 text-xs">Made in PLR</span>
-        </div>
       </div>
       
       <div>
@@ -63,12 +58,22 @@ export const Footer = () => (
       </div>
     </div>
     
-    <div className="max-w-7xl mx-auto px-4 pt-8 border-t border-carbon-800 flex flex-col md:flex-row justify-between items-center gap-4">
-      <p className="text-xs text-gray-600">Locale by: ACHIEVEMOR &copy; 2025. All rights reserved.</p>
-      <div className="flex gap-4 text-xs text-gray-600">
-        <span>Made in PLR</span>
-        <span>•</span>
-        <Link to="/explore/garage-to-global" className="hover:text-locale-blue transition-colors underline">Garage to Global</Link>
+    {/* Centered Made in PLR Badge */}
+    <div className="max-w-7xl mx-auto px-4 py-8 border-t border-carbon-800 flex flex-col items-center gap-6">
+      <div className="flex items-center justify-center gap-3">
+        <div className="w-16 h-16 rounded-full bg-transparent flex items-center justify-center hover:scale-105 transition-transform">
+          <img 
+            src="/assets/branding/made-in-plr.svg" 
+            alt="Made in PLR" 
+            className="w-full h-full object-contain drop-shadow-lg"
+          />
+        </div>
+      </div>
+      
+      <div className="flex flex-col md:flex-row items-center gap-4 text-xs text-gray-500">
+        <p>Locale by: ACHIEVEMOR &copy; 2025. All rights reserved.</p>
+        <span className="hidden md:block">•</span>
+        <Link to="/explore/garage-to-global" className="text-locale-blue hover:text-white transition-colors font-medium">Garage to Global</Link>
       </div>
     </div>
   </footer>

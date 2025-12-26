@@ -7,12 +7,15 @@ import { doc, getDoc } from 'firebase/firestore';
 import VerificationFlow from '../verification/VerificationFlow';
 import TalentScraper from '../dashboard/TalentScraper';
 import FileSystem from '../dashboard/FileSystem';
+import InteractiveWorldMap from '../dashboard/InteractiveWorldMap';
+import MarketIntelligenceEngine from '../dashboard/MarketIntelligenceEngine';
+import AutoInviteSystem from '../dashboard/AutoInviteSystem';
 import ProfileCustomizer from '../profile/ProfileCustomizer';
 import { Profile } from '../../types';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'files' | 'talent' | 'verify'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'files' | 'talent' | 'verify' | 'map' | 'intelligence'>('overview');
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
 
@@ -98,6 +101,20 @@ const DashboardPage: React.FC = () => {
                 >
                     Overview
                 </button>
+
+                <button 
+                    onClick={() => setActiveTab('map')}
+                    className={`pb-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeTab === 'map' ? 'text-locale-blue border-locale-blue' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                >
+                    Global Map
+                </button>
+
+                <button 
+                    onClick={() => setActiveTab('intelligence')}
+                    className={`pb-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${activeTab === 'intelligence' ? 'text-locale-blue border-locale-blue' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                >
+                    Intelligence
+                </button>
                 
                 {/* File System is for Partners/Pros */}
                 {isPartner && (
@@ -164,6 +181,21 @@ const DashboardPage: React.FC = () => {
                         Launch Customizer
                     </Link>
                 </div>
+            </div>
+        )}
+
+        {/* TAB: GLOBAL MAP */}
+        {activeTab === 'map' && (
+            <div className="animate-fade-in-up">
+                <InteractiveWorldMap />
+            </div>
+        )}
+
+        {/* TAB: INTELLIGENCE */}
+        {activeTab === 'intelligence' && (
+            <div className="animate-fade-in-up space-y-8">
+                <MarketIntelligenceEngine />
+                <AutoInviteSystem />
             </div>
         )}
 

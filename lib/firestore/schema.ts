@@ -1,9 +1,149 @@
 /**
  * Firestore Schema Types for the "Nervous System"
- * Partner Architecture + System Audit Logs
+ * Partner Architecture + System Audit Logs + Subscription Tiers
  */
 
 import { Timestamp } from 'firebase/firestore';
+
+// ==========================================
+// SUBSCRIPTION TIER SYSTEM
+// ==========================================
+
+// Client/User Tiers
+export type ClientTier = 'access' | 'starter' | 'pro' | 'enterprise';
+
+// Partner/Provider Tiers (Garage to Global)
+export type PartnerTier = 'garage' | 'toolkit' | 'community' | 'global';
+
+export type SubscriptionStatus = 'active' | 'trialing' | 'past_due' | 'canceled' | 'incomplete';
+
+export interface SubscriptionData {
+  // Core subscription info
+  subscription_tier: ClientTier | PartnerTier;
+  subscription_status: SubscriptionStatus;
+  subscription_id: string | null; // Stripe subscription ID
+  
+  // Billing
+  current_period_start: Timestamp | null;
+  current_period_end: Timestamp | null;
+  cancel_at_period_end: boolean;
+  
+  // Tier-specific features
+  tier_features: TierFeatures;
+}
+
+export interface TierFeatures {
+  // Shared features
+  ai_queries_per_day: number;
+  ai_query_reset_at: Timestamp | null;
+  voice_enabled: boolean;
+  priority_support: boolean;
+  
+  // Client-specific
+  saved_professionals_limit?: number;
+  booking_history_days?: number;
+  
+  // Partner-specific
+  profile_visibility?: 'local' | 'regional' | 'global';
+  portfolio_items_limit?: number;
+  can_receive_enterprise?: boolean;
+  commission_rate?: number; // 0.15 = 15%
+}
+
+// Stripe Price IDs for each tier (production)
+export const STRIPE_PRICE_IDS = {
+  client: {
+    access: 'price_free', // Free tier
+    starter: 'price_1RQ5ggxxxxxxSTARTER',
+    pro: 'price_1RQ5ggxxxxxxPRO',
+    enterprise: 'price_1RQ5ggxxxxxxENTERPRISE',
+  },
+  partner: {
+    garage: 'price_free', // Free tier
+    toolkit: 'price_1RQ5ggxxxxxxTOOLKIT',
+    community: 'price_1RQ5ggxxxxxxCOMMUNITY',
+    global: 'price_1RQ5ggxxxxxxGLOBAL',
+  },
+} as const;
+
+// Default tier features
+export const DEFAULT_TIER_FEATURES: Record<ClientTier | PartnerTier, TierFeatures> = {
+  // Client Tiers
+  access: {
+    ai_queries_per_day: 5,
+    ai_query_reset_at: null,
+    voice_enabled: false,
+    priority_support: false,
+    saved_professionals_limit: 3,
+    booking_history_days: 7,
+  },
+  starter: {
+    ai_queries_per_day: 25,
+    ai_query_reset_at: null,
+    voice_enabled: true,
+    priority_support: false,
+    saved_professionals_limit: 10,
+    booking_history_days: 30,
+  },
+  pro: {
+    ai_queries_per_day: 100,
+    ai_query_reset_at: null,
+    voice_enabled: true,
+    priority_support: true,
+    saved_professionals_limit: 50,
+    booking_history_days: 365,
+  },
+  enterprise: {
+    ai_queries_per_day: -1, // Unlimited
+    ai_query_reset_at: null,
+    voice_enabled: true,
+    priority_support: true,
+    saved_professionals_limit: -1, // Unlimited
+    booking_history_days: -1, // Unlimited
+  },
+  
+  // Partner Tiers
+  garage: {
+    ai_queries_per_day: 10,
+    ai_query_reset_at: null,
+    voice_enabled: false,
+    priority_support: false,
+    profile_visibility: 'local',
+    portfolio_items_limit: 3,
+    can_receive_enterprise: false,
+    commission_rate: 0.15,
+  },
+  toolkit: {
+    ai_queries_per_day: 50,
+    ai_query_reset_at: null,
+    voice_enabled: true,
+    priority_support: false,
+    profile_visibility: 'regional',
+    portfolio_items_limit: 10,
+    can_receive_enterprise: false,
+    commission_rate: 0.12,
+  },
+  community: {
+    ai_queries_per_day: 200,
+    ai_query_reset_at: null,
+    voice_enabled: true,
+    priority_support: true,
+    profile_visibility: 'regional',
+    portfolio_items_limit: 25,
+    can_receive_enterprise: true,
+    commission_rate: 0.10,
+  },
+  global: {
+    ai_queries_per_day: -1, // Unlimited
+    ai_query_reset_at: null,
+    voice_enabled: true,
+    priority_support: true,
+    profile_visibility: 'global',
+    portfolio_items_limit: -1, // Unlimited
+    can_receive_enterprise: true,
+    commission_rate: 0.05,
+  },
+};
 
 // ==========================================
 // PARTNER/AFFILIATE ARCHITECTURE

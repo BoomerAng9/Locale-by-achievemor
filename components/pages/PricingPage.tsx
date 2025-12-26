@@ -2,6 +2,42 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+// Stripe Product IDs (set these in your Stripe Dashboard)
+const STRIPE_PRODUCTS = {
+  client: {
+    coffee: 'price_client_coffee_9',
+    pro: 'price_client_pro_29',
+    enterprise: 'price_client_enterprise_199'
+  },
+  partner: {
+    toolkit: 'price_partner_toolkit_9',
+    community: 'price_partner_community_49',
+    global: 'price_partner_global_149'
+  }
+};
+
+const handleSubscribe = async (priceId: string, planName: string) => {
+  try {
+    // In production, this calls your backend to create a Stripe Checkout Session
+    const response = await fetch('/api/stripe/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priceId, planName })
+    });
+    
+    if (response.ok) {
+      const { url } = await response.json();
+      window.location.href = url;
+    } else {
+      // Fallback: Direct to signup with plan context
+      window.location.href = `/signup?plan=${planName}`;
+    }
+  } catch (error) {
+    console.log('Stripe not configured, redirecting to signup');
+    window.location.href = `/signup?plan=${planName}`;
+  }
+};
+
 const PricingPage: React.FC = () => {
   const [view, setView] = useState<'client' | 'partner'>('client');
 
@@ -61,7 +97,12 @@ const PricingPage: React.FC = () => {
                       <li className="flex gap-3 text-sm text-gray-200 font-medium"><span className="text-orange-500">✓</span> 5% Discount on Hires</li>
                       <li className="flex gap-3 text-sm text-gray-200 font-medium"><span className="text-orange-500">✓</span> Basic File Manager</li>
                    </ul>
-                   <button className="w-full py-3 bg-orange-600 rounded-xl text-white font-bold hover:bg-orange-500 transition-colors shadow-lg shadow-orange-900/20 text-sm">Support Now</button>
+                   <button 
+                     onClick={() => handleSubscribe(STRIPE_PRODUCTS.client.coffee, 'starter')}
+                     className="w-full py-3 bg-orange-600 rounded-xl text-white font-bold hover:bg-orange-500 transition-colors shadow-lg shadow-orange-900/20 text-sm"
+                   >
+                     Support Now
+                   </button>
                 </div>
 
                 {/* Pro (Featured) */}
@@ -76,7 +117,12 @@ const PricingPage: React.FC = () => {
                       <li className="flex gap-3 text-sm text-white font-medium"><span className="text-locale-blue">✓</span> <strong>Google File Manager</strong></li>
                       <li className="flex gap-3 text-sm text-white font-medium"><span className="text-locale-blue">✓</span> Priority Support</li>
                    </ul>
-                   <button className="w-full py-3 bg-locale-blue rounded-xl text-white font-bold hover:bg-locale-darkBlue transition-colors shadow-glow text-sm">Start Free Trial</button>
+                   <button 
+                     onClick={() => handleSubscribe(STRIPE_PRODUCTS.client.pro, 'pro')}
+                     className="w-full py-3 bg-locale-blue rounded-xl text-white font-bold hover:bg-locale-darkBlue transition-colors shadow-glow text-sm"
+                   >
+                     Start Free Trial
+                   </button>
                 </div>
 
                 {/* Enterprise */}
@@ -89,7 +135,12 @@ const PricingPage: React.FC = () => {
                       <li className="flex gap-3 text-sm text-gray-300"><span className="text-green-500">✓</span> Custom Legal Agreements</li>
                       <li className="flex gap-3 text-sm text-gray-300"><span className="text-green-500">✓</span> 20% Expert Discount</li>
                    </ul>
-                   <button className="w-full py-3 border border-carbon-600 rounded-xl text-white font-bold hover:bg-carbon-700 transition-colors text-sm">Contact Sales</button>
+                   <button 
+                     onClick={() => handleSubscribe(STRIPE_PRODUCTS.client.enterprise, 'enterprise')}
+                     className="w-full py-3 border border-carbon-600 rounded-xl text-white font-bold hover:bg-carbon-700 transition-colors text-sm"
+                   >
+                     Contact Sales
+                   </button>
                 </div>
             </div>
          )}
@@ -119,7 +170,12 @@ const PricingPage: React.FC = () => {
                       <li className="flex gap-3 text-sm text-gray-200 font-medium"><span className="text-orange-500">✓</span> 5GB Cloud Storage</li>
                       <li className="flex gap-3 text-sm text-gray-200 font-medium"><span className="text-orange-500">✓</span> CRM Lite</li>
                    </ul>
-                   <button className="w-full py-3 bg-orange-600 rounded-xl text-white font-bold hover:bg-orange-500 transition-colors shadow-lg shadow-orange-900/20 text-sm">Unlock Tools</button>
+                   <button 
+                     onClick={() => handleSubscribe(STRIPE_PRODUCTS.partner.toolkit, 'partner-toolkit')}
+                     className="w-full py-3 bg-orange-600 rounded-xl text-white font-bold hover:bg-orange-500 transition-colors shadow-lg shadow-orange-900/20 text-sm"
+                   >
+                     Unlock Tools
+                   </button>
                 </div>
 
                 {/* Growth */}
@@ -134,7 +190,12 @@ const PricingPage: React.FC = () => {
                       <li className="flex gap-3 text-sm text-white font-medium"><span className="text-purple-400">✓</span> Cloud Run Integration</li>
                       <li className="flex gap-3 text-sm text-white font-medium"><span className="text-purple-400">✓</span> Google Drive Manager</li>
                    </ul>
-                   <Link to="/partners" className="w-full py-3 bg-purple-600 rounded-xl text-white font-bold hover:bg-purple-700 transition-colors shadow-lg text-center text-sm">Upgrade Partner</Link>
+                   <button 
+                     onClick={() => handleSubscribe(STRIPE_PRODUCTS.partner.community, 'partner-community')}
+                     className="w-full py-3 bg-purple-600 rounded-xl text-white font-bold hover:bg-purple-700 transition-colors shadow-lg text-center text-sm"
+                   >
+                     Upgrade Partner
+                   </button>
                 </div>
 
                 {/* Global */}
@@ -147,7 +208,12 @@ const PricingPage: React.FC = () => {
                       <li className="flex gap-3 text-sm text-gray-300"><span className="text-yellow-500">✓</span> Lowest Fee (5%)</li>
                       <li className="flex gap-3 text-sm text-gray-300"><span className="text-yellow-500">✓</span> Priority in Matchmaker</li>
                    </ul>
-                   <button className="w-full py-3 border border-yellow-500/50 text-yellow-500 rounded-xl font-bold hover:bg-yellow-500/10 transition-colors text-sm">Apply for Global</button>
+                   <button 
+                     onClick={() => handleSubscribe(STRIPE_PRODUCTS.partner.global, 'partner-global')}
+                     className="w-full py-3 border border-yellow-500/50 text-yellow-500 rounded-xl font-bold hover:bg-yellow-500/10 transition-colors text-sm"
+                   >
+                     Apply for Global
+                   </button>
                 </div>
             </div>
          )}

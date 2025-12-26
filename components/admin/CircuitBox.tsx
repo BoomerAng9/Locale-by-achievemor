@@ -11,9 +11,11 @@ import { AgentState, AgentTask } from '../../lib/firestore/schema';
 import { subscribeToAgents, subscribeToTaskQueue, dispatchTask, registerAgentHeartbeat, subscribeToBreakers, updateBreakerState } from '../../lib/agents/manager';
 import { PROCESS_FINDER_TASK } from '../../lib/agents/finder';
 import { PROCESS_THESYS_TASK } from '../../lib/agents/thesys';
+import { REPO_DRIVER_REGISTRY, getDriversForAgent, getDriverStatusSummary, getDriverRepoUrl, RepoDriver } from '../../lib/agents/drivers';
 import { AI_PLUG_REGISTRY, AIPlug } from '../../lib/ai-plugs/registry';
 import { aiPlugEngine } from '../../lib/ai-plugs/engine';
 import { delegationManager, DelegationRequest } from '../../lib/ai-plugs/delegation';
+import { avvaNoon } from '../../lib/avva_noon/core/infinity_lm';
 
 import SystemLogsViewer from './SystemLogsViewer';
 
@@ -50,8 +52,9 @@ const CircuitBox: React.FC = () => {
   const [agents, setAgents] = useState<AgentState[]>([]);
   const [tasks, setTasks] = useState<AgentTask[]>([]);
   const [breakers, setBreakers] = useState<CircuitBreaker[]>(DEFAULT_BREAKERS);
-  const [activeTab, setActiveTab] = useState<'overview' | 'wiring' | 'ai-plugs' | 'logs'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'wiring' | 'drivers' | 'ai-plugs' | 'logs'>('overview');
   const [delegations, setDelegations] = useState<DelegationRequest[]>([]);
+  const [avvaStatus, setAvvaStatus] = useState<any>(null);
   const [delegationStats, setDelegationStats] = useState({
     totalDelegations: 0,
     completed: 0,
@@ -63,6 +66,11 @@ const CircuitBox: React.FC = () => {
   
   // Real-time subscriptions
   useEffect(() => {
+     // Initialize AVVA NOON
+     avvaNoon.wakeUp().then(() => {
+       setAvvaStatus(avvaNoon.getStatus());
+     });
+
      // 1. Subscribe to Agent Registry
      const unsubAgents = subscribeToAgents((updatedAgents) => {
         const fullList = AGENT_REGISTRY.map(staticAgent => {
@@ -148,11 +156,11 @@ const CircuitBox: React.FC = () => {
            </h1>
            <p className="text-gray-400 font-mono text-sm max-w-xl">
              INTERNAL OPERATIONS // NERVOUS SYSTEM CONTROL<br/>
-             Authorized Personnel Only. Orchestrated by ACHEEVY.
+             Authorized Personnel Only. Powered by AVVA NOON.
            </p>
         </div>
         <div className="flex gap-2">
-           {['overview', 'wiring', 'ai-plugs', 'logs'].map(tab => (
+           {['overview', 'wiring', 'drivers', 'ai-plugs', 'logs'].map(tab => (
              <button
                key={tab}
                onClick={() => setActiveTab(tab as any)}
@@ -162,7 +170,7 @@ const CircuitBox: React.FC = () => {
                    : 'bg-carbon-800 text-gray-500 hover:text-white'
                }`}
              >
-               {tab === 'ai-plugs' ? 'AI PLUGS' : tab.toUpperCase()}
+               {tab === 'ai-plugs' ? 'AI PLUGS' : tab === 'drivers' ? 'DRIVERS' : tab.toUpperCase()}
              </button>
            ))}
         </div>
@@ -182,8 +190,8 @@ const CircuitBox: React.FC = () => {
                    🤖
                 </div>
                 <div>
-                   <h2 className="text-2xl font-bold text-white mb-1">ACHEEVY <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded ml-2 align-middle">ONLINE</span></h2>
-                   <p className="text-locale-blue font-mono text-sm mb-4">Master Orchestrator // ii-agent framework</p>
+                   <h2 className="text-2xl font-bold text-white mb-1">AVVA NOON <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded ml-2 align-middle">ONLINE</span></h2>
+                   <p className="text-locale-blue font-mono text-sm mb-4">InfinityLM // Master Orchestrator</p>
                    <p className="text-gray-400 text-sm max-w-md leading-relaxed">
                       Monitoring system health. Delegating tasks to {agents.filter(a => a.status === 'active' && a.role !== 'orchestrator').length} active Boomer_Angs.
                       Running Tasks: <span className="text-white font-bold">{tasks.length}</span>
@@ -404,6 +412,134 @@ const CircuitBox: React.FC = () => {
                  </table>
               </div>
            </div>
+        </div>
+      )}
+
+      {/* DRIVERS TAB - GitHub Repo Agent Drivers */}
+      {activeTab === 'drivers' && (
+        <div className="space-y-8">
+          {/* Driver Status Summary */}
+          <div className="grid grid-cols-4 gap-4">
+            {Object.entries(getDriverStatusSummary()).map(([status, count]) => (
+              <div 
+                key={status}
+                className={`bg-carbon-800 border rounded-xl p-4 ${
+                  status === 'connected' ? 'border-green-500/30' :
+                  status === 'pending' ? 'border-yellow-500/30' :
+                  status === 'error' ? 'border-red-500/30' : 'border-gray-500/30'
+                }`}
+              >
+                <div className="text-2xl font-bold text-white">{count}</div>
+                <div className={`text-sm capitalize ${
+                  status === 'connected' ? 'text-green-400' :
+                  status === 'pending' ? 'text-yellow-400' :
+                  status === 'error' ? 'text-red-400' : 'text-gray-400'
+                }`}>{status}</div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <span className="text-purple-400">🔌</span>
+                GitHub Repo Drivers
+              </h3>
+              <p className="text-gray-500 text-sm mt-1">External repositories wired as agent capabilities</p>
+            </div>
+            <button className="px-4 py-2 bg-locale-blue/20 hover:bg-locale-blue/30 text-locale-blue border border-locale-blue/50 rounded-lg text-sm font-bold transition-colors">
+              + Connect New Driver
+            </button>
+          </div>
+
+          {/* Driver Categories */}
+          {(['core', 'research', 'code', 'infrastructure', 'visualization', 'content', 'community'] as const).map(category => {
+            const drivers = REPO_DRIVER_REGISTRY.filter(d => d.category === category);
+            if (drivers.length === 0) return null;
+            
+            return (
+              <div key={category} className="bg-carbon-800 border border-carbon-700 rounded-2xl overflow-hidden">
+                <div className="px-6 py-4 border-b border-carbon-700 bg-carbon-900/50">
+                  <h4 className="font-bold text-white capitalize flex items-center gap-2">
+                    {category === 'core' && '🧠'}
+                    {category === 'research' && '🔍'}
+                    {category === 'code' && '💻'}
+                    {category === 'infrastructure' && '⚙️'}
+                    {category === 'visualization' && '🎨'}
+                    {category === 'content' && '📝'}
+                    {category === 'community' && '👥'}
+                    {category.charAt(0).toUpperCase() + category.slice(1)} Drivers
+                    <span className="text-gray-500 font-normal text-sm">({drivers.length})</span>
+                  </h4>
+                </div>
+                
+                <div className="divide-y divide-carbon-700">
+                  {drivers.map(driver => (
+                    <div key={driver.id} className="p-4 hover:bg-carbon-700/30 transition-colors">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h5 className="font-bold text-white">{driver.name}</h5>
+                            <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${
+                              driver.status === 'connected' ? 'bg-green-500/20 text-green-400' :
+                              driver.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
+                              driver.status === 'error' ? 'bg-red-500/20 text-red-400' : 
+                              'bg-gray-500/20 text-gray-400'
+                            }`}>
+                              {driver.status}
+                            </span>
+                          </div>
+                          <p className="text-gray-400 text-sm mb-3">{driver.description}</p>
+                          
+                          {/* Capabilities */}
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {driver.capabilities.map(cap => (
+                              <span key={cap} className="px-2 py-0.5 bg-carbon-900 text-gray-500 text-xs rounded border border-carbon-700">
+                                {cap}
+                              </span>
+                            ))}
+                          </div>
+                          
+                          {/* Linked Agents */}
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-gray-600">Linked to:</span>
+                            {driver.linked_agent_ids.map(agentId => {
+                              const agent = agents.find(a => a.id === agentId);
+                              return (
+                                <span key={agentId} className="px-2 py-0.5 bg-locale-blue/10 text-locale-blue rounded">
+                                  {agent?.name || agentId}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        
+                        {/* Right Side: Repo Link & Metrics */}
+                        <div className="text-right flex-shrink-0">
+                          <a 
+                            href={getDriverRepoUrl(driver)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-gray-500 hover:text-locale-blue font-mono mb-2 block"
+                          >
+                            {driver.owner}/{driver.repo} ↗
+                          </a>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <div>Entry: <span className="text-gray-400">{driver.entry_point}</span></div>
+                            <div>Runtime: <span className="text-gray-400">{driver.config.runtime}</span></div>
+                            {driver.config.requires_auth && (
+                              <div className="text-yellow-500">🔐 Auth Required</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 

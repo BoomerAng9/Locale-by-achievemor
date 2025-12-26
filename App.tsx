@@ -30,7 +30,16 @@ import AdminControlPanel from './components/admin/AdminControlPanel';
 import AboutPage from './components/pages/AboutPage';
 import GarageToGlobalPage from './components/pages/GarageToGlobalPage';
 import PlaygroundPage from './components/pages/PlaygroundPage'; 
+import { MapPage } from './components/pages/MapPage';
 import TaskWorkspace from './components/workspace/TaskWorkspace'; 
+import { ConsultationProvider } from './src/contexts/ConsultationContext';
+import { IndustrySelector } from './src/components/onboarding/IndustrySelector';
+import { ConsultationInterface } from './src/components/consultation/ConsultationInterface';
+
+// Super Admin & Chat SDK
+import { SuperAdminGuard, AdminOnly, useSuperAdmin } from './lib/auth/SuperAdminGuard';
+import { ChatProvider, useChat } from './src/contexts/ChatContext';
+import { ChatSDKModal } from './src/components/chat/ChatSDKModal';
 
 // --- DATA ENRICHMENT ---
 const ENHANCED_PROFILES: Profile[] = MOCK_PROFILES.map((p, i) => ({
@@ -51,7 +60,11 @@ const HOME_CATEGORIES = MOCK_CATEGORIES.slice(0, 4).map(c => ({
 
 // --- COMPONENTS ---
 
-const Navbar = ({ locationState, requestLocation }: any) => (
+const Navbar = ({ locationState, requestLocation }: any) => {
+  const { isAdmin, isLoading: adminLoading } = useSuperAdmin();
+  const { openChat } = useChat();
+  
+  return (
   <nav className="sticky top-0 z-50 glass-panel border-b border-carbon-700 backdrop-blur-xl">
     <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
       <Link to="/" className="flex items-center group">
@@ -61,10 +74,35 @@ const Navbar = ({ locationState, requestLocation }: any) => (
       {/* Desktop Nav */}
       <div className="hidden md:flex items-center gap-8 font-medium text-sm text-gray-400">
         <Link to="/explore" className="hover:text-white transition-colors tracking-wide">Explore</Link>
+        <Link to="/map" className="hover:text-white transition-colors tracking-wide">Map</Link>
         <Link to="/categories" className="hover:text-white transition-colors tracking-wide">Categories</Link>
         <Link to="/localator" className="hover:text-white transition-colors tracking-wide">Localator</Link>
+        
+        {/* Consult Locally Button - Opens Chat SDK */}
+        <button 
+          onClick={() => openChat()}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500/20 to-blue-500/20 border border-emerald-500/30 text-emerald-400 hover:text-white hover:border-emerald-400 transition-all tracking-wide font-semibold"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+          Consult Locally
+        </button>
+        
         <Link to="/partners" className="text-purple-400 hover:text-white transition-colors tracking-wide font-semibold">For Partners</Link>
         <Link to="/pricing" className="text-white hover:text-locale-blue transition-colors tracking-wide font-semibold">Pro Access</Link>
+        
+        {/* Super Admin Button - Only visible to admins */}
+        {!adminLoading && isAdmin && (
+          <Link 
+            to="/admin" 
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:text-red-300 hover:border-red-400 transition-all tracking-wide font-semibold"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Admin
+          </Link>
+        )}
       </div>
 
       <div className="flex items-center gap-5">
@@ -91,6 +129,7 @@ const Navbar = ({ locationState, requestLocation }: any) => (
     </div>
   </nav>
 );
+};
 
 // --- PAGES ---
 
@@ -337,55 +376,77 @@ const App = () => {
   const { location, requestLocation } = useGeoLocation();
 
   return (
-    <HashRouter>
-      <div className="min-h-screen bg-carbon-900 text-gray-200 font-sans selection:bg-locale-blue selection:text-white flex flex-col">
-        <Navbar locationState={location} requestLocation={requestLocation} />
-        
-        <main className="flex-grow">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/about/ai" element={<AiIntroPage />} />
-            <Route path="/estimator" element={<TokenEstimatorPage />} />
-            <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/explore/garage-to-global" element={<GarageToGlobalPage />} />
-            <Route path="/explore/:categoryId" element={<CategoryLanding />} />
-            <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/book/:serviceId" element={<BookingsPage />} /> 
-            <Route path="/playground" element={<PlaygroundPage />} />
+    <ConsultationProvider>
+      <ChatProvider>
+        <HashRouter>
+          <div className="min-h-screen bg-carbon-900 text-gray-200 font-sans selection:bg-locale-blue selection:text-white flex flex-col">
+            <ConsultationInterface />
+            <Navbar locationState={location} requestLocation={requestLocation} />
             
-            <Route path="/profile/customize" element={<ProfileCustomizer />} />
-            <Route path="/admin/settings" element={<AdminSettings />} /> 
-            
-            {/* UPDATED ROUTES */}
-            <Route path="/localator" element={<LocalatorPage />} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/partners" element={<PartnerProgramPage />} />
-            <Route path="/enterprise" element={<DashboardPage />} /> {/* Enterprise uses Dashboard for now */}
+            <main className="flex-grow">
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<Home />} />
+                <Route path="/onboarding" element={<div className="pt-20 min-h-screen bg-slate-50 dark:bg-slate-900"><IndustrySelector /></div>} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/about/ai" element={<AiIntroPage />} />
+              <Route path="/estimator" element={<TokenEstimatorPage />} />
+              <Route path="/explore" element={<ExplorePage />} />
+              <Route path="/explore/garage-to-global" element={<GarageToGlobalPage />} />
+              <Route path="/explore/:categoryId" element={<CategoryLanding />} />
+              <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/book/:serviceId" element={<BookingsPage />} /> 
+              <Route path="/playground" element={<PlaygroundPage />} />
+              <Route path="/map" element={<MapPage />} />
+              
+              <Route path="/profile/customize" element={<ProfileCustomizer />} />
+              <Route path="/admin/settings" element={<AdminSettings />} /> 
+              
+              {/* UPDATED ROUTES */}
+              <Route path="/localator" element={<LocalatorPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/partners" element={<PartnerProgramPage />} />
+              <Route path="/enterprise" element={<DashboardPage />} /> {/* Enterprise uses Dashboard for now */}
 
-            {/* Admin / Internal Operations */}
-            <Route path="/admin/circuit-box" element={<CircuitBox />} />
-            <Route path="/admin/control-panel" element={<AdminControlPanel />} />
-            <Route path="/admin" element={<Navigate to="/admin/control-panel" replace />} />
-            
-            {/* AI Task Workspace - Manus-style Thinking UI */}
-            <Route path="/workspace" element={<TaskWorkspace />} />
+              {/* Super Admin Protected Routes */}
+              <Route path="/admin/circuit-box" element={
+                <SuperAdminGuard>
+                  <CircuitBox />
+                </SuperAdminGuard>
+              } />
+              <Route path="/admin/control-panel" element={
+                <SuperAdminGuard>
+                  <AdminControlPanel />
+                </SuperAdminGuard>
+              } />
+              <Route path="/admin" element={
+                <SuperAdminGuard>
+                  <Navigate to="/admin/control-panel" replace />
+                </SuperAdminGuard>
+              } />
+              
+              {/* AI Task Workspace - Manus-style Thinking UI */}
+              <Route path="/workspace" element={<TaskWorkspace />} />
 
-            {/* Legal */}
-            <Route path="/legal/terms" element={<Terms />} />
-            <Route path="/legal/privacy" element={<Privacy />} />
-            <Route path="/legal/safety" element={<Privacy />} /> {/* Safety uses Privacy as placeholder */}
-          </Routes>
-        </main>
-        
-        <ConciergeBot />
-        <Footer />
-      </div>
-    </HashRouter>
+              {/* Legal */}
+              <Route path="/legal/terms" element={<Terms />} />
+              <Route path="/legal/privacy" element={<Privacy />} />
+              <Route path="/legal/safety" element={<Privacy />} /> {/* Safety uses Privacy as placeholder */}
+            </Routes>
+          </main>
+          
+          {/* Chat SDK Modal - Global overlay for "Consult Locally" */}
+          <ChatSDKModal />
+          
+          <ConciergeBot />
+          <Footer />
+        </div>
+        </HashRouter>
+      </ChatProvider>
+    </ConsultationProvider>
   );
 };
 

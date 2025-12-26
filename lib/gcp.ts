@@ -1,20 +1,21 @@
 
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
 
 /**
  * Safely access environment variables.
- * In this environment, we expect them to be available via process.env if injected,
- * or we use safe fallbacks for public configurations.
+ * In this environment, we expect them to be available via import.meta.env (Vite)
  */
 const getEnv = (key: string, fallback: string): string => {
   try {
-    if (typeof process !== 'undefined' && process.env && process.env[key]) {
-      return process.env[key] as string;
+    // @ts-ignore
+    if (import.meta.env && import.meta.env[key]) {
+      // @ts-ignore
+      return import.meta.env[key] as string;
     }
   } catch (e) {
-    // process.env access might throw in some strict browser environments
+    // import.meta.env access might throw in some environments
   }
   return fallback;
 };
@@ -24,10 +25,10 @@ const firebaseConfig = {
   projectId: "localebyachievemor",
   messagingSenderId: "790279690860",
   // Standard Firebase Web config structure
-  apiKey: getEnv("NEXT_PUBLIC_FIREBASE_API_KEY", "AIzaSy_PLACEHOLDER_KEY"),
+  apiKey: getEnv("VITE_FIREBASE_API_KEY", "AIzaSy_PLACEHOLDER_KEY"),
   authDomain: "localebyachievemor.firebaseapp.com",
   storageBucket: "localebyachievemor.appspot.com",
-  appId: getEnv("NEXT_PUBLIC_FIREBASE_APP_ID", "")
+  appId: getEnv("VITE_FIREBASE_APP_ID", "")
 };
 
 // Initialize Firebase once
@@ -46,6 +47,14 @@ try {
 
 export const db = getFirestore(app);
 export const auth = getAuth(app);
+
+// Connect to emulators in development
+// @ts-ignore
+if (import.meta.env.DEV) {
+  console.log("Connecting to Firebase Emulators...");
+  connectFirestoreEmulator(db, 'localhost', 8080);
+  connectAuthEmulator(auth, 'http://localhost:9099');
+}
 
 // Helper for Firestore data mapping
 export const mapDoc = (doc: any) => ({ id: doc.id, ...doc.data() });

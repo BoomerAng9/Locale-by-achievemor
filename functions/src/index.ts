@@ -207,7 +207,7 @@ async function executeFinancialSplit(
     Partner Commission: $${(partnerPayoutCents / 100).toFixed(2)}
   `);
 
-  const paymentIntentId = session.payment_intent as string;
+  const paymentIntentId = session.                                                                                                            payment_intent as string;
   const transfers: { type: string; amount: number; destination: string; transferId?: string }[] = [];
 
   // Transfer to Expert
@@ -343,3 +343,9 @@ export const getPlatformStats = functions.https.onCall(async (data, context) => 
     totalPartnerPayouts: totalPartnerPayouts / 100,
   };
 });
+
+// ============================================
+// CRAWLERS & AUTOMATION
+// ============================================
+
+export * from "./crawlers/businessHarvester";
