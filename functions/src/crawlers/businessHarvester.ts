@@ -27,7 +27,7 @@ export async function harvestCityBusinesses(cityName: string, state: string): Pr
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
   
-  const page = await browser.newPage();
+  // const page = await browser.newPage();
   const leads: BusinessLead[] = [];
 
   try {
