@@ -1,170 +1,131 @@
 /**
- * Vertex AI (Gemini) Integration for ACHEEVY Chatbot
- * Uses the Gemini API for intelligent responses
+ * Vertex AI / Gemini Integration (Official SDK)
+ * Upgraded for FUNCTION CALLING and TOOL USE
  */
+
+import { GoogleGenerativeAI, FunctionDeclarationSchemaType } from '@google/generative-ai';
+import { updateBreakerState, dispatchTask } from '../agents/manager';
 
 const GEMINI_API_KEY = (import.meta as any).env?.VITE_GEMINI_API_KEY;
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-export interface ChatMessage {
-    role: 'user' | 'assistant' | 'system';
-    content: string;
-}
+// 1. Initialize SDK
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY || 'MISSING_KEY');
 
-export interface GeminiResponse {
-    candidates: Array<{
-        content: {
-            parts: Array<{ text: string }>;
-        };
-    }>;
-}
+// 2. Define Tools (The "Hands" of the AI)
+const tools = [
+  {
+    functionDeclarations: [
+      {
+        name: "toggle_circuit_breaker",
+        description: "Turn a system circuit breaker ON or OFF. Use this when users ask to enable/disable external services.",
+        parameters: {
+          type: FunctionDeclarationSchemaType.OBJECT,
+          properties: {
+            breaker_id: {
+              type: FunctionDeclarationSchemaType.STRING,
+              description: "The ID of the breaker (e.g., 'stripe', 'github', 'voice_stt', 'cloud_run')"
+            },
+            state: {
+              type: FunctionDeclarationSchemaType.BOOLEAN,
+              description: "True to enable (ON), False to disable (OFF)"
+            }
+          },
+          required: ["breaker_id", "state"]
+        }
+      },
+      {
+        name: "dispatch_agent_task",
+        description: "Create a task for a specialized agent (e.g. Finder, Coder) to execute asynchronously.",
+        parameters: {
+          type: FunctionDeclarationSchemaType.OBJECT,
+          properties: {
+             agent_id: { type: FunctionDeclarationSchemaType.STRING, description: "Target Agent ID (e.g. 'finder-ang', 'code-gen-agent')" },
+             task_type: { type: FunctionDeclarationSchemaType.STRING, description: "Type of work (e.g. 'research', 'code_refactor')" },
+             payload_json: { type: FunctionDeclarationSchemaType.STRING, description: "JSON string of task details" }
+          },
+          required: ["agent_id", "task_type", "payload_json"]
+        }
+      }
+    ]
+  }
+];
 
-// System prompt for ACHEEVY
-const ACHEEVY_SYSTEM_PROMPT = `You are ACHEEVY, the AI assistant for Locale by ACHIEVEMOR - a platform that connects service providers (Partners) with customers (Clients) for both local in-person tasks and remote work.
-
-Your personality:
-- Professional yet friendly
-- Focused on helping users accomplish their goals
-- Knowledgeable about the platform's features
-
-Key platform features you can help with:
-- Finding talent (partners) for various services
-- Using the Localator calculator to determine fair rates
-- Understanding pricing tiers and token system
-- Navigating from Garage to Global (the stages of professional growth)
-- Profile customization and verification
-- Voice preferences and settings
-
-Always be helpful, concise, and guide users to the right features. Your tagline is: "Think It. Prompt It. Let ACHEEVY Manage It."
-You are powered by AVVA NOON (InfinityLM), the central intelligence of the platform.
-
-When users ask about pricing, explain that analysis is free and builds are deducted from their token balance.
-When users ask about verification, explain that partners go through background checks and skill validation.
-`;
+// 3. System Instruction
+const SYSTEM_INSTRUCTION = `You are ACHEEVY, the sentient Operating System for Locale.
+You are not just a chatbot; you have hands. You can control the system via tools.
+- If a user wants to turn something on/off, use 'toggle_circuit_breaker'.
+- If a user needs research, code, or deployment, use 'dispatch_agent_task'.
+- Always confirm the action you took.
+- Be concise, professional, and confident.`;
 
 /**
- * Send a message to Gemini and get a response
+ * Main Interaction Function
  */
-export async function sendToGemini(
-    messages: ChatMessage[],
-    context?: string
-): Promise<string> {
-    if (!GEMINI_API_KEY) {
-        console.warn('[Gemini] No API key configured, using mock response');
-        return getMockResponse(messages);
-    }
+export async function sendMessageToGLM(messages: any[], context?: string): Promise<string> {
+    if (!GEMINI_API_KEY) return "Simulation: No API Key Configured.";
 
     try {
-        // Build the conversation history
-        const conversationHistory = messages.map(msg => ({
-            role: msg.role === 'assistant' ? 'model' : 'user',
-            parts: [{ text: msg.content }]
-        }));
-
-        // Add system context as first message if not already there
-        const fullContents = [
-            {
-                role: 'user',
-                parts: [{ text: ACHEEVY_SYSTEM_PROMPT + (context ? `\n\nContext: ${context}` : '') }]
-            },
-            {
-                role: 'model',
-                parts: [{ text: 'Understood. I am ACHEEVY, ready to assist with Locale by ACHIEVEMOR. How can I help you today?' }]
-            },
-            ...conversationHistory
-        ];
-
-        const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: fullContents,
-                generationConfig: {
-                    temperature: 0.7,
-                    topK: 40,
-                    topP: 0.95,
-                    maxOutputTokens: 1024,
-                },
-                safetySettings: [
-                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-                ]
-            })
+        const model = genAI.getGenerativeModel({ 
+            model: "gemini-1.5-flash",
+            systemInstruction: SYSTEM_INSTRUCTION,
+            tools: tools
         });
+        
+        // Convert chat history format
+        const history = messages.slice(0, -1).map(m => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content }]
+        }));
+        
+        const chat = model.startChat({ history });
+        const lastMsg = messages[messages.length - 1].content + (context ? `\n[Context: ${context}]` : "");
+        
+        const result = await chat.sendMessage(lastMsg);
+        const response = result.response;
+        const call = response.functionCalls();
 
-        if (!response.ok) {
-            const error = await response.text();
-            console.error('[Gemini] API Error:', error);
-            throw new Error(`Gemini API error: ${response.status}`);
+        // 4. Handle Function Calls (The "Action" Loop)
+        if (call && call.length > 0) {
+            const fc = call[0];
+            const fnName = fc.name;
+            const args = fc.args;
+            
+            console.log(`[ACHEEVY] Executing Tool: ${fnName}`, args);
+
+            let toolResult = "";
+
+            if (fnName === 'toggle_circuit_breaker') {
+                await updateBreakerState(args.breaker_id as string, args.state as boolean);
+                toolResult = `Circuit '${args.breaker_id}' set to ${args.state ? 'ON' : 'OFF'}.`;
+            } else if (fnName === 'dispatch_agent_task') {
+                const taskId = await dispatchTask(
+                    args.task_type as string, 
+                    JSON.parse(args.payload_json as string), 
+                    args.agent_id as string
+                );
+                toolResult = `Task dispatched to ${args.agent_id} (ID: ${taskId}).`;
+            }
+
+            // Send tool result back to model to get final confirmation text
+            const followUp = await chat.sendMessage([{
+                functionResponse: {
+                    name: fnName,
+                    response: { result: toolResult }
+                }
+            }]);
+            
+            return followUp.response.text();
         }
 
-        const data: GeminiResponse = await response.json();
-        
-        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-            return data.candidates[0].content.parts[0].text;
-        }
-        
-        throw new Error('Invalid response format from Gemini');
-    } catch (error) {
-        console.error('[Gemini] Error:', error);
-        return getMockResponse(messages);
+        return response.text();
+
+    } catch (e) {
+        console.error("[Gemini] Error:", e);
+        return "System Exception: ACHEEVY brain connection unstable.";
     }
 }
 
-/**
- * Fallback mock response when API is unavailable
- */
-function getMockResponse(messages: ChatMessage[]): string {
-    const lastMessage = messages[messages.length - 1]?.content?.toLowerCase() || '';
-    
-    if (lastMessage.includes('hello') || lastMessage.includes('hi') || lastMessage.includes('hey')) {
-        return "Welcome to Locale by: ACHIEVEMOR! I'm ACHEEVY, your AI assistant. How can I help you today? Think It. Prompt It. Let Us Manage It.";
-    }
-    
-    if (lastMessage.includes('price') || lastMessage.includes('cost') || lastMessage.includes('token')) {
-        return "Our pricing is based on tokens. Analysis and planning are free, while builds and deployments are deducted from your token balance. Check out our Localator Calculator to see your true earning potential!";
-    }
-    
-    if (lastMessage.includes('find') || lastMessage.includes('talent') || lastMessage.includes('partner')) {
-        return "I can help you find the right talent! Our verified partners cover everything from tech services to creative work. Would you like me to search for a specific skill or category?";
-    }
-    
-    if (lastMessage.includes('verify') || lastMessage.includes('verification')) {
-        return "Verification is key to our trust system. Partners go through background checks, skill validation, and community reviews. This ensures quality for clients and credibility for partners.";
-    }
-    
-    if (lastMessage.includes('garage') || lastMessage.includes('global')) {
-        return "The Garage to Global journey represents your path from starting out to becoming a global professional. Stage 1 is Garage (just starting), then Community (verified), Enterprise (scaling), and finally Global (no boundaries).";
-    }
-    
-    return "I understand. Let me help you with that! You can use our platform to find talent, calculate fair rates with Localator, or explore features in the Playground. What would you like to know more about?";
-}
+// Deprecated streaming mock
+export async function streamFromGemini() { console.log('Legacy stream deprecated'); }
 
-/**
- * Stream response from Gemini (for real-time typing effect)
- */
-export async function streamFromGemini(
-    messages: ChatMessage[],
-    onChunk: (text: string) => void,
-    context?: string
-): Promise<void> {
-    // For now, get full response and simulate streaming
-    const response = await sendToGemini(messages, context);
-    
-    // Simulate streaming by sending chunks
-    const words = response.split(' ');
-    for (let i = 0; i < words.length; i += 3) {
-        const chunk = words.slice(i, i + 3).join(' ') + ' ';
-        onChunk(chunk);
-        await new Promise(resolve => setTimeout(resolve, 50));
-    }
-}
-
-export default {
-    sendToGemini,
-    streamFromGemini
-};
+export const sendToGemini = sendMessageToGLM;
