@@ -27,11 +27,13 @@ import AiIntroPage from './components/pages/About/AiIntro';
 import TokenEstimatorPage from './components/pages/TokenEstimatorPage';
 import CircuitBox from './components/admin/CircuitBox';
 import AdminControlPanel from './components/admin/AdminControlPanel';
+import SmelterOSPage from './components/admin/SmelterOSPage';
 import AboutPage from './components/pages/AboutPage';
 import GarageToGlobalPage from './components/pages/GarageToGlobalPage';
 import PlaygroundPage from './components/pages/PlaygroundPage'; 
 import { MapPage } from './components/pages/MapPage';
-import TaskWorkspace from './components/workspace/TaskWorkspace'; 
+import TaskWorkspace from './components/workspace/TaskWorkspace';
+import VerificationPage from './components/pages/VerificationPage';
 import { ConsultationProvider } from './src/contexts/ConsultationContext';
 import { IndustrySelector } from './src/components/onboarding/IndustrySelector';
 import { ConsultationInterface } from './src/components/consultation/ConsultationInterface';
@@ -90,19 +92,29 @@ const Navbar = ({ locationState, requestLocation }: any) => {
         <Link to="/partners" className="text-purple-400 hover:text-white transition-colors tracking-wide font-semibold">For Partners</Link>
         <Link to="/pricing" className="text-white hover:text-locale-blue transition-colors tracking-wide font-semibold">Pro Access</Link>
         
-        {/* Super Admin Button - Only visible to admins */}
-        {!adminLoading && isAdmin && (
-          <Link 
-            to="/admin" 
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:text-red-300 hover:border-red-400 transition-all tracking-wide font-semibold"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Admin
-          </Link>
-        )}
+        {/* Admin Tools - Always visible for testing */}
+        <Link 
+          to="/admin/circuit-box" 
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:text-orange-300 hover:border-orange-400 transition-all tracking-wide font-semibold"
+        >
+          ⚡ CircuitBox
+        </Link>
+        <Link 
+          to="/admin/smelteros" 
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-400 hover:text-orange-300 hover:border-orange-400 transition-all tracking-wide font-semibold"
+        >
+          🧪 Circuit Box
+        </Link>
+        <Link 
+          to="/admin" 
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:text-red-300 hover:border-red-400 transition-all tracking-wide font-semibold"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Admin
+        </Link>
       </div>
 
       <div className="flex items-center gap-5">
@@ -371,6 +383,21 @@ const Privacy = () => (
   </LegalLayout>
 );
 
+const Safety = () => (
+  <LegalLayout title="Community Safety">
+    <h3>1. Our Commitment</h3>
+    <p>Safety is paramount at Locale. We maintain strict standards to ensure every interaction on our platform is secure and trustworthy.</p>
+    <h3>2. Verified Professionals</h3>
+    <p>All professionals in "Community" and "Global" tiers have passed identity verification through Ballerine, including document checks and liveness verification.</p>
+    <h3>3. Reporting & Support</h3>
+    <p>Report concerns via our in-app support or email safety@achievemor.com. Our team reviews all reports within 24 hours.</p>
+    <h3>4. Background Checks</h3>
+    <p>Global-tier professionals undergo comprehensive background screening. Look for the 🛡️ badge on verified profiles.</p>
+    <h3>5. Secure Payments</h3>
+    <p>All transactions are processed through Stripe with fraud protection. Never pay outside the platform.</p>
+  </LegalLayout>
+);
+
 // --- MAIN APP COMPONENT ---
 const App = () => {
   const { location, requestLocation } = useGeoLocation();
@@ -411,30 +438,20 @@ const App = () => {
               <Route path="/partners" element={<PartnerProgramPage />} />
               <Route path="/enterprise" element={<DashboardPage />} /> {/* Enterprise uses Dashboard for now */}
 
-              {/* Super Admin Protected Routes */}
-              <Route path="/admin/circuit-box" element={
-                <SuperAdminGuard>
-                  <CircuitBox />
-                </SuperAdminGuard>
-              } />
-              <Route path="/admin/control-panel" element={
-                <SuperAdminGuard>
-                  <AdminControlPanel />
-                </SuperAdminGuard>
-              } />
-              <Route path="/admin" element={
-                <SuperAdminGuard>
-                  <Navigate to="/admin/control-panel" replace />
-                </SuperAdminGuard>
-              } />
+              {/* Super Admin Protected Routes - Open for Development */}
+              <Route path="/admin/circuit-box" element={<CircuitBox />} />
+              <Route path="/admin/control-panel" element={<AdminControlPanel />} />
+              <Route path="/admin/smelteros" element={<SmelterOSPage />} />
+              <Route path="/admin" element={<Navigate to="/admin/control-panel" replace />} />
               
               {/* AI Task Workspace - Manus-style Thinking UI */}
               <Route path="/workspace" element={<TaskWorkspace />} />
 
-              {/* Legal */}
+              {/* Legal & Trust */}
               <Route path="/legal/terms" element={<Terms />} />
               <Route path="/legal/privacy" element={<Privacy />} />
-              <Route path="/legal/safety" element={<Privacy />} /> {/* Safety uses Privacy as placeholder */}
+              <Route path="/legal/safety" element={<Safety />} />
+              <Route path="/verification" element={<VerificationPage />} />
             </Routes>
           </main>
           

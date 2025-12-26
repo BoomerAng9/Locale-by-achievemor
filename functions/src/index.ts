@@ -348,4 +348,25 @@ export const getPlatformStats = functions.https.onCall(async (data, context) => 
 // CRAWLERS & AUTOMATION
 // ============================================
 
-export * from "./crawlers/businessHarvester";
+import { harvestCityBusinesses } from "./crawlers/businessHarvester";
+
+export const triggerBusinessHarvest = functions.https.onCall(async (data, context) => {
+  // Ensure user is authenticated (and maybe admin/partner)
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Must be authenticated to harvest data.");
+  }
+
+  const { city, state, industry } = data;
+  if (!city || !state) {
+    throw new functions.https.HttpsError("invalid-argument", "City and State are required.");
+  }
+
+  try {
+    const leads = await harvestCityBusinesses(city, state, industry || 'General Services');
+    return { success: true, count: leads.length, leads };
+  } catch (error: any) {
+    console.error("Harvest failed:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});
+

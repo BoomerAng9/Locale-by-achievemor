@@ -147,6 +147,19 @@ export const INDUSTRY_TEMPLATES: IndustryTemplate[] = [
     ],
     dashboard_layout: 'data_heavy',
     theme_color: 'indigo-500'
+  },
+  {
+    id: 'generative',
+    name: 'Generative / Other',
+    icon: 'Sparkles',
+    system_prompt: 'DYNAMIC_PERSONA',
+    tools_enabled: ['market_research', 'dashboard_builder', 'trend_analyzer'],
+    quick_actions: [
+      { label: 'Analyze Niche', prompt: 'Identify the 1,000 people for...' },
+      { label: 'Build Dashboard', prompt: 'Create a workspace for...' }
+    ],
+    dashboard_layout: 'generative',
+    theme_color: 'slate-500'
   }
 ];
 
@@ -158,6 +171,22 @@ export function getTemplateWithPersona(
   templateId: string, 
   userPrompt: string
 ): IndustryTemplate & { resolved_persona: DynamicPersona } {
+  // Handle Generative Case
+  if (templateId === 'generative') {
+    const persona = getIndustryPersona('generative', userPrompt);
+    return {
+      id: 'generative',
+      name: persona.name || 'Custom Industry',
+      icon: 'Sparkles',
+      system_prompt: persona.system_prompt,
+      tools_enabled: ['market_research', 'dashboard_builder'],
+      quick_actions: [],
+      dashboard_layout: 'generative',
+      theme_color: 'slate-500',
+      resolved_persona: persona
+    };
+  }
+
   const template = INDUSTRY_TEMPLATES.find(t => t.id === templateId);
   if (!template) {
     throw new Error(`Template not found: ${templateId}`);

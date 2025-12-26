@@ -5,6 +5,8 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
+import { AGENT_REGISTRY, BoomerAng } from '../../lib/agents/registry';
 
 // Types for the TaskWorkspace
 interface ThinkingStep {
@@ -39,235 +41,40 @@ interface Task {
   endTime?: Date;
 }
 
-interface AgentStatus {
-  id: string;
-  name: string;
-  label: string;
-  status: 'idle' | 'busy' | 'offline';
-  currentTask?: string;
-  specialty: string;
-}
+// Styles removed in favor of Tailwind classes
 
-// Intelligent Internet Agent Registry
-const AGENT_REGISTRY: AgentStatus[] = [
-  { id: 'acheevy', name: 'ACHEEVY', label: 'Core Intelligence', status: 'idle', specialty: 'Task orchestration & delegation' },
-  { id: 'finder', name: 'Finder_Ang', label: 'Discovery Engine', status: 'idle', specialty: 'Search & retrieval operations' },
-  { id: 'chronicle', name: 'Chronicle_Ang', label: 'Memory Keeper', status: 'idle', specialty: 'Context & history management' },
-  { id: 'manus', name: 'Manus_Ang', label: 'Task Executor', status: 'idle', specialty: 'Complex task execution' },
-  { id: 'codex', name: 'Codex_Ang', label: 'Code Architect', status: 'idle', specialty: 'Code generation & analysis' },
-  { id: 'sentinel', name: 'Sentinel_Ang', label: 'Security Guard', status: 'idle', specialty: 'Security & verification' },
-  { id: 'nexus', name: 'Nexus_Ang', label: 'Integration Hub', status: 'idle', specialty: 'API & service connections' },
-  { id: 'oracle', name: 'Oracle_Ang', label: 'Insight Engine', status: 'idle', specialty: 'Analytics & predictions' },
-  { id: 'forge', name: 'Forge_Ang', label: 'Builder', status: 'idle', specialty: 'Asset & content creation' },
-  { id: 'pulse', name: 'Pulse_Ang', label: 'Monitor', status: 'idle', specialty: 'Real-time monitoring' },
-  { id: 'bridge', name: 'Bridge_Ang', label: 'Connector', status: 'idle', specialty: 'Cross-platform operations' },
-  { id: 'curator', name: 'Curator_Ang', label: 'Organizer', status: 'idle', specialty: 'Data curation & cleanup' },
-  { id: 'herald', name: 'Herald_Ang', label: 'Messenger', status: 'idle', specialty: 'Notifications & alerts' },
-  { id: 'sage', name: 'Sage_Ang', label: 'Advisor', status: 'idle', specialty: 'Strategic recommendations' },
-  { id: 'weaver', name: 'Weaver_Ang', label: 'Integrator', status: 'idle', specialty: 'Workflow automation' },
-  { id: 'guardian', name: 'Guardian_Ang', label: 'Protector', status: 'idle', specialty: 'Error handling & recovery' },
-  { id: 'spark', name: 'Spark_Ang', label: 'Initiator', status: 'idle', specialty: 'Quick actions & triggers' },
-  { id: 'echo', name: 'Echo_Ang', label: 'Replicator', status: 'idle', specialty: 'Backup & redundancy' },
-  { id: 'prism', name: 'Prism_Ang', label: 'Transformer', status: 'idle', specialty: 'Data transformation' }
-];
-
-// Carbon Fiber CSS Styles (inline for component portability)
-const styles = {
-  container: {
-    minHeight: '100vh',
-    background: `
-      linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%),
-      repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 2px,
-        rgba(255, 255, 255, 0.02) 2px,
-        rgba(255, 255, 255, 0.02) 4px
-      ),
-      repeating-linear-gradient(
-        -45deg,
-        transparent,
-        transparent 2px,
-        rgba(255, 255, 255, 0.02) 2px,
-        rgba(255, 255, 255, 0.02) 4px
-      )
-    `,
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-    color: '#e0e0e0'
-  } as React.CSSProperties,
-
-  header: {
-    background: 'linear-gradient(180deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.9) 100%)',
-    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-    padding: '16px 24px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backdropFilter: 'blur(10px)'
-  } as React.CSSProperties,
-
-  logo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    fontSize: '20px',
-    fontWeight: 700,
-    background: 'linear-gradient(135deg, #00d4ff 0%, #7b2cbf 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent'
-  } as React.CSSProperties,
-
-  mainGrid: {
-    display: 'grid',
-    gridTemplateColumns: '300px 1fr 350px',
-    height: 'calc(100vh - 73px)',
-    gap: '1px',
-    background: 'rgba(255, 255, 255, 0.05)'
-  } as React.CSSProperties,
-
-  panel: {
-    background: 'linear-gradient(180deg, rgba(26, 26, 46, 0.95) 0%, rgba(15, 15, 35, 0.98) 100%)',
-    padding: '20px',
-    overflowY: 'auto' as const,
-    position: 'relative' as const
-  } as React.CSSProperties,
-
-  panelTitle: {
-    fontSize: '14px',
-    fontWeight: 600,
-    textTransform: 'uppercase' as const,
-    letterSpacing: '1.5px',
-    color: '#888',
-    marginBottom: '16px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px'
-  } as React.CSSProperties,
-
-  taskCard: {
-    background: 'linear-gradient(145deg, rgba(40, 40, 60, 0.6) 0%, rgba(30, 30, 50, 0.8) 100%)',
-    borderRadius: '12px',
-    padding: '16px',
-    marginBottom: '12px',
-    border: '1px solid rgba(255, 255, 255, 0.08)',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease'
-  } as React.CSSProperties,
-
-  thinkingStream: {
-    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-    fontSize: '13px',
-    lineHeight: '1.6'
-  } as React.CSSProperties,
-
-  thinkingStep: {
-    padding: '12px 16px',
-    marginBottom: '8px',
-    borderRadius: '8px',
-    borderLeft: '3px solid',
-    background: 'rgba(30, 30, 50, 0.6)'
-  } as React.CSSProperties,
-
-  artifactCard: {
-    background: 'linear-gradient(145deg, rgba(40, 40, 60, 0.5) 0%, rgba(25, 25, 45, 0.7) 100%)',
-    borderRadius: '10px',
-    padding: '14px',
-    marginBottom: '10px',
-    border: '1px solid rgba(255, 255, 255, 0.06)'
-  } as React.CSSProperties,
-
-  agentCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    padding: '12px',
-    borderRadius: '8px',
-    marginBottom: '8px',
-    background: 'rgba(30, 30, 50, 0.4)',
-    border: '1px solid rgba(255, 255, 255, 0.05)'
-  } as React.CSSProperties,
-
-  statusDot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    flexShrink: 0
-  } as React.CSSProperties,
-
-  inputArea: {
-    position: 'fixed' as const,
-    bottom: 0,
-    left: '300px',
-    right: '350px',
-    padding: '20px',
-    background: 'linear-gradient(180deg, transparent 0%, rgba(15, 15, 35, 0.98) 20%)',
-    backdropFilter: 'blur(10px)'
-  } as React.CSSProperties,
-
-  input: {
-    width: '100%',
-    padding: '16px 20px',
-    borderRadius: '12px',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    background: 'rgba(30, 30, 50, 0.8)',
-    color: '#fff',
-    fontSize: '15px',
-    outline: 'none',
-    transition: 'border-color 0.2s ease'
-  } as React.CSSProperties,
-
-  pulseAnimation: {
-    animation: 'pulse 2s ease-in-out infinite'
-  } as React.CSSProperties,
-
-  progressBar: {
-    height: '4px',
-    borderRadius: '2px',
-    background: 'rgba(255, 255, 255, 0.1)',
-    overflow: 'hidden' as const,
-    marginTop: '8px'
-  } as React.CSSProperties,
-
-  progressFill: {
-    height: '100%',
-    borderRadius: '2px',
-    background: 'linear-gradient(90deg, #00d4ff 0%, #7b2cbf 100%)',
-    transition: 'width 0.3s ease'
-  } as React.CSSProperties
-};
-
-// Helper function to get step color
-const getStepColor = (type: ThinkingStep['type']): string => {
+// Helper function to get step color classes
+const getStepColorClasses = (type: ThinkingStep['type']) => {
   const colors = {
-    analysis: '#00d4ff',
-    planning: '#7b2cbf',
-    execution: '#00ff88',
-    delegation: '#ff9500',
-    artifact: '#ff00ff',
-    complete: '#00ff00'
+    analysis: { text: 'text-cyan-400', border: 'border-cyan-400' },
+    planning: { text: 'text-purple-600', border: 'border-purple-600' },
+    execution: { text: 'text-green-400', border: 'border-green-400' },
+    delegation: { text: 'text-orange-400', border: 'border-orange-400' },
+    artifact: { text: 'text-fuchsia-500', border: 'border-fuchsia-500' },
+    complete: { text: 'text-green-500', border: 'border-green-500' }
   };
-  return colors[type] || '#888';
+  return colors[type] || { text: 'text-gray-400', border: 'border-gray-400' };
 };
 
-// Helper function to get status color
-const getStatusColor = (status: AgentStatus['status']): string => {
+// Helper function to get status color class
+const getStatusColorClass = (status: AgentStatus['status']): string => {
   const colors = {
-    idle: '#00ff88',
-    busy: '#ff9500',
-    offline: '#ff4444'
+    idle: 'bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.4)]',
+    busy: 'bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.4)]',
+    offline: 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]'
   };
   return colors[status];
 };
 
-// Helper function to get task status color
-const getTaskStatusColor = (status: Task['status']): string => {
+// Helper function to get task status color class
+const getTaskStatusColorClass = (status: Task['status']): string => {
   const colors = {
-    queued: '#888',
-    thinking: '#00d4ff',
-    executing: '#00ff88',
-    delegated: '#ff9500',
-    complete: '#00ff00',
-    error: '#ff4444'
+    queued: 'bg-gray-400/20 text-gray-400',
+    thinking: 'bg-cyan-400/20 text-cyan-400',
+    executing: 'bg-green-400/20 text-green-400',
+    delegated: 'bg-orange-400/20 text-orange-400',
+    complete: 'bg-green-500/20 text-green-500',
+    error: 'bg-red-500/20 text-red-500'
   };
   return colors[status];
 };
@@ -278,12 +85,16 @@ const formatTime = (date: Date): string => {
 };
 
 export const TaskWorkspace: React.FC = () => {
+  const location = useLocation();
+  const { agentId, initialTask } = location.state || {};
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [agents, setAgents] = useState<AgentStatus[]>(AGENT_REGISTRY);
   const [inputValue, setInputValue] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const thinkingRef = useRef<HTMLDivElement>(null);
+  const hasInitialized = useRef(false);
 
   // Auto-scroll thinking stream
   useEffect(() => {
@@ -394,6 +205,28 @@ export const TaskWorkspace: React.FC = () => {
     setIsProcessing(false);
   }, []);
 
+  // Handle initial task from navigation
+  useEffect(() => {
+    if (initialTask && !hasInitialized.current) {
+      hasInitialized.current = true;
+      const newTask: Task = {
+        id: `task-${Date.now()}`,
+        title: initialTask,
+        description: `User requested: ${initialTask}`,
+        status: 'thinking',
+        progress: 0,
+        thinkingSteps: [],
+        artifacts: [],
+        startTime: new Date()
+      };
+
+      setTasks([newTask]);
+      setActiveTask(newTask);
+      setIsProcessing(true);
+      simulateThinking(newTask);
+    }
+  }, [initialTask, simulateThinking]);
+
   // Handle task submission
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
@@ -420,7 +253,7 @@ export const TaskWorkspace: React.FC = () => {
   }, [inputValue, isProcessing, simulateThinking]);
 
   return (
-    <div style={styles.container}>
+    <div className="min-h-screen bg-slate-900 text-gray-200 font-sans bg-[linear-gradient(135deg,#1a1a2e_0%,#16213e_50%,#0f0f23_100%)]">
       {/* CSS Keyframes */}
       <style>{`
         @keyframes pulse {
@@ -444,8 +277,8 @@ export const TaskWorkspace: React.FC = () => {
       `}</style>
 
       {/* Header */}
-      <header style={styles.header}>
-        <div style={styles.logo}>
+      <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b border-white/10 bg-slate-900/95 backdrop-blur-md">
+        <div className="flex items-center gap-3 text-xl font-bold bg-gradient-to-br from-cyan-400 to-purple-600 bg-clip-text text-transparent">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
             <circle cx="16" cy="16" r="14" stroke="url(#grad1)" strokeWidth="2"/>
             <circle cx="16" cy="16" r="8" fill="url(#grad1)"/>
@@ -458,91 +291,55 @@ export const TaskWorkspace: React.FC = () => {
           </svg>
           <span>Locale TaskWorkspace</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ 
-            padding: '6px 12px', 
-            borderRadius: '20px', 
-            background: 'rgba(0, 255, 136, 0.1)', 
-            border: '1px solid rgba(0, 255, 136, 0.3)',
-            fontSize: '12px',
-            color: '#00ff88'
-          }}>
+        <div className="flex items-center gap-4">
+          <div className="px-3 py-1.5 rounded-full bg-green-400/10 border border-green-400/30 text-xs text-green-400">
             ● System Online
           </div>
-          <div style={{ fontSize: '13px', color: '#888' }}>
+          <div className="text-[13px] text-gray-400">
             {agents.filter(a => a.status === 'idle').length}/{agents.length} Agents Available
           </div>
         </div>
       </header>
 
       {/* Main Grid */}
-      <div style={styles.mainGrid}>
+      <div className="grid grid-cols-[300px_1fr_350px] h-[calc(100vh-73px)] gap-[1px] bg-white/5">
         {/* Left Panel - Task Queue */}
-        <div style={styles.panel}>
-          <div style={styles.panelTitle}>
+        <div className="relative overflow-y-auto p-5 bg-slate-900/95">
+          <div className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-gray-400">
             <span>📋</span> Task Queue
           </div>
           
           {tasks.length === 0 ? (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '40px 20px', 
-              color: '#666',
-              fontSize: '14px'
-            }}>
-              <div style={{ fontSize: '40px', marginBottom: '12px' }}>🚀</div>
+            <div className="text-center py-10 px-5 text-gray-500 text-sm">
+              <div className="text-4xl mb-3">🚀</div>
               No tasks yet. Start by entering a request below.
             </div>
           ) : (
             tasks.map(task => (
               <div
                 key={task.id}
-                className="hover-card"
-                style={{
-                  ...styles.taskCard,
-                  borderColor: activeTask?.id === task.id 
-                    ? 'rgba(0, 212, 255, 0.5)' 
-                    : 'rgba(255, 255, 255, 0.08)'
-                }}
+                className={`hover-card mb-3 cursor-pointer rounded-xl border bg-slate-800/60 p-4 transition-all hover:bg-slate-800/80 ${
+                  activeTask?.id === task.id ? 'border-cyan-400/50' : 'border-white/10'
+                }`}
                 onClick={() => setActiveTask(task)}
               >
-                <div style={{ 
-                  display: 'flex', 
-                  justifyContent: 'space-between', 
-                  alignItems: 'flex-start',
-                  marginBottom: '8px'
-                }}>
-                  <div style={{ 
-                    fontSize: '14px', 
-                    fontWeight: 500,
-                    flex: 1,
-                    lineHeight: '1.4'
-                  }}>
+                <div className="flex justify-between items-start mb-2">
+                  <div className="text-sm font-medium flex-1 leading-snug">
                     {task.title}
                   </div>
-                  <div style={{
-                    padding: '2px 8px',
-                    borderRadius: '10px',
-                    fontSize: '10px',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    background: `${getTaskStatusColor(task.status)}22`,
-                    color: getTaskStatusColor(task.status),
-                    marginLeft: '8px'
-                  }}>
+                  <div 
+                    className={`px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase ml-2 ${getTaskStatusColorClass(task.status)}`}
+                  >
                     {task.status}
                   </div>
                 </div>
-                <div style={styles.progressBar}>
-                  <div style={{ ...styles.progressFill, width: `${task.progress}%` }} />
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
+                  <div 
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-purple-600 transition-all duration-300"
+                    style={{ width: `${task.progress}%` }} 
+                  />
                 </div>
-                <div style={{ 
-                  fontSize: '11px', 
-                  color: '#666', 
-                  marginTop: '8px',
-                  display: 'flex',
-                  justifyContent: 'space-between'
-                }}>
+                <div className="flex justify-between mt-2 text-[11px] text-gray-500">
                   <span>{task.startTime ? formatTime(task.startTime) : '-'}</span>
                   <span>{task.thinkingSteps.length} steps</span>
                 </div>
@@ -552,60 +349,40 @@ export const TaskWorkspace: React.FC = () => {
         </div>
 
         {/* Center Panel - Thinking Stream */}
-        <div style={{ ...styles.panel, paddingBottom: '100px' }} ref={thinkingRef}>
-          <div style={styles.panelTitle}>
+        <div className="relative overflow-y-auto p-5 bg-slate-900/95 pb-[100px]" ref={thinkingRef}>
+          <div className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-gray-400">
             <span>🧠</span> Thinking Process
             {isProcessing && (
-              <span style={{ 
-                marginLeft: 'auto', 
-                color: '#00d4ff',
-                fontSize: '12px',
-                ...styles.pulseAnimation
-              }}>
+              <span className="ml-auto text-cyan-400 text-xs animate-pulse">
                 Processing...
               </span>
             )}
           </div>
 
           {!activeTask ? (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '60px 20px', 
-              color: '#555'
-            }}>
-              <div style={{ fontSize: '60px', marginBottom: '16px', opacity: 0.5 }}>🤔</div>
-              <div style={{ fontSize: '16px', marginBottom: '8px' }}>Ready to Think</div>
-              <div style={{ fontSize: '13px', color: '#444' }}>
+            <div className="text-center py-16 px-5 text-gray-500">
+              <div className="text-6xl mb-4 opacity-50">🤔</div>
+              <div className="text-base mb-2">Ready to Think</div>
+              <div className="text-[13px] text-gray-600">
                 Enter a task to see the AI reasoning process in real-time
               </div>
             </div>
           ) : (
-            <div style={styles.thinkingStream}>
+            <div className="font-mono text-[13px] leading-relaxed">
               {activeTask.thinkingSteps.map((step, index) => (
                 <div 
                   key={step.id}
-                  style={{
-                    ...styles.thinkingStep,
-                    borderLeftColor: getStepColor(step.type)
-                  }}
+                  className={`mb-2 rounded-lg border-l-4 bg-slate-800/60 p-3 ${getStepColorClasses(step.type).border}`}
                 >
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between',
-                    marginBottom: '6px',
-                    fontSize: '11px',
-                    color: '#666'
-                  }}>
-                    <span style={{ 
-                      color: getStepColor(step.type),
-                      fontWeight: 600,
-                      textTransform: 'uppercase'
-                    }}>
+                  <div className="flex justify-between mb-1.5 text-[11px] text-gray-500">
+                    <span 
+                      className={`font-semibold uppercase ${getStepColorClasses(step.type).text}`}
+                    >
                       {step.type}
                     </span>
                     <span>{formatTime(step.timestamp)}</span>
                   </div>
-                  <div style={{ color: '#ccc' }}>
+                  <div className="text-gray-300">
                     {step.content}
                     {index === activeTask.thinkingSteps.length - 1 && 
                      activeTask.status === 'thinking' && (
@@ -613,20 +390,12 @@ export const TaskWorkspace: React.FC = () => {
                     )}
                   </div>
                   {step.agent && (
-                    <div style={{ 
-                      marginTop: '6px', 
-                      fontSize: '11px',
-                      color: '#ff9500'
-                    }}>
+                    <div className="mt-1.5 text-[11px] text-orange-400">
                       → Delegated to {step.agent}
                     </div>
                   )}
                   {step.tokens && (
-                    <div style={{ 
-                      marginTop: '4px', 
-                      fontSize: '10px',
-                      color: '#555'
-                    }}>
+                    <div className="mt-1 text-[10px] text-gray-600">
                       {step.tokens} tokens
                     </div>
                   )}
@@ -636,72 +405,47 @@ export const TaskWorkspace: React.FC = () => {
           )}
 
           {/* Input Area */}
-          <div style={styles.inputArea}>
+          <div className="fixed bottom-0 left-[300px] right-[350px] p-5 bg-gradient-to-t from-slate-900/95 via-slate-900/95 to-transparent backdrop-blur-md">
             <form onSubmit={handleSubmit}>
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Enter a task for the AI to work on..."
-                style={styles.input}
+                className="w-full rounded-xl border border-white/10 bg-slate-800/80 px-5 py-4 text-white outline-none transition-colors focus:border-cyan-500/50 placeholder-gray-500"
                 disabled={isProcessing}
               />
             </form>
-            <div style={{ 
-              fontSize: '11px', 
-              color: '#555', 
-              marginTop: '8px',
-              textAlign: 'center'
-            }}>
+            <div className="mt-2 text-center text-[11px] text-gray-500">
               Press Enter to submit • AI will show reasoning in real-time
             </div>
           </div>
         </div>
 
         {/* Right Panel - Artifacts & Agents */}
-        <div style={styles.panel}>
+        <div className="relative overflow-y-auto p-5 bg-slate-900/95">
           {/* Artifacts Section */}
-          <div style={styles.panelTitle}>
+          <div className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-gray-400">
             <span>📦</span> Artifacts
           </div>
           
           {(!activeTask || activeTask.artifacts.length === 0) ? (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '30px 20px', 
-              color: '#555',
-              fontSize: '13px',
-              marginBottom: '24px'
-            }}>
+            <div className="text-center py-8 px-5 text-gray-500 text-[13px] mb-6">
               Artifacts will appear here as they're generated
             </div>
           ) : (
             activeTask.artifacts.map(artifact => (
-              <div key={artifact.id} style={styles.artifactCard}>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px',
-                  marginBottom: '8px'
-                }}>
-                  <span style={{ fontSize: '16px' }}>
+              <div key={artifact.id} className="mb-2.5 rounded-lg border border-white/5 bg-slate-800/50 p-3.5">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-base">
                     {artifact.type === 'code' ? '💻' : 
                      artifact.type === 'document' ? '📄' :
                      artifact.type === 'data' ? '📊' :
                      artifact.type === 'deployment' ? '🚀' : '🔍'}
                   </span>
-                  <span style={{ fontSize: '13px', fontWeight: 500 }}>{artifact.name}</span>
+                  <span className="text-[13px] font-medium">{artifact.name}</span>
                 </div>
-                <pre style={{ 
-                  fontSize: '11px', 
-                  color: '#888',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  padding: '10px',
-                  borderRadius: '6px',
-                  overflow: 'auto',
-                  maxHeight: '120px',
-                  margin: 0
-                }}>
+                <pre className="text-[11px] text-gray-400 bg-black/30 p-2.5 rounded-md overflow-auto max-h-[120px] m-0">
                   {artifact.content}
                 </pre>
               </div>
@@ -709,43 +453,25 @@ export const TaskWorkspace: React.FC = () => {
           )}
 
           {/* Agents Section */}
-          <div style={{ ...styles.panelTitle, marginTop: '24px' }}>
+          <div className="mt-6 mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-gray-400">
             <span>🤖</span> Agent Fleet
           </div>
           
-          <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+          <div className="max-h-[300px] overflow-y-auto">
             {agents.map(agent => (
-              <div key={agent.id} style={styles.agentCard}>
+              <div key={agent.id} className="mb-2 flex items-center gap-3 rounded-lg border border-white/5 bg-slate-800/40 p-3">
                 <div 
-                  style={{ 
-                    ...styles.statusDot, 
-                    background: getStatusColor(agent.status),
-                    boxShadow: `0 0 8px ${getStatusColor(agent.status)}40`
-                  }} 
+                  className={`h-2 w-2 shrink-0 rounded-full ${getStatusColorClass(agent.status)}`}
                 />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ 
-                    fontSize: '12px', 
-                    fontWeight: 600,
-                    color: '#ddd'
-                  }}>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-semibold text-gray-300">
                     {agent.name}
                   </div>
-                  <div style={{ 
-                    fontSize: '10px', 
-                    color: '#666',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis'
-                  }}>
+                  <div className="text-[10px] text-gray-500 truncate">
                     {agent.currentTask || agent.specialty}
                   </div>
                 </div>
-                <div style={{ 
-                  fontSize: '9px', 
-                  color: '#555',
-                  textTransform: 'uppercase'
-                }}>
+                <div className="text-[9px] text-gray-600 uppercase">
                   {agent.label}
                 </div>
               </div>

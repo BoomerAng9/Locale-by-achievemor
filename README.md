@@ -80,7 +80,74 @@ locale-by-achievemor/
 
 ---
 
-## 🔑 Environment Variables
+## � SmelterOS™ - Industrial AI Foundry
+
+> The nervous system that powers Locale's autonomous operations.
+
+### Overview
+SmelterOS is our internal AI operations platform that manages all autonomous agents, system integrations, and business intelligence workflows. Think of it as the "control room" for Locale's AI capabilities.
+
+### AVVA-NOON Plausibility Engine
+```
+Plausibility Bound: (-10¹⁸ ≤ x, y ≤ 10¹⁸)
+```
+AVVA-NOON is the InfinityLM orchestrator that coordinates all Boomer_Ang agents and ensures system plausibility within mathematical bounds.
+
+### Boomer_Ang Executive Guild (C-Suite)
+
+| Role | Code | Responsibility |
+|------|------|----------------|
+| 🔧 **CTO** | `cto-ang` | Technical infrastructure, code quality |
+| 💰 **CFO** | `cfo-ang` | Financial calculations, pricing, payouts |
+| ⚙️ **COO** | `coo-ang` | Operations, workflows, task delegation |
+| 📢 **CMO** | `cmo-ang` | Marketing, outreach, communications |
+| 📊 **CDO** | `cdo-ang` | Data analytics, business intelligence |
+| 🎯 **CPO** | `cpo-ang` | Product strategy, feature prioritization |
+
+### Specialized Workers
+
+| Agent | Function |
+|-------|----------|
+| 🔍 **Finder** | Discovery, research, web scraping |
+| 🐞 **Debugger** | Error detection, system health |
+| 🧠 **Thesys** | Deep reasoning, document synthesis |
+
+### Access
+- **Route**: `/admin/circuit-box`
+- **Authorization**: Admin credentials required
+
+---
+
+## 🗺️ Geo-Targeted Auto-Invite Engine
+
+The Reverse Marketplace Intelligence System that proactively discovers and invites businesses.
+
+### How It Works
+1. **Weekly Harvest** — Cloud Functions crawl Google Places, Chambers of Commerce, BBB, LLC registries
+2. **Lead Enrichment** — Extract contact info, categorize by industry/location
+3. **Draft Partner Pages** — Pre-create profile pages for each business
+4. **Personalized Outreach** — SendGrid emails with links to claim their page
+5. **Conversion Tracking** — Monitor opens, clicks, and page claims
+
+### Tracked Cities (Initial Launch)
+- 🍑 Atlanta, GA
+- 🤠 Austin, TX
+- 🌴 Miami, FL
+- 🌞 West Palm Beach, FL
+- ⭐ Dallas, TX
+
+### Configuration
+```typescript
+// functions/src/crawlers/businessHarvester.ts
+export const scheduleBusinessHarvest = functions
+  .pubsub.schedule('every monday 02:00')
+  .timeZone('UTC')
+  .onRun(async () => { ... });
+```
+
+---
+
+## �🔑 Environment Variables
 
 Create a `.env` file in the root directory:
 

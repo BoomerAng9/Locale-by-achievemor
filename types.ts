@@ -8,7 +8,7 @@ export interface IndustryTemplate {
   system_prompt: string;
   tools_enabled: string[];
   quick_actions: { label: string; prompt: string }[];
-  dashboard_layout: 'map_heavy' | 'data_heavy' | 'media_heavy' | 'standard';
+  dashboard_layout: 'map_heavy' | 'data_heavy' | 'media_heavy' | 'standard' | 'generative';
   theme_color: string; // Tailwind class e.g. 'cyan-500'
 }
 
@@ -211,4 +211,135 @@ export interface ProjectResults {
   effectiveHourlyRate: number;
   profitMargin: number;
   dealViability: 'avoid' | 'acceptable' | 'great';
+}
+
+// ============================================
+// GEO-TARGETED AUTO-INVITE ENGINE TYPES
+// ============================================
+
+/**
+ * User Locality - Stores user's geographic selection from the Interactive World Map
+ */
+export interface UserLocality {
+  userId: string;
+  country: string;
+  state: string;
+  primaryCity: string; // e.g., "Atlanta"
+  actualZipCode: string; // e.g., "30318"
+  distanceFromPrimaryCity?: number; // km (if non-listed city)
+  coordinates: { lat: number; lng: number }; // Geocoded from zip
+  isListedCity: boolean; // true = direct city selection, false = proximity mapping
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
+/**
+ * Business Lead - Discovered business from autonomous crawler
+ */
+export interface BusinessLead {
+  id?: string;
+  name: string;
+  industry: string;
+  naicsCode?: string; // North American Industry Classification System
+  email?: string;
+  phone?: string;
+  address?: string;
+  city: string;
+  state: string;
+  website?: string;
+  employeeCount?: number;
+  foundedYear?: number;
+  description?: string;
+  source: 'chamber' | 'llc_registry' | 'google_places' | 'bbb' | 'yelp' | 'linkedin' | 'manual';
+  discoveredAt: Date;
+  inviteStatus: 'pending' | 'invited' | 'joined' | 'declined' | 'bounced';
+  lastContactedAt?: Date;
+  retryCount: number;
+}
+
+/**
+ * Invite Campaign - Tracks outreach to businesses
+ */
+export interface InviteCampaign {
+  id?: string;
+  businessLeadId: string;
+  emailSubject: string;
+  emailBody: string;
+  partnerPageUrl: string;
+  status: 'draft' | 'sent' | 'opened' | 'clicked' | 'converted' | 'bounced';
+  sentAt?: Date;
+  openedAt?: Date;
+  clickedAt?: Date;
+  convertedAt?: Date;
+  metrics: {
+    opens: number;
+    clicks: number;
+    bounced: boolean;
+  };
+}
+
+/**
+ * Draft Partner Page - Pre-built page shown as incentive
+ */
+export interface DraftPartnerPage {
+  id?: string;
+  businessLeadId: string;
+  slug: string; // e.g., "atlanta-realtors-pro"
+  businessName: string;
+  industry: string;
+  description: string;
+  serviceArea: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  status: 'draft' | 'active' | 'claimed';
+  createdAt: Date;
+  claimedAt?: Date;
+  claimedByUserId?: string;
+}
+
+// ============================================
+// SMELTEROS & BOOMER_ANG HIERARCHY TYPES
+// ============================================
+
+/**
+ * Boomer_Ang C-Suite Roles
+ */
+export type BoomerAngRole = 
+  | 'cto' // Chief Technology Officer - Manages Code & Infra
+  | 'cfo' // Chief Financial Officer - Manages Stripe & Value
+  | 'coo' // Chief Operating Officer - Manages Flow & Crawlers
+  | 'cmo' // Chief Marketing Officer - Manages Social & Ads
+  | 'cdo' // Chief Design Officer - Manages Nano Banana/Images
+  | 'cpo' // Chief Publication Officer - Manages Content
+  | 'finder' // Legacy role
+  | 'debugger' // Legacy role
+  | 'orchestrator'; // AVVA NOON
+
+/**
+ * SmelterOS System Status
+ */
+export interface SmelterOSStatus {
+  isOnline: boolean;
+  activeAgents: number;
+  systemLoad: number;
+  plausibilityBound: {
+    min: number; // -10^18
+    max: number; // 10^18
+  };
+  lastHealthCheck: Date;
+}
+
+/**
+ * Tracked City - Cities where we actively crawl for businesses
+ */
+export interface TrackedCity {
+  id?: string;
+  name: string;
+  state: string;
+  country: string;
+  coordinates: { lat: number; lng: number };
+  activeUsers: number;
+  lastCrawledAt?: Date;
+  businessLeadsCount: number;
+  isActive: boolean;
 }

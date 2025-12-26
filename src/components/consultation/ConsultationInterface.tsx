@@ -6,12 +6,14 @@ import { LucideIcon } from 'lucide-react';
 import { clsx } from 'clsx';
 import { slideUpVariants, springTransition, popHover } from '../../lib/animations';
 import { sendToGemini, ChatMessage } from '../../../lib/ai/gemini';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  data?: any; // For tool outputs
 }
 
 export const ConsultationInterface = () => {
@@ -38,6 +40,56 @@ export const ConsultationInterface = () => {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+
+    // Check for Crawler Command
+    // Pattern: "find [industry] in [city], [state]" or "harvest [city]"
+    const harvestMatch = input.match(/find (.*) in (.*), (.*)/i) || input.match(/harvest (.*) in (.*)/i);
+    
+    if (harvestMatch) {
+      try {
+        const functions = getFunctions();
+        const triggerHarvest = httpsCallable(functions, 'triggerBusinessHarvest');
+        
+        // Parse args (naive parsing)
+        let industry = 'General Services';
+        let city = '';
+        let state = '';
+
+        if (input.includes(',')) {
+           const parts = input.split(' in ')[1].split(',');
+           city = parts[0].trim();
+           state = parts[1].trim();
+           industry = input.split(' in ')[0].replace('find ', '').trim();
+        } else {
+           // Fallback for simple "harvest city"
+           city = input.split(' in ')[1] || input.split('harvest ')[1];
+           state = 'GA'; // Default or ask user
+        }
+
+        setMessages(prev => [...prev, {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: `Initiating harvest for ${industry} in ${city}, ${state}...`,
+          timestamp: new Date()
+        }]);
+
+        const result: any = await triggerHarvest({ city, state, industry });
+        
+        setMessages(prev => [...prev, {
+          id: (Date.now() + 2).toString(),
+          role: 'assistant',
+          content: `Harvest complete! Found ${result.data.count} leads.`,
+          data: result.data.leads,
+          timestamp: new Date()
+        }]);
+        
+        setIsLoading(false);
+        return;
+      } catch (e) {
+        console.error("Harvest error", e);
+        // Fallthrough to Gemini if harvest fails or wasn't intended
+      }
+    }
 
     try {
       // Build context with industry info
@@ -133,16 +185,39 @@ export const ConsultationInterface = () => {
         {/* Main Chat Area */}
         <div className="flex-1 overflow-y-auto p-6 relative">
           {/* Background Effect based on industry */}
-          <div className="absolute inset-0 opacity-10 pointer-events-none overflow-hidden">
+          <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+             {/* Base Ambient Glow */}
              <motion.div 
                initial={{ scale: 0.5, opacity: 0 }}
                animate={{ scale: 1, opacity: 1 }}
                transition={{ duration: 1 }}
                className={clsx(
-                 "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[100px]",
+                 "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[100px] opacity-10",
                  `bg-${activeIndustry.theme_color}/20`
                )} 
              />
+             
+             {/* Morphing Backgrounds */}
+             {activeIndustry.dashboard_layout === 'map_heavy' && (
+               <div className="absolute inset-0 opacity-20 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover bg-center grayscale mix-blend-overlay" />
+             )}
+             
+             {activeIndustry.dashboard_layout === 'media_heavy' && (
+               <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                 <div className="w-full bg-gradient-to-r from-transparent via-white to-transparent animate-pulse h-[2px]" />
+                 <div className="absolute w-full bg-gradient-to-r from-transparent via-white to-transparent animate-pulse delay-75 h-[2px] rotate-45" />
+               </div>
+             )}
+
+             {activeIndustry.dashboard_layout === 'data_heavy' && (
+               <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle,#ffffff_1px,transparent_1px)] bg-[length:20px_20px]" />
+             )}
+
+             {activeIndustry.dashboard_layout === 'generative' && (
+               <div className="absolute inset-0 opacity-20">
+                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] animate-pulse" />
+               </div>
+             )}
           </div>
 
           {/* Welcome Message from Persona */}
@@ -214,9 +289,9 @@ export const ConsultationInterface = () => {
                    <Icons.Bot className="w-4 h-4" />
                  </div>
                  <div className="flex gap-1">
-                   <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                   <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                   <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                   <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce [animation-delay:0ms]"></span>
+                   <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce [animation-delay:150ms]"></span>
+                   <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce [animation-delay:300ms]"></span>
                  </div>
                </motion.div>
              )}
@@ -282,7 +357,7 @@ export const ConsultationInterface = () => {
             </form>
             <div className="text-center mt-3">
               <p className="text-xs text-slate-500">
-                AI Context: <span className="text-slate-400">{activeIndustry.name}</span> • Powered by AVVA NOON
+                AI Context: <span className="text-slate-400">{activeIndustry.name}</span> • Powered by SmelterOS
               </p>
             </div>
           </div>

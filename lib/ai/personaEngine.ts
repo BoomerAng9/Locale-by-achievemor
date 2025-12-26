@@ -8,6 +8,7 @@
  */
 
 import { AGENT_REGISTRY, BoomerAng } from '../agents/registry';
+import { COMBINED_FRAMEWORK_PROMPT } from '../../src/lib/frameworks';
 
 export interface PersonaContext {
   industry: string;
@@ -330,6 +331,9 @@ function buildSystemPrompt(params: {
   } else {
     prompt += 'Be direct and action-oriented.';
   }
+
+  // Inject House of Ang Frameworks
+  prompt += `\n\n${COMBINED_FRAMEWORK_PROMPT}`;
   
   return prompt;
 }

@@ -1,11 +1,19 @@
 /**
- * The Circuit Box - Central Command for Nervous System
- * Controls all AI Agents (Boomer_Angs) and System Modules
+ * SmelterOS - Industrial AI Foundry
+ * Control Panel for the Boomer_Ang Executive Guild
  * 
  * PRODUCTION MODE: Connected to Firestore 'agent_registry'
+ * 
+ * Hierarchy:
+ * - AVVA NOON: InfinityLM Master Orchestrator
+ * - Boomer_Ang C-Suite: CTO, CFO, COO, CMO, CDO, CPO
+ * - Finder, Debugger, Thesys: Specialized Workers
+ * 
+ * Plausibility Bound: -10^18 ≤ x, y ≤ 10^18
  */
 
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { AGENT_REGISTRY } from '../../lib/agents/registry';
 import { AgentState, AgentTask } from '../../lib/firestore/schema';
 import { subscribeToAgents, subscribeToTaskQueue, dispatchTask, registerAgentHeartbeat, subscribeToBreakers, updateBreakerState } from '../../lib/agents/manager';
@@ -18,6 +26,17 @@ import { delegationManager, DelegationRequest } from '../../lib/ai-plugs/delegat
 import { avvaNoon } from '../../lib/avva_noon/core/infinity_lm';
 
 import SystemLogsViewer from './SystemLogsViewer';
+
+// Deploy Environment Types
+type DeployEnvironment = 'development' | 'staging' | 'production';
+
+interface DeployModalState {
+  isOpen: boolean;
+  item: { id: string; name: string; type: 'plug' | 'driver' | 'agent' } | null;
+  environment: DeployEnvironment;
+  deploying: boolean;
+  success: boolean;
+}
 
 interface CircuitBreaker {
   id: string;
@@ -49,12 +68,23 @@ const DEFAULT_BREAKERS: CircuitBreaker[] = [
 ];
 
 const CircuitBox: React.FC = () => {
+  const navigate = useNavigate();
   const [agents, setAgents] = useState<AgentState[]>([]);
   const [tasks, setTasks] = useState<AgentTask[]>([]);
   const [breakers, setBreakers] = useState<CircuitBreaker[]>(DEFAULT_BREAKERS);
-  const [activeTab, setActiveTab] = useState<'overview' | 'wiring' | 'drivers' | 'ai-plugs' | 'logs'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'wiring' | 'drivers' | 'agentic-tools' | 'logs'>('overview');
   const [delegations, setDelegations] = useState<DelegationRequest[]>([]);
   const [avvaStatus, setAvvaStatus] = useState<any>(null);
+  
+  // Deploy Modal State
+  const [deployModal, setDeployModal] = useState<DeployModalState>({
+    isOpen: false,
+    item: null,
+    environment: 'development',
+    deploying: false,
+    success: false,
+  });
+  
   const [delegationStats, setDelegationStats] = useState({
     totalDelegations: 0,
     completed: 0,
@@ -146,31 +176,147 @@ const CircuitBox: React.FC = () => {
      setTimeout(() => PROCESS_FINDER_TASK(taskId), 2000); 
   };
 
+  // Deploy handler - opens environment selector and deploys to SmelterOS sandbox
+  const openDeployModal = (item: { id: string; name: string; type: 'plug' | 'driver' | 'agent' }) => {
+    setDeployModal({
+      isOpen: true,
+      item,
+      environment: 'development',
+      deploying: false,
+      success: false,
+    });
+  };
+
+  const handleDeploy = async () => {
+    if (!deployModal.item) return;
+    
+    setDeployModal(prev => ({ ...prev, deploying: true }));
+    
+    // Simulate deployment process
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setDeployModal(prev => ({ ...prev, deploying: false, success: true }));
+    
+    // After success, navigate to SmelterOS with the deployed item
+    setTimeout(() => {
+      setDeployModal({ isOpen: false, item: null, environment: 'development', deploying: false, success: false });
+      navigate(`/admin/smelteros?deploy=${deployModal.item?.id}&env=${deployModal.environment}&type=${deployModal.item?.type}`);
+    }, 1000);
+  };
+
+  const closeDeployModal = () => {
+    setDeployModal({ isOpen: false, item: null, environment: 'development', deploying: false, success: false });
+  };
+
+  // Deploy Modal Component
+  const DeployModal = () => {
+    if (!deployModal.isOpen || !deployModal.item) return null;
+    
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div className="bg-carbon-800 border border-carbon-600 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              🚀 Deploy to Environment
+            </h3>
+            <button onClick={closeDeployModal} className="text-gray-500 hover:text-white">✕</button>
+          </div>
+          
+          <div className="mb-6">
+            <p className="text-sm text-gray-400 mb-2">Deploying:</p>
+            <div className="bg-carbon-900 p-4 rounded-lg border border-carbon-700">
+              <p className="text-white font-bold">{deployModal.item.name}</p>
+              <p className="text-xs text-gray-500 uppercase">{deployModal.item.type}</p>
+            </div>
+          </div>
+          
+          <div className="mb-6">
+            <p className="text-sm text-gray-400 mb-3">Select Environment:</p>
+            <div className="grid grid-cols-3 gap-2">
+              {(['development', 'staging', 'production'] as DeployEnvironment[]).map(env => (
+                <button
+                  key={env}
+                  onClick={() => setDeployModal(prev => ({ ...prev, environment: env }))}
+                  className={`p-3 rounded-lg border text-xs font-bold uppercase transition-all ${
+                    deployModal.environment === env
+                      ? env === 'development' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400'
+                        : env === 'staging' ? 'bg-blue-500/20 border-blue-500 text-blue-400'
+                        : 'bg-green-500/20 border-green-500 text-green-400'
+                      : 'bg-carbon-900 border-carbon-700 text-gray-500 hover:text-white hover:border-carbon-500'
+                  }`}
+                >
+                  {env === 'development' ? '🔧 DEV' : env === 'staging' ? '🧪 STG' : '🚀 PROD'}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {deployModal.success ? (
+            <div className="p-4 bg-green-500/20 border border-green-500/50 rounded-lg text-center">
+              <span className="text-2xl">✅</span>
+              <p className="text-green-400 font-bold mt-2">Deployed Successfully!</p>
+              <p className="text-xs text-gray-400">Redirecting to SmelterOS...</p>
+            </div>
+          ) : (
+            <button
+              onClick={handleDeploy}
+              disabled={deployModal.deploying}
+              className={`w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                deployModal.deploying
+                  ? 'bg-carbon-700 text-gray-500 cursor-wait'
+                  : 'bg-orange-500 hover:bg-orange-600 text-white'
+              }`}
+            >
+              {deployModal.deploying ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                  Deploying...
+                </>
+              ) : (
+                <>🔥 Deploy to {deployModal.environment.toUpperCase()}</>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-carbon-900 text-white p-6 pb-20">
-      {/* Header */}
+      {/* Deploy Modal */}
+      <DeployModal />
+      
+      {/* Header - SmelterOS Branding */}
       <div className="mb-8 flex justify-between items-end">
         <div>
            <h1 className="text-4xl font-black text-white mb-2 tracking-tighter flex items-center gap-3">
-             <span className="text-orange-500">⚡</span> CIRCUIT BOX
+             <span className="text-orange-500">🔥</span> SMELTER<span className="text-orange-500">OS</span>
+             <span className="text-xs bg-carbon-700 text-gray-400 px-2 py-1 rounded ml-2 font-mono">v1.0.0</span>
            </h1>
            <p className="text-gray-400 font-mono text-sm max-w-xl">
-             INTERNAL OPERATIONS // NERVOUS SYSTEM CONTROL<br/>
-             Authorized Personnel Only. Powered by AVVA NOON.
+             INDUSTRIAL AI FOUNDRY // EXECUTIVE GUILD CONTROL<br/>
+             <span className="text-orange-500/60">Plausibility: (-10¹⁸ ≤ x, y ≤ 10¹⁸)</span> // Powered by AVVA NOON
            </p>
         </div>
-        <div className="flex gap-2">
-           {['overview', 'wiring', 'drivers', 'ai-plugs', 'logs'].map(tab => (
+        <div className="flex gap-2 items-center">
+           <Link
+             to="/admin/smelteros"
+             className="px-4 py-2 rounded-lg font-bold text-sm transition-all bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 flex items-center gap-2"
+           >
+             ⚡ FULL FOUNDRY
+           </Link>
+           {['overview', 'wiring', 'drivers', 'agentic-tools', 'logs'].map(tab => (
              <button
                key={tab}
                onClick={() => setActiveTab(tab as any)}
                className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
                  activeTab === tab 
-                   ? 'bg-locale-blue text-white shadow-lg shadow-locale-blue/20' 
+                   ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' 
                    : 'bg-carbon-800 text-gray-500 hover:text-white'
                }`}
              >
-               {tab === 'ai-plugs' ? 'AI PLUGS' : tab === 'drivers' ? 'DRIVERS' : tab.toUpperCase()}
+               {tab === 'agentic-tools' ? 'AGENTIC TOOLS' : tab === 'drivers' ? 'DRIVERS' : tab.toUpperCase()}
              </button>
            ))}
         </div>
@@ -301,24 +447,38 @@ const CircuitBox: React.FC = () => {
       {activeTab === 'wiring' && (
         <div className="space-y-8">
            
-           {/* Section 1: Boomer_Angs (Agents) */}
+           {/* Section 1: Executive Guild (Boomer_Angs) */}
            <div>
-              <h3 className="text-xl font-bold text-white mb-4 pl-2 border-l-4 border-locale-blue">
-                 Boomer_Angs <span className="text-gray-500 text-sm font-normal ml-2">// AI Agent Fleet</span>
+              <h3 className="text-xl font-bold text-white mb-4 pl-2 border-l-4 border-orange-500">
+                 Executive Guild <span className="text-gray-500 text-sm font-normal ml-2">// Boomer_Ang C-Suite</span>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {agents.filter(a => a.role !== 'orchestrator').map(agent => (
-                    <div key={agent.id} className={`relative bg-carbon-800 border ${agent.status === 'active' ? 'border-locale-blue/50' : 'border-carbon-700'} rounded-2xl p-6 transition-all`}>
-                       {agent.status === 'active' && <div className="absolute top-3 right-3 w-2 h-2 bg-locale-blue rounded-full animate-ping"></div>}
+                 {agents.filter(a => a.role !== 'orchestrator').map(agent => {
+                    // Map roles to C-Suite titles
+                    const cSuiteMap: Record<string, { title: string; emoji: string; color: string }> = {
+                       'cto': { title: 'CTO', emoji: '🔧', color: 'text-blue-400' },
+                       'cfo': { title: 'CFO', emoji: '💰', color: 'text-green-400' },
+                       'coo': { title: 'COO', emoji: '⚙️', color: 'text-orange-400' },
+                       'cmo': { title: 'CMO', emoji: '📢', color: 'text-pink-400' },
+                       'cdo': { title: 'CDO', emoji: '📊', color: 'text-purple-400' },
+                       'cpo': { title: 'CPO', emoji: '🎯', color: 'text-cyan-400' },
+                       'finder': { title: 'Finder', emoji: '🔍', color: 'text-yellow-400' },
+                       'debugger': { title: 'Debugger', emoji: '🐞', color: 'text-red-400' },
+                       'thesys': { title: 'Thesys', emoji: '🧠', color: 'text-indigo-400' },
+                    };
+                    const roleInfo = cSuiteMap[agent.role] || { title: agent.role, emoji: '⚡', color: 'text-gray-400' };
+                    
+                    return (
+                    <div key={agent.id} className={`relative bg-carbon-800 border ${agent.status === 'active' ? 'border-orange-500/50' : 'border-carbon-700'} rounded-2xl p-6 transition-all`}>
+                       {agent.status === 'active' && <div className="absolute top-3 right-3 w-2 h-2 bg-orange-500 rounded-full animate-ping"></div>}
                        
                        <div className="flex items-center gap-4 mb-4">
                           <div className="text-3xl bg-carbon-900 w-12 h-12 flex items-center justify-center rounded-xl border border-carbon-700">
-                             {/* Emoji Icon based on role if missing */}
-                             {agent.role === 'finder' ? '🔍' : agent.role === 'debugger' ? '🐞' : '⚡'}
+                             {roleInfo.emoji}
                           </div>
                           <div>
                              <h4 className="font-bold text-white">{agent.name}</h4>
-                             <p className="text-xs text-locale-blue font-mono uppercase">{agent.role}</p>
+                             <p className={`text-xs font-mono uppercase ${roleInfo.color}`}>{roleInfo.title}</p>
                           </div>
                        </div>
                        
@@ -362,7 +522,8 @@ const CircuitBox: React.FC = () => {
                           </button>
                        </div>
                     </div>
-                 ))}
+                 );
+                 })}
               </div>
            </div>
 
@@ -476,7 +637,7 @@ const CircuitBox: React.FC = () => {
                 
                 <div className="divide-y divide-carbon-700">
                   {drivers.map(driver => (
-                    <div key={driver.id} className="p-4 hover:bg-carbon-700/30 transition-colors">
+                    <div key={driver.id} className="group p-4 hover:bg-carbon-700/30 transition-colors">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
@@ -489,6 +650,12 @@ const CircuitBox: React.FC = () => {
                             }`}>
                               {driver.status}
                             </span>
+                            <button
+                              onClick={() => openDeployModal({ id: driver.id, name: driver.name, type: 'driver' })}
+                              className="opacity-0 group-hover:opacity-100 px-2 py-1 bg-orange-500/20 hover:bg-orange-500 text-orange-400 hover:text-white text-[10px] font-bold rounded transition-all"
+                            >
+                              🚀 DEPLOY
+                            </button>
                           </div>
                           <p className="text-gray-400 text-sm mb-3">{driver.description}</p>
                           
@@ -543,7 +710,7 @@ const CircuitBox: React.FC = () => {
         </div>
       )}
 
-      {activeTab === 'ai-plugs' && (
+      {activeTab === 'agentic-tools' && (
         <div className="space-y-8">
           {/* Delegation System Status */}
           <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-700/50 rounded-2xl p-6">
@@ -581,11 +748,11 @@ const CircuitBox: React.FC = () => {
             </div>
           </div>
 
-          {/* AI Plugs Overview */}
+          {/* Agentic Tools Overview */}
           <div className="bg-gradient-to-br from-carbon-800 to-carbon-900 border border-carbon-700 rounded-2xl p-6">
             <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <span className="text-purple-500">🔌</span>
-              AI Plug Registry
+              Agentic Tools Registry
               <span className="text-gray-500 text-sm font-normal ml-2">// 100 Automated Business Ideas</span>
             </h3>
 
@@ -615,7 +782,7 @@ const CircuitBox: React.FC = () => {
             </div>
           </div>
 
-          {/* AI Plugs by Category */}
+          {/* Agentic Tools by Category */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               'content-creation',
@@ -647,7 +814,7 @@ const CircuitBox: React.FC = () => {
 
                   <div className="space-y-3">
                     {categoryPlugs.slice(0, 3).map(plug => (
-                      <div key={plug.id} className="flex items-center justify-between p-3 bg-carbon-900/50 rounded-lg">
+                      <div key={plug.id} className="flex items-center justify-between p-3 bg-carbon-900/50 rounded-lg group">
                         <div className="flex-1">
                           <div className="text-sm font-medium text-gray-300 truncate">
                             {plug.name}
@@ -656,10 +823,18 @@ const CircuitBox: React.FC = () => {
                             {plug.metrics.totalExecutions} executions
                           </div>
                         </div>
-                        <div className={`w-2 h-2 rounded-full ${
-                          plug.status === 'active' ? 'bg-green-500' :
-                          plug.status === 'standby' ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}></div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openDeployModal({ id: plug.id, name: plug.name, type: 'plug' })}
+                            className="opacity-0 group-hover:opacity-100 px-2 py-1 bg-orange-500/20 hover:bg-orange-500 text-orange-400 hover:text-white text-[10px] font-bold rounded transition-all"
+                          >
+                            🚀 DEPLOY
+                          </button>
+                          <div className={`w-2 h-2 rounded-full ${
+                            plug.status === 'active' ? 'bg-green-500' :
+                            plug.status === 'standby' ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}></div>
+                        </div>
                       </div>
                     ))}
 
@@ -674,15 +849,15 @@ const CircuitBox: React.FC = () => {
             })}
           </div>
 
-          {/* Top Performing Plugs */}
+          {/* Top Performing Agentic Tools */}
           <div className="bg-carbon-800 border border-carbon-700 rounded-2xl p-6">
-            <h3 className="text-lg font-bold text-white mb-4">Top Performing AI Plugs</h3>
+            <h3 className="text-lg font-bold text-white mb-4">Top Performing Agentic Tools</h3>
             <div className="space-y-3">
               {AI_PLUG_REGISTRY
                 .sort((a, b) => b.metrics.revenueGenerated - a.metrics.revenueGenerated)
                 .slice(0, 10)
                 .map((plug, index) => (
-                  <div key={plug.id} className="flex items-center justify-between p-3 bg-carbon-900/50 rounded-lg">
+                  <div key={plug.id} className="group flex items-center justify-between p-3 bg-carbon-900/50 rounded-lg hover:bg-carbon-800/50 transition-all">
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-bold text-gray-500 w-6">#{index + 1}</span>
                       <div>
@@ -692,12 +867,20 @@ const CircuitBox: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-sm font-bold text-green-400">
-                        ${plug.metrics.revenueGenerated.toFixed(2)}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {plug.metrics.totalExecutions} exec
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => openDeployModal({ id: plug.id, name: plug.name, type: 'plug' })}
+                        className="opacity-0 group-hover:opacity-100 px-2 py-1 bg-orange-500/20 hover:bg-orange-500 text-orange-400 hover:text-white text-[10px] font-bold rounded transition-all"
+                      >
+                        🚀 DEPLOY
+                      </button>
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-green-400">
+                          ${plug.metrics.revenueGenerated.toFixed(2)}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {plug.metrics.totalExecutions} exec
+                        </div>
                       </div>
                     </div>
                   </div>

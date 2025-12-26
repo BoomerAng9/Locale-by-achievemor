@@ -4,8 +4,12 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { speakText, listenToSpeech, VOICE_LIBRARY, getSelectedVoice, setSelectedVoice } from '../../lib/voice';
+import { AGENT_REGISTRY, BoomerAng } from '../../lib/agents/registry';
+import { sendToGemini, ChatMessage } from '../../lib/ai/gemini';
+import { motion, AnimatePresence } from 'framer-motion';
+import * as Icons from 'lucide-react';
 
 interface Message {
     id: string;
@@ -13,29 +17,21 @@ interface Message {
     content: string;
     timestamp: Date;
     attachments?: File[];
+    agentId?: string;
 }
-
-interface ModelOption {
-    id: string;
-    name: string;
-    tier: 'free' | 'premier';
-    description: string;
-}
-
-const AVAILABLE_MODELS: ModelOption[] = [
-    { id: 'auto', name: 'Auto (ACHEEVY)', tier: 'free', description: 'Smart routing based on task' },
-    { id: 'analysis', name: 'Analysis Mode', tier: 'free', description: 'For planning and research' },
-    { id: 'build', name: 'Build Mode', tier: 'premier', description: 'For code and deployments' },
-    { id: 'creative', name: 'Creative Mode', tier: 'premier', description: 'For design and content' },
-];
 
 const PlaygroundPage: React.FC = () => {
+    const navigate = useNavigate();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [attachments, setAttachments] = useState<File[]>([]);
-    const [selectedModel, setSelectedModel] = useState('auto');
+    
+    // Select default agent (ACHEEVY)
+    const [selectedAgentId, setSelectedAgentId] = useState<string>(AGENT_REGISTRY[0].id);
+    const selectedAgent = AGENT_REGISTRY.find(a => a.id === selectedAgentId) || AGENT_REGISTRY[0];
+
     const [selectedVoice, setVoice] = useState(getSelectedVoice());
     const [showSettings, setShowSettings] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -61,35 +57,54 @@ const PlaygroundPage: React.FC = () => {
         setAttachments([]);
         setIsLoading(true);
 
-        // Simulate AI response
-        setTimeout(() => {
+        try {
+            // Build context based on selected Agent
+            const agentContext = `
+                You are ${selectedAgent.name} (${selectedAgent.label}).
+                Role: ${selectedAgent.role}
+                Specialty: ${selectedAgent.specialty}
+                Description: ${selectedAgent.description}
+                Capabilities: ${selectedAgent.capabilities.join(', ')}
+                
+                Act as this specific agent within the House of Ang ecosystem.
+            `;
+
+            const chatHistory: ChatMessage[] = messages.map(m => ({
+                role: m.role,
+                content: m.content
+            }));
+            chatHistory.push({ role: 'user', content: userMessage.content });
+
+            const response = await sendToGemini(chatHistory, agentContext);
+
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
-                content: generateMockResponse(userMessage.content, selectedModel),
-                timestamp: new Date()
+                content: response,
+                timestamp: new Date(),
+                agentId: selectedAgent.id
             };
-            setMessages(prev => [...prev, aiResponse]);
-            setIsLoading(false);
             
-            // Speak the response
+            setMessages(prev => [...prev, aiResponse]);
             speakText(aiResponse.content);
-        }, 1500);
+
+        } catch (error) {
+            console.error("AI Error", error);
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: "I encountered an error connecting to the Neural Network.",
+                timestamp: new Date(),
+                agentId: selectedAgent.id
+            }]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const generateMockResponse = (query: string, model: string): string => {
-        const q = query.toLowerCase();
-        
-        if (q.includes('hello') || q.includes('hi')) {
-            return "Welcome to Locale by: ACHIEVEMOR. How can I help? Think It. Prompt It. Let Us Manage It.";
-        }
-        if (q.includes('build') || q.includes('create') || q.includes('make')) {
-            return `I can help you build that! Using ${model === 'build' ? 'Build Mode' : 'Auto'} for optimal results. Let me break down the requirements and create a plan. Would you like me to proceed?`;
-        }
-        if (q.includes('find') || q.includes('search')) {
-            return "I'll help you find the right talent. Based on your request, I'm searching our verified partner network. What specific skills or location are you looking for?";
-        }
-        return "I understand. Let me help you with that. Can you provide more details about what you'd like to accomplish?";
+    const handleDeploy = () => {
+        // Navigate to TaskWorkspace with the selected agent context
+        navigate('/workspace', { state: { agentId: selectedAgentId, initialTask: messages[messages.length - 1]?.content } });
     };
 
     const handleVoiceInput = async () => {
@@ -141,31 +156,35 @@ const PlaygroundPage: React.FC = () => {
             {showSettings && (
                 <div className="bg-carbon-800 border-b border-carbon-700 px-6 py-4">
                     <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Model Selection */}
+                        {/* Agent Selection */}
                         <div>
-                            <label htmlFor="model-select" className="block text-gray-400 text-sm mb-2">Model</label>
+                            <label htmlFor="agent-select" className="block text-gray-400 text-sm mb-2">Select Ang (Agent)</label>
                             <select
-                                id="model-select"
-                                value={selectedModel}
-                                onChange={(e) => setSelectedModel(e.target.value)}
-                                title="Select AI model"
+                                id="agent-select"
+                                value={selectedAgentId}
+                                onChange={(e) => setSelectedAgentId(e.target.value)}
+                                title="Select AI Agent"
                                 className="w-full bg-carbon-900 border border-carbon-600 rounded-lg px-4 py-3 text-white"
                             >
-                                {AVAILABLE_MODELS.map(model => (
-                                    <option key={model.id} value={model.id}>
-                                        {model.name} {model.tier === 'premier' ? '⚡' : '🆓'}
+                                {AGENT_REGISTRY.map(agent => (
+                                    <option key={agent.id} value={agent.id}>
+                                        {agent.icon} {agent.name} - {agent.label}
                                     </option>
                                 ))}
                             </select>
+                            <p className="text-xs text-gray-500 mt-2">{selectedAgent.description}</p>
                         </div>
 
                         {/* Voice Selection */}
                         <div>
-                            <label htmlFor="voice-select" className="block text-gray-400 text-sm mb-2">ACHEEVY Voice</label>
+                            <label htmlFor="voice-select" className="block text-gray-400 text-sm mb-2">Voice Interface</label>
                             <select
                                 id="voice-select"
                                 value={selectedVoice}
-                                onChange={(e) => handleVoiceChange(e.target.value)}
+                                onChange={(e) => {
+                                    setVoice(e.target.value);
+                                    setSelectedVoice(e.target.value);
+                                }}
                                 title="Select voice for responses"
                                 className="w-full bg-carbon-900 border border-carbon-600 rounded-lg px-4 py-3 text-white"
                             >
@@ -185,26 +204,23 @@ const PlaygroundPage: React.FC = () => {
                 <div className="max-w-4xl mx-auto space-y-6">
                     {messages.length === 0 && (
                         <div className="text-center py-24">
-                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-locale-blue to-purple-600 flex items-center justify-center mx-auto mb-6 text-4xl">
-                                🤖
+                            <div className="w-20 h-20 rounded-full bg-linear-to-br from-locale-blue to-purple-600 flex items-center justify-center mx-auto mb-6 text-4xl">
+                                {selectedAgent.icon}
                             </div>
-                            <h2 className="text-2xl font-bold text-white mb-4">Welcome to the Playground</h2>
+                            <h2 className="text-2xl font-bold text-white mb-4">Chat with {selectedAgent.name}</h2>
                             <p className="text-gray-500 max-w-md mx-auto mb-8">
-                                Think It. Prompt It. Let Us Manage It. Start a conversation with ACHEEVY to build, find talent, or get things done.
+                                {selectedAgent.description}
+                                <br/>
+                                <span className="text-xs mt-2 block text-gray-600">Powered by House of Ang Framework</span>
                             </p>
                             <div className="flex flex-wrap gap-3 justify-center">
-                                {[
-                                    '🔍 Find a web developer',
-                                    '🏗️ Build me an app',
-                                    '📊 Analyze my project',
-                                    '🎨 Create a design',
-                                ].map((suggestion, i) => (
+                                {selectedAgent.capabilities.slice(0, 4).map((cap, i) => (
                                     <button
                                         key={i}
-                                        onClick={() => setInput(suggestion.slice(3))}
+                                        onClick={() => setInput(`Help me with ${cap}`)}
                                         className="px-4 py-2 bg-carbon-800 hover:bg-carbon-700 border border-carbon-600 text-gray-400 hover:text-white rounded-full text-sm transition-colors"
                                     >
-                                        {suggestion}
+                                        {cap}
                                     </button>
                                 ))}
                             </div>
@@ -213,10 +229,10 @@ const PlaygroundPage: React.FC = () => {
 
                     {messages.map((msg) => (
                         <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                msg.role === 'user' ? 'bg-locale-blue' : 'bg-gradient-to-br from-purple-600 to-locale-blue'
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                                msg.role === 'user' ? 'bg-locale-blue' : 'bg-linear-to-br from-purple-600 to-locale-blue'
                             }`}>
-                                {msg.role === 'user' ? '👤' : '🤖'}
+                                {msg.role === 'user' ? '👤' : (msg.agentId ? AGENT_REGISTRY.find(a => a.id === msg.agentId)?.icon : '🤖')}
                             </div>
                             <div className={`max-w-[70%] ${msg.role === 'user' ? 'text-right' : ''}`}>
                                 <div className={`rounded-2xl px-5 py-3 ${
@@ -224,7 +240,7 @@ const PlaygroundPage: React.FC = () => {
                                         ? 'bg-locale-blue text-white' 
                                         : 'bg-carbon-800 border border-carbon-700 text-gray-200'
                                 }`}>
-                                    <p className="text-sm leading-relaxed">{msg.content}</p>
+                                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                                     {msg.attachments && msg.attachments.length > 0 && (
                                         <div className="mt-2 flex flex-wrap gap-2">
                                             {msg.attachments.map((file, i) => (
@@ -235,12 +251,18 @@ const PlaygroundPage: React.FC = () => {
                                         </div>
                                     )}
                                 </div>
+                                <span className="text-xs text-gray-600 mt-1 block">
+                                    {msg.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                    {msg.role === 'assistant' && msg.agentId && ` • ${AGENT_REGISTRY.find(a => a.id === msg.agentId)?.name}`}
+                                </span>
+                                
+                                {/* Deploy Action for Assistant Messages */}
                                 {msg.role === 'assistant' && (
                                     <button 
-                                        onClick={() => speakText(msg.content)}
-                                        className="text-xs text-gray-500 hover:text-locale-blue mt-2 flex items-center gap-1"
+                                        onClick={handleDeploy}
+                                        className="mt-2 text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 ml-1"
                                     >
-                                        🔊 Play
+                                        <Icons.Rocket className="w-3 h-3" /> Deploy to Sandbox
                                     </button>
                                 )}
                             </div>
@@ -249,14 +271,14 @@ const PlaygroundPage: React.FC = () => {
 
                     {isLoading && (
                         <div className="flex gap-4">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-locale-blue flex items-center justify-center">
-                                🤖
+                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-600 to-locale-blue flex items-center justify-center shrink-0">
+                                {selectedAgent.icon}
                             </div>
-                            <div className="bg-carbon-800 border border-carbon-700 rounded-2xl px-5 py-3">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-locale-blue rounded-full animate-bounce" />
-                                    <div className="w-2 h-2 bg-locale-blue rounded-full animate-bounce" style={{animationDelay: '0.1s'}} />
-                                    <div className="w-2 h-2 bg-locale-blue rounded-full animate-bounce" style={{animationDelay: '0.2s'}} />
+                            <div className="bg-carbon-800 border border-carbon-700 rounded-2xl px-5 py-4">
+                                <div className="flex gap-1">
+                                    <div className="w-2 h-2 bg-locale-blue rounded-full animate-bounce [animation-delay:0ms]" />
+                                    <div className="w-2 h-2 bg-locale-blue rounded-full animate-bounce [animation-delay:150ms]" />
+                                    <div className="w-2 h-2 bg-locale-blue rounded-full animate-bounce [animation-delay:300ms]" />
                                 </div>
                             </div>
                         </div>
