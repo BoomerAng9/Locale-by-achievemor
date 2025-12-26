@@ -1,383 +1,375 @@
 /**
- * Circuit Box - System Management Interface
- * Refactored to match High-Fidelity "Metallic/Industrial" Design
+ * Circuit Box - AI Department Management
+ * NANO BANANA PRO Design - Dark with Neon Green Accents
+ * Manages all AI agents, APIs, and system integrations
  */
 
 import React, { useState, useEffect } from 'react';
-import { AGENT_REGISTRY } from '../../lib/agents/registry';
-import { AgentState, AgentTask } from '../../lib/firestore/schema';
-import { subscribeToAgents, subscribeToTaskQueue, updateBreakerState } from '../../lib/agents/manager';
 
-// --- Types & Mock Data for UI Panels ---
+// === API STATUS CHECK ===
+const getApiStatus = () => ({
+    // AI Department - The Forge
+    theForge: !!import.meta.env.VITE_OPENAI_API_KEY,
+    theGateway: !!import.meta.env.VITE_OPENROUTER_API_KEY,
+    theThinker: !!import.meta.env.VITE_DEEPSEEK_API_KEY,
+    theSpeedster: !!import.meta.env.VITE_GROQ_API_KEY,
+    theResearcher: !!import.meta.env.VITE_PERPLEXITY_API_KEY,
+    theSage: !!import.meta.env.VITE_ANTHROPIC_API_KEY,
+    theOracle: !!import.meta.env.VITE_GEMINI_API_KEY,
+    designFactory: !!import.meta.env.VITE_DESIGN_FACTORY_API_KEY,
+    
+    // Voice Department
+    theScribe: !!import.meta.env.VITE_DEEPGRAM_API_KEY,
+    theVoiceArtist: !!import.meta.env.VITE_ELEVENLABS_API_KEY,
+    
+    // Research Department
+    theSeeker: !!import.meta.env.VITE_TAVILY_API_KEY,
+    
+    // Infrastructure
+    theEngine: !!import.meta.env.VITE_MODAL_API_KEY,
+});
 
-interface BreakerSwitch {
-  id: string;
-  name: string;
-  category: 'core' | 'financial' | 'external' | 'voice' | 'infra';
-  isOn: boolean;
-  status: 'healthy' | 'warning' | 'error';
-  lastCheck?: string;
-  meta?: any; // Extra data like "load", "cost", etc.
+// === AGENT DEFINITIONS ===
+interface AgentConfig {
+    id: string;
+    name: string;
+    codeName: string;
+    department: 'ai' | 'voice' | 'research' | 'infra' | 'core';
+    description: string;
+    envKey: string;
+    isEnabled: boolean;
+    load: number;
+    status: 'online' | 'offline' | 'warning' | 'error';
+    lastActivity: string;
+    rateLimit: string;
+    costPerCall: string;
 }
 
-const MOCK_BREAKERS: BreakerSwitch[] = [
-    // Panel 3: External Integrations
-    { id: 'stripe', name: 'Stripe (Payments)', category: 'financial', isOn: true, status: 'healthy' },
-    { id: 'github', name: 'GitHub', category: 'external', isOn: true, status: 'healthy' },
-    { id: 'gcp_functions', name: 'GCP Functions', category: 'infra', isOn: true, status: 'healthy' },
-    { id: 'postgres', name: 'PostgreSQL Database', category: 'core', isOn: true, status: 'healthy' },
-    { id: 'websocket', name: 'WebSocket Service', category: 'core', isOn: true, status: 'healthy' },
-
-    // Panel 4: Voice
-    { id: 'voice_stt', name: 'Scribe STT', category: 'voice', isOn: true, status: 'healthy' },
-    { id: 'voice_tts', name: 'TTS Circuit', category: 'voice', isOn: true, status: 'healthy' },
-    { id: 'voice_stream', name: 'Real-time Streaming', category: 'voice', isOn: true, status: 'healthy' },
-
-    { id: 'cloud_run', name: 'GCP Cloud Run', category: 'infra', isOn: true, status: 'healthy', meta: { lastCheck: '3m ago' } },
-    { id: 'firebase_hosting', name: 'Firebase Hosting', category: 'infra', isOn: true, status: 'healthy', meta: { lastCheck: '3m ago' } },
-    { id: 'function_deploy', name: 'Function Deployment', category: 'infra', isOn: true, status: 'healthy', meta: { lastCheck: '3m ago' } },
-    { id: 'db_backup', name: 'Database Backups', category: 'core', isOn: true, status: 'healthy', meta: { lastCheck: '3m ago' } },
-    { id: 'health_check', name: 'Health Check Circuit', category: 'core', isOn: true, status: 'healthy', meta: { lastCheck: '3m ago' } },
+const AI_DEPARTMENT: AgentConfig[] = [
+    { id: 'the-forge', name: 'The Forge', codeName: 'Code Generation', department: 'ai', description: 'GPT-4 powered code generation', envKey: 'VITE_OPENAI_API_KEY', isEnabled: true, load: 65, status: 'online', lastActivity: '2s ago', rateLimit: '10K/min', costPerCall: '$0.03' },
+    { id: 'the-gateway', name: 'The Gateway', codeName: 'Multi-Model Routing', department: 'ai', description: 'OpenRouter multi-model access', envKey: 'VITE_OPENROUTER_API_KEY', isEnabled: true, load: 78, status: 'online', lastActivity: '1s ago', rateLimit: '5K/min', costPerCall: '$0.01' },
+    { id: 'the-thinker', name: 'The Thinker', codeName: 'Deep Reasoning', department: 'ai', description: 'DeepSeek reasoning engine', envKey: 'VITE_DEEPSEEK_API_KEY', isEnabled: true, load: 45, status: 'online', lastActivity: '5s ago', rateLimit: '1K/min', costPerCall: '$0.001' },
+    { id: 'the-speedster', name: 'The Speedster', codeName: 'Fast Inference', department: 'ai', description: 'Groq ultra-fast inference', envKey: 'VITE_GROQ_API_KEY', isEnabled: true, load: 30, status: 'online', lastActivity: '3s ago', rateLimit: '30/min', costPerCall: '$0.0001' },
+    { id: 'the-sage', name: 'The Sage', codeName: 'Claude AI', department: 'ai', description: 'Anthropic Claude models', envKey: 'VITE_ANTHROPIC_API_KEY', isEnabled: true, load: 55, status: 'online', lastActivity: '10s ago', rateLimit: '1K/min', costPerCall: '$0.015' },
+    { id: 'the-oracle', name: 'The Oracle', codeName: 'Gemini AI', department: 'ai', description: 'Google Gemini models', envKey: 'VITE_GEMINI_API_KEY', isEnabled: true, load: 40, status: 'online', lastActivity: '8s ago', rateLimit: '1.5K/min', costPerCall: '$0.0025' },
+    { id: 'design-factory', name: 'Design Factory', codeName: 'Internal Agent', department: 'ai', description: 'ACHIEVEMOR agent system', envKey: 'VITE_DESIGN_FACTORY_API_KEY', isEnabled: true, load: 80, status: 'online', lastActivity: '1s ago', rateLimit: '∞', costPerCall: '$0.00' },
 ];
 
-const REPO_GRID = Array.from({ length: 17 }).map((_, i) => ({
-    id: `repo-${i+1}`,
-    name: i === 0 ? 'Repo 1 - Core' : i === 1 ? 'Repo 2 - UI' : `Repo ${i+1} - Mod`,
-    status: i === 2 ? 'error' : i === 1 ? 'warning' : 'healthy', // Mock some errors
-    lastSync: i < 5 ? 'Just now' : '3m ago',
-    errors: i === 2 ? 3 : 0
-}));
+const VOICE_DEPARTMENT: AgentConfig[] = [
+    { id: 'the-scribe', name: 'The Scribe', codeName: 'Speech-to-Text', department: 'voice', description: 'Deepgram Nova-2 STT', envKey: 'VITE_DEEPGRAM_API_KEY', isEnabled: true, load: 25, status: 'online', lastActivity: '15s ago', rateLimit: '100/min', costPerCall: '$0.0043' },
+    { id: 'the-voice-artist', name: 'The Voice Artist', codeName: 'Text-to-Speech', department: 'voice', description: 'ElevenLabs TTS', envKey: 'VITE_ELEVENLABS_API_KEY', isEnabled: true, load: 35, status: 'online', lastActivity: '20s ago', rateLimit: '500/min', costPerCall: '$0.001' },
+    { id: 'whisper-agent', name: 'Whisper Agent', codeName: 'Groq Whisper', department: 'voice', description: 'Fast voice transcription', envKey: 'VITE_GROQ_API_KEY', isEnabled: true, load: 20, status: 'online', lastActivity: '30s ago', rateLimit: '30/min', costPerCall: '$0.0001' },
+];
 
-// --- Sub-Components ---
+const RESEARCH_DEPARTMENT: AgentConfig[] = [
+    { id: 'the-seeker', name: 'The Seeker', codeName: 'Web Search', department: 'research', description: 'Tavily AI search', envKey: 'VITE_TAVILY_API_KEY', isEnabled: true, load: 15, status: 'online', lastActivity: '1m ago', rateLimit: '1K/month', costPerCall: '$0.01' },
+    { id: 'the-researcher', name: 'The Researcher', codeName: 'Deep Research', department: 'research', description: 'Perplexity search synthesis', envKey: 'VITE_PERPLEXITY_API_KEY', isEnabled: true, load: 10, status: 'online', lastActivity: '2m ago', rateLimit: '100/day', costPerCall: '$0.005' },
+];
 
-const PanelHeader = ({ title, subTitle }: { title: string, subTitle?: string }) => (
-    <div className="bg-gray-300 border-b-2 border-gray-400 p-2 flex items-center justify-between shadow-sm">
-        <h3 className="text-gray-800 font-bold text-xs uppercase tracking-tighter">{title}</h3>
-        {subTitle && <span className="text-[10px] text-gray-600 font-mono">{subTitle}</span>}
-        <div className="w-2 h-2 rounded-full bg-gray-400/50 box-shadow-inner"></div>
+const INFRA_DEPARTMENT: AgentConfig[] = [
+    { id: 'the-engine', name: 'The Engine', codeName: 'Serverless Compute', department: 'infra', description: 'Modal serverless', envKey: 'VITE_MODAL_API_KEY', isEnabled: true, load: 50, status: 'online', lastActivity: '5m ago', rateLimit: '∞', costPerCall: '$0.0001' },
+    { id: 'stripe', name: 'The Treasury', codeName: 'Payments', department: 'infra', description: 'Stripe payments', envKey: 'VITE_STRIPE_SECRET_KEY', isEnabled: true, load: 5, status: 'online', lastActivity: '10m ago', rateLimit: '∞', costPerCall: '2.9%+$0.30' },
+    { id: 'messenger', name: 'The Messenger', codeName: 'Communications', department: 'infra', description: 'Email & notifications', envKey: 'VITE_RESEND_API_KEY', isEnabled: true, load: 8, status: 'online', lastActivity: '15m ago', rateLimit: '100/day', costPerCall: '$0.001' },
+];
+
+// === SUB-COMPONENTS ===
+
+const StatusIndicator = ({ status }: { status: 'online' | 'offline' | 'warning' | 'error' }) => {
+    const colors = {
+        online: 'bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]',
+        offline: 'bg-gray-500',
+        warning: 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]',
+        error: 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] animate-pulse',
+    };
+    return <div className={`w-3 h-3 rounded-full ${colors[status]}`} />;
+};
+
+const LoadBar = ({ load, className }: { load: number; className?: string }) => (
+    <div className={`h-2 bg-carbon-800 rounded-full overflow-hidden ${className}`}>
+        <div 
+            className={`h-full transition-all duration-500 ${
+                load < 50 ? 'bg-green-400' : load < 80 ? 'bg-yellow-500' : 'bg-red-500'
+            }`}
+            style={{ width: `${load}%` }}
+        />
     </div>
 );
 
-const ToggleSwitch = ({ isOn, onToggle, label }: { isOn: boolean, onToggle: () => void, label?: string }) => (
-    <div className="flex items-center justify-between gap-3 bg-gray-800/90 rounded-md p-2 border border-gray-600 shadow-inner">
-        {label && <span className="text-gray-300 font-bold text-[10px] uppercase truncate max-w-[80px]">{label}</span>}
+const ToggleSwitch = ({ isOn, onToggle, size = 'md' }: { isOn: boolean; onToggle: () => void; size?: 'sm' | 'md' | 'lg' }) => {
+    const sizes = {
+        sm: 'w-10 h-5',
+        md: 'w-14 h-7',
+        lg: 'w-20 h-10',
+    };
+    const knobSizes = {
+        sm: 'w-4 h-4',
+        md: 'w-6 h-6',
+        lg: 'w-9 h-9',
+    };
+    return (
         <button 
             onClick={onToggle}
-            className={`relative w-12 h-6 rounded-sm transition-all shadow-md group ${isOn ? 'bg-green-600' : 'bg-red-900'}`}
+            className={`${sizes[size]} rounded-full transition-all relative ${
+                isOn 
+                    ? 'bg-green-400/30 border-2 border-green-400 shadow-[0_0_15px_rgba(74,222,128,0.3)]' 
+                    : 'bg-carbon-800 border-2 border-carbon-600'
+            }`}
         >
-            <div className={`absolute top-0.5 bottom-0.5 w-[45%] bg-gray-200 rounded-sm transition-all shadow-sm ${isOn ? 'right-0.5' : 'left-0.5'}`}>
-                {/* Switch texture */}
-                <div className="absolute inset-0 flex items-center justify-center gap-[1px]">
-                   <div className="w-[1px] h-3 bg-gray-400"></div>
-                   <div className="w-[1px] h-3 bg-gray-400"></div>
-                   <div className="w-[1px] h-3 bg-gray-400"></div>
-                </div>
-            </div>
+            <div className={`${knobSizes[size]} rounded-full absolute top-0.5 transition-all ${
+                isOn 
+                    ? 'right-0.5 bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]' 
+                    : 'left-0.5 bg-gray-500'
+            }`} />
         </button>
-    </div>
-);
-
-const DigitalStatus = ({ status }: { status: 'healthy' | 'warning' | 'error' }) => {
-    const color = status === 'healthy' ? 'bg-green-500' : status === 'warning' ? 'bg-yellow-500' : 'bg-red-500';
-    const text = status === 'healthy' ? 'HEALTHY' : status === 'warning' ? 'WARNING' : 'ERROR';
-    return (
-        <div className={`flex items-center gap-1 ${status === 'healthy' ? 'bg-green-900/40 text-green-400' : 'bg-red-900/40 text-red-400'} px-2 py-0.5 rounded border border-white/5`}>
-            <div className={`w-1.5 h-1.5 rounded-full ${color} animate-pulse`}></div>
-            <span className="text-[9px] font-bold tracking-wider">{text}</span>
-        </div>
     );
 };
 
-const LoadBar = ({ load }: { load: number }) => (
-    <div className="w-full bg-gray-900 h-1.5 rounded-full overflow-hidden border border-gray-700">
-        <div 
-            className={`h-full ${load < 50 ? 'bg-green-500' : load < 80 ? 'bg-yellow-500' : 'bg-red-500'} transition-all duration-500`} 
-            style={{ width: `${load}%` }}
-        ></div>
+const AgentCard = ({ agent, onToggle, isSelected, onClick }: { 
+    agent: AgentConfig; 
+    onToggle: () => void; 
+    isSelected: boolean;
+    onClick: () => void;
+}) => (
+    <div 
+        onClick={onClick}
+        className={`p-4 rounded-xl border-2 transition-all cursor-pointer ${
+            isSelected 
+                ? 'bg-carbon-800 border-green-400/50 shadow-[0_0_20px_rgba(74,222,128,0.1)]' 
+                : 'bg-carbon-900 border-carbon-700 hover:border-carbon-500'
+        }`}
+    >
+        <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-3">
+                <StatusIndicator status={agent.status} />
+                <div>
+                    <h4 className="text-white font-bold text-sm">{agent.name}</h4>
+                    <span className="text-green-400 text-xs font-mono">{agent.codeName}</span>
+                </div>
+            </div>
+            <ToggleSwitch isOn={agent.isEnabled} onToggle={onToggle} size="sm" />
+        </div>
+        
+        <div className="mb-2">
+            <div className="flex justify-between text-xs text-gray-500 mb-1">
+                <span>Load</span>
+                <span className="font-mono">{agent.load}%</span>
+            </div>
+            <LoadBar load={agent.load} />
+        </div>
+        
+        <div className="flex justify-between text-xs text-gray-600">
+            <span>Last: {agent.lastActivity}</span>
+            <span className="font-mono">{agent.costPerCall}</span>
+        </div>
     </div>
 );
 
+const DepartmentPanel = ({ title, agents, onToggle, selectedId, onSelect }: {
+    title: string;
+    agents: AgentConfig[];
+    onToggle: (id: string) => void;
+    selectedId: string | null;
+    onSelect: (id: string) => void;
+}) => (
+    <div className="bg-carbon-900 rounded-2xl border border-carbon-700 overflow-hidden">
+        <div className="bg-carbon-800 px-4 py-3 border-b border-carbon-700 flex items-center justify-between">
+            <h3 className="text-green-400 font-bold text-sm uppercase tracking-wider">{title}</h3>
+            <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">{agents.filter(a => a.isEnabled).length}/{agents.length} active</span>
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            </div>
+        </div>
+        <div className="p-4 space-y-3 max-h-80 overflow-y-auto">
+            {agents.map(agent => (
+                <AgentCard 
+                    key={agent.id} 
+                    agent={agent} 
+                    onToggle={() => onToggle(agent.id)}
+                    isSelected={selectedId === agent.id}
+                    onClick={() => onSelect(agent.id)}
+                />
+            ))}
+        </div>
+    </div>
+);
+
+// === MAIN COMPONENT ===
 
 const CircuitBox: React.FC = () => {
-    const [agents, setAgents] = useState<AgentState[]>([]);
-    const [breakers, setBreakers] = useState<BreakerSwitch[]>(MOCK_BREAKERS);
-    const [selectedAgentId, setSelectedAgentId] = useState<string | null>('voice-agent');
+    const [apiStatus, setApiStatus] = useState(getApiStatus());
+    const [aiAgents, setAiAgents] = useState(AI_DEPARTMENT);
+    const [voiceAgents, setVoiceAgents] = useState(VOICE_DEPARTMENT);
+    const [researchAgents, setResearchAgents] = useState(RESEARCH_DEPARTMENT);
+    const [infraAgents, setInfraAgents] = useState(INFRA_DEPARTMENT);
+    const [selectedAgent, setSelectedAgent] = useState<string | null>('the-gateway');
+    const [systemStatus, setSystemStatus] = useState<'optimal' | 'warning' | 'critical'>('optimal');
+    const [logs, setLogs] = useState([
+        { time: '10:05 AM', type: 'info', message: "User 'Admin' accessed Circuit Box" },
+        { time: '10:04 AM', type: 'success', message: "Voice Agent processed 100 requests" },
+        { time: '10:03 AM', type: 'warning', message: "The Forge approaching rate limit (85%)" },
+    ]);
 
-    // Subscribe to Agents
-    useEffect(() => {
-        const unsub = subscribeToAgents((liveAgents) => {
-            // Merge live data with registry static data
-            const merged = AGENT_REGISTRY.map(staticA => {
-                const live = liveAgents.find(la => la.id === staticA.id);
-                return live || { 
-                    ...staticA, 
-                    metrics: { tasks_completed: 0, uptime_seconds: 0, error_count: 0 },
-                    last_heartbeat: new Date().toISOString()
-                } as AgentState;
-            });
-            setAgents(merged);
-        });
-        return () => unsub();
-    }, []);
-
-    const toggleBreaker = (id: string) => {
-        setBreakers(prev => prev.map(b => {
-             if (b.id === id) {
-                 const newState = !b.isOn;
-                 // Fire and forget update
-                 updateBreakerState(id, newState); 
-                 return { ...b, isOn: newState };
-             }
-             return b;
-        }));
+    const toggleAgent = (department: 'ai' | 'voice' | 'research' | 'infra', id: string) => {
+        const setters = { ai: setAiAgents, voice: setVoiceAgents, research: setResearchAgents, infra: setInfraAgents };
+        setters[department](prev => prev.map(a => 
+            a.id === id ? { ...a, isEnabled: !a.isEnabled } : a
+        ));
     };
 
-    const getAgent = (id: string) => agents.find(a => a.id === id);
-    const selectedAgent = agents.find(a => a.id === selectedAgentId) || agents[0];
+    const allAgents = [...aiAgents, ...voiceAgents, ...researchAgents, ...infraAgents];
+    const selected = allAgents.find(a => a.id === selectedAgent);
+    const activeCount = allAgents.filter(a => a.isEnabled).length;
+    const totalCount = allAgents.length;
 
     return (
-        <div className="min-h-screen bg-[#dcdde1] p-4 font-sans select-none overflow-hidden flex flex-col">
-            {/* --- TOP HEADER --- */}
-            <div className="flex justify-between items-center mb-4 bg-gray-300 border border-gray-400 rounded-lg p-2 shadow-sm">
-                <div className="flex items-center gap-3">
-                   <div className="bg-gray-800 p-2 rounded text-white">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                   </div>
-                   <div>
-                       <h1 className="text-xl font-black text-gray-700 tracking-tight uppercase">Circuit Box <span className="font-light text-gray-500">- System Management</span></h1>
-                       <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_5px_rgba(34,197,94,0.6)]"></span>
-                            <span className="text-[10px] font-bold text-green-600 tracking-widest uppercase">System Optimal</span>
-                       </div>
-                   </div>
-                </div>
-
+        <div className="min-h-screen bg-carbon-900 text-white p-6">
+            {/* HEADER */}
+            <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                    {/* Search/Filter Mock */}
-                    <div className="hidden md:flex flex-col gap-1 w-48">
-                        <div className="bg-gray-700 text-white text-[10px] px-2 py-1 rounded shadow-inner">Search...</div>
-                        <div className="flex gap-1">
-                            <div className="bg-gray-400 text-gray-700 text-[9px] px-2 py-0.5 rounded flex-1 font-bold">Status v</div>
-                            <div className="bg-gray-400 text-gray-700 text-[9px] px-2 py-0.5 rounded flex-1 font-bold">Category v</div>
+                    <div className="w-12 h-12 rounded-xl bg-carbon-800 border border-carbon-700 flex items-center justify-center">
+                        <span className="text-2xl">🔌</span>
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black">
+                            <span className="text-neon-green">Circuit Box</span>
+                            <span className="text-gray-500 font-light"> - System Management</span>
+                        </h1>
+                        <div className="flex items-center gap-2 mt-1">
+                            <div className={`w-2 h-2 rounded-full ${systemStatus === 'optimal' ? 'bg-neon-green' : systemStatus === 'warning' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
+                            <span className="text-xs text-neon-green font-bold uppercase tracking-wider">
+                                System {systemStatus}
+                            </span>
                         </div>
                     </div>
-                    {/* Big Red Button Mock */}
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-500 to-red-800 shadow-xl border-4 border-gray-300 flex items-center justify-center cursor-pointer hover:scale-95 transition-transform active:scale-90">
-                        <div className="w-8 h-8 rounded-full border-2 border-red-300/30"></div>
+                </div>
+
+                <div className="flex items-center gap-6">
+                    {/* Quick Stats */}
+                    <div className="text-right">
+                        <div className="text-2xl font-bold text-neon-green">{activeCount}/{totalCount}</div>
+                        <div className="text-xs text-gray-500">Agents Online</div>
                     </div>
+                    
+                    {/* Emergency Shutoff */}
+                    <button className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-700 border-4 border-red-300/30 shadow-xl flex items-center justify-center hover:scale-95 active:scale-90 transition-transform">
+                        <div className="w-10 h-10 rounded-full border-2 border-red-300/50" />
+                    </button>
                 </div>
             </div>
 
-            {/* --- MAIN DASHBOARD GRID --- */}
-            <div className="flex-1 grid grid-cols-12 gap-3 pb-20 overflow-y-auto">
-                
-                {/* PANEL 1: AI AGENTS (Left Column) */}
-                <div className="col-span-12 md:col-span-3 bg-gray-200 border-2 border-gray-400 rounded-lg shadow-md flex flex-col">
-                    <PanelHeader title="AI Agents Panel" />
-                    <div className="p-2 space-y-2 flex-1 overflow-y-auto bg-[#cfd1d6]">
-                        {agents.filter(a => a.role !== 'orchestrator').map(agent => (
-                            <div 
-                                key={agent.id} 
-                                onClick={() => setSelectedAgentId(agent.id)}
-                                className={`group p-2 rounded border-2 transition-all cursor-pointer ${
-                                    selectedAgentId === agent.id 
-                                        ? 'bg-gray-700 border-gray-600 shadow-inner' 
-                                        : 'bg-gray-300 border-gray-400 hover:bg-gray-200'
-                                }`}
-                            >
-                                <div className="flex justify-between items-start mb-1">
-                                    <span className={`text-[11px] font-bold uppercase ${selectedAgentId === agent.id ? 'text-white' : 'text-gray-700'}`}>
-                                        {agent.name}
-                                    </span>
-                                    <div className={`w-2 h-2 rounded-full ${agent.status === 'active' ? 'bg-green-500' : 'bg-gray-500'}`}></div>
-                                </div>
-                                
-                                <div className="flex items-center gap-2 mb-2">
-                                    <ToggleSwitch isOn={agent.status === 'active'} onToggle={() => {}} />
-                                    <div className="flex-1">
-                                        <div className="flex justify-between text-[9px] text-gray-500 mb-0.5 font-mono">
-                                            <span>Active Load</span>
-                                            <span>{Math.floor(Math.random() * 80)}%</span>
-                                        </div>
-                                        <LoadBar load={Math.floor(Math.random() * 80)} />
+            {/* MAIN GRID */}
+            <div className="grid grid-cols-12 gap-6">
+                {/* LEFT COLUMN - AI DEPARTMENT */}
+                <div className="col-span-12 lg:col-span-4 space-y-6">
+                    <DepartmentPanel 
+                        title="🤖 AI Department"
+                        agents={aiAgents}
+                        onToggle={(id) => toggleAgent('ai', id)}
+                        selectedId={selectedAgent}
+                        onSelect={setSelectedAgent}
+                    />
+                </div>
+
+                {/* MIDDLE COLUMN - VOICE & RESEARCH */}
+                <div className="col-span-12 lg:col-span-4 space-y-6">
+                    <DepartmentPanel 
+                        title="🎙️ Voice Department"
+                        agents={voiceAgents}
+                        onToggle={(id) => toggleAgent('voice', id)}
+                        selectedId={selectedAgent}
+                        onSelect={setSelectedAgent}
+                    />
+                    <DepartmentPanel 
+                        title="🔍 Research Department"
+                        agents={researchAgents}
+                        onToggle={(id) => toggleAgent('research', id)}
+                        selectedId={selectedAgent}
+                        onSelect={setSelectedAgent}
+                    />
+                </div>
+
+                {/* RIGHT COLUMN - DETAIL PANEL */}
+                <div className="col-span-12 lg:col-span-4 space-y-6">
+                    {/* Selected Agent Details */}
+                    {selected && (
+                        <div className="bg-carbon-900 rounded-2xl border border-carbon-700 overflow-hidden">
+                            <div className="bg-carbon-800 px-4 py-3 border-b border-carbon-700">
+                                <h3 className="text-neon-green font-bold text-sm uppercase">Agent Details</h3>
+                            </div>
+                            <div className="p-6">
+                                {/* Big Switch */}
+                                <div className="flex justify-center mb-6">
+                                    <div className="bg-carbon-800 rounded-2xl p-6 border border-carbon-700">
+                                        <ToggleSwitch 
+                                            isOn={selected.isEnabled} 
+                                            onToggle={() => toggleAgent(selected.department, selected.id)} 
+                                            size="lg" 
+                                        />
                                     </div>
                                 </div>
-                                <div className="text-[9px] text-gray-500 flex justify-between">
-                                    <span>Last activity: 10:05 AM</span>
+
+                                <h2 className="text-xl font-bold text-white text-center mb-1">{selected.name}</h2>
+                                <div className="text-neon-green text-sm font-mono text-center mb-6">{selected.codeName}</div>
+                                
+                                <div className="space-y-4 text-sm">
+                                    <div className="flex justify-between py-2 border-b border-carbon-800">
+                                        <span className="text-gray-500">Status</span>
+                                        <span className={selected.isEnabled ? 'text-neon-green' : 'text-red-500'}>
+                                            {selected.isEnabled ? 'ACTIVE' : 'DISABLED'}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between py-2 border-b border-carbon-800">
+                                        <span className="text-gray-500">API Key</span>
+                                        <span className="text-gray-400 font-mono">••••••••</span>
+                                    </div>
+                                    <div className="flex justify-between py-2 border-b border-carbon-800">
+                                        <span className="text-gray-500">Rate Limit</span>
+                                        <span className="text-white font-mono">{selected.rateLimit}</span>
+                                    </div>
+                                    <div className="flex justify-between py-2 border-b border-carbon-800">
+                                        <span className="text-gray-500">Cost/Call</span>
+                                        <span className="text-yellow-400 font-mono">{selected.costPerCall}</span>
+                                    </div>
+                                    <div className="flex justify-between py-2">
+                                        <span className="text-gray-500">Load</span>
+                                        <span className="text-white font-mono">{selected.load}%</span>
+                                    </div>
+                                    <LoadBar load={selected.load} className="mt-2" />
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Infrastructure */}
+                    <DepartmentPanel 
+                        title="⚡ Infrastructure"
+                        agents={infraAgents}
+                        onToggle={(id) => toggleAgent('infra', id)}
+                        selectedId={selectedAgent}
+                        onSelect={setSelectedAgent}
+                    />
+                </div>
+            </div>
+
+            {/* BOTTOM LOG PANEL */}
+            <div className="fixed bottom-0 left-0 right-0 bg-carbon-900 border-t border-carbon-700 p-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex-1 space-y-1">
+                        {logs.map((log, i) => (
+                            <div key={i} className={`text-xs font-mono ${
+                                log.type === 'info' ? 'text-blue-400' : 
+                                log.type === 'success' ? 'text-neon-green' : 
+                                log.type === 'warning' ? 'text-yellow-400' : 'text-red-400'
+                            }`}>
+                                [{log.time}] {log.message}
                             </div>
                         ))}
                     </div>
-                </div>
-
-                {/* MIDDLE COLUMN (Panels 2, 3, 4, 5) */}
-                <div className="col-span-12 md:col-span-6 grid grid-rows-2 gap-3">
-                    
-                    {/* PANEL 2: REPOSITORIES (Top Row) */}
-                    <div className="row-span-1 bg-gray-600 border-2 border-gray-500 rounded-lg shadow-md flex flex-col">
-                        <PanelHeader title="Repositories Panel" subTitle="17 Intelligent Repos" />
-                        <div className="p-3 bg-[#2b2e35] flex-1">
-                            <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-                                {REPO_GRID.map((repo, i) => (
-                                    <div key={repo.id} className="bg-gray-800 rounded p-1 border border-gray-700 flex flex-col items-center justify-center min-h-[50px]">
-                                        <div className="flex items-center justify-between w-full px-1 mb-1">
-                                            <div className={`w-2 h-2 rounded-full ${repo.status === 'healthy' ? 'bg-green-500' : repo.status === 'warning' ? 'bg-yellow-500' : 'bg-red-500'}`}></div>
-                                            <div className="flex gap-0.5">
-                                                <div className="w-0.5 h-2 bg-gray-600"></div>
-                                                <div className="w-0.5 h-3 bg-gray-600"></div>
-                                                <div className="w-0.5 h-1 bg-gray-600"></div>
-                                            </div>
-                                        </div>
-                                        <span className="text-[9px] text-gray-400 font-mono leading-tight text-center">{repo.name}</span>
-                                        {repo.errors > 0 && (
-                                            <span className="mt-1 bg-red-900/80 text-white text-[8px] px-1 rounded font-bold">{repo.errors}</span>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* BOTTOM ROW (Panels 3, 4, 5) */}
-                    <div className="row-span-1 grid grid-cols-3 gap-3">
-                         {/* Panel 3: External Integrations */}
-                         <div className="bg-gray-200 border-2 border-gray-400 rounded-lg flex flex-col">
-                            <PanelHeader title="External Integrations" />
-                            <div className="p-2 space-y-2 bg-[#cfd1d6] flex-1 overflow-y-auto">
-                                {breakers.filter(b => b.category === 'external' || b.category === 'financial').map(b => (
-                                    <div key={b.id} className="bg-gray-300/50 p-2 rounded border border-gray-400/50">
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-[10px] font-bold text-gray-700">{b.name}</span>
-                                            <div className={`w-1.5 h-1.5 rounded-full ${b.status === 'healthy' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <ToggleSwitch isOn={b.isOn} onToggle={() => toggleBreaker(b.id)} label="ON" />
-                                            <span className="text-[9px] font-bold text-green-700 bg-green-200 px-1 rounded">HEALTHY</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                         </div>
-
-                         {/* Panel 4: Voice & STT/TTS */}
-                         <div className="bg-gray-800 border-2 border-gray-600 rounded-lg flex flex-col">
-                            <div className="bg-gray-900 border-b border-gray-700 p-2 flex justify-between">
-                                <h3 className="text-gray-300 font-bold text-xs">VOICE & STT/TTS</h3>
-                            </div>
-                            <div className="p-2 space-y-3 bg-gray-800 flex-1">
-                                {breakers.filter(b => b.category === 'voice').map(b => (
-                                    <div key={b.id} className="bg-gray-900/50 p-2 rounded border border-gray-700/50">
-                                         <div className="text-[10px] text-gray-400 mb-1">{b.name}</div>
-                                         <div className="flex items-center justify-between">
-                                            <ToggleSwitch isOn={b.isOn} onToggle={() => toggleBreaker(b.id)} label="ACTIVE" />
-                                         </div>
-                                    </div>
-                                ))}
-                                {/* Voice Mock Controls */}
-                                <div className="space-y-1">
-                                     <div className="flex justify-between items-center text-[10px] text-gray-400">
-                                        <span>Latency monitor</span>
-                                        <div className="w-8 h-4 bg-gray-700 rounded-full border border-gray-500 relative"><div className="w-3 h-3 bg-white rounded-full absolute left-0.5 top-0.5"></div></div>
-                                     </div>
-                                     <div className="text-[10px] text-gray-500 font-mono">Latency: 50ms</div>
-                                </div>
-                            </div>
-                         </div>
-
-                         {/* Panel 5: Infrastructure */}
-                         <div className="bg-gray-200 border-2 border-gray-400 rounded-lg flex flex-col">
-                            <PanelHeader title="Deploy & Infra" />
-                            <div className="p-2 space-y-2 bg-[#cfd1d6] flex-1 overflow-y-auto">
-                                {breakers.filter(b => b.category === 'infra' || b.category === 'core').slice(0, 4).map(b => (
-                                    <div key={b.id} className="bg-white/40 p-1.5 rounded border border-gray-300 flex items-center justify-between">
-                                        <div>
-                                            <div className="text-[10px] font-bold text-gray-700 leading-tight">{b.name}</div>
-                                            <div className="text-[8px] text-gray-500">Last check: {b.meta?.lastCheck || '1m ago'}</div>
-                                        </div>
-                                        <ToggleSwitch isOn={b.isOn} onToggle={() => toggleBreaker(b.id)} />
-                                    </div>
-                                ))}
-                            </div>
-                         </div>
+                    <div className="text-right">
+                        <div className="text-xs text-gray-500">Monthly Usage</div>
+                        <div className="text-lg font-bold text-neon-green">$12.45</div>
                     </div>
                 </div>
-
-                {/* RIGHT COLUMN: DETAIL VIEW */}
-                <div className="col-span-12 md:col-span-3 bg-gray-300 border-2 border-gray-400 rounded-lg shadow-xl p-4 flex flex-col">
-                    <div className="bg-gradient-to-b from-gray-100 to-gray-300 border border-gray-400 rounded-lg p-6 flex flex-col items-center shadow-inner mb-4">
-                        {/* BIG SWITCH */}
-                        <div className="w-24 h-40 bg-gradient-to-br from-gray-200 to-gray-400 rounded-lg border-2 border-gray-500 shadow-xl flex items-center justify-center p-2">
-                             <div className={`w-full h-full rounded border border-gray-400/50 flex flex-col items-center justify-between p-2 shadow-inner transition-all ${
-                                 selectedAgent?.status === 'active' ? 'bg-gradient-to-b from-green-100 to-green-200' : 'bg-gradient-to-b from-gray-200 to-gray-300'
-                             }`}>
-                                 <span className="text-[10px] font-bold text-gray-500">ON</span>
-                                 <div className={`w-12 h-16 bg-gradient-to-b from-white to-gray-200 rounded shadow-md transform transition-transform border border-gray-300 ${
-                                     selectedAgent?.status === 'active' ? 'translate-y-2' : '-translate-y-2'
-                                 }`}>
-                                     <div className="w-full h-1 bg-gray-300 mt-2"></div>
-                                     <div className="w-full h-1 bg-gray-300 mt-1"></div>
-                                 </div>
-                                 <span className="text-[10px] font-bold text-gray-500">OFF</span>
-                             </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-[#2b2e35] rounded-lg p-4 text-white flex-1 border border-gray-600 shadow-inner">
-                        <h2 className="text-center font-bold text-lg mb-1">{selectedAgent?.name}</h2>
-                        <div className="text-center text-xs text-blue-400 mb-6 font-mono">{selectedAgent?.role?.toUpperCase()}</div>
-
-                        <div className="space-y-3 text-xs font-mono text-gray-400">
-                             <div className="flex justify-between">
-                                 <span>API Keys</span>
-                                 <span>**********</span>
-                             </div>
-                             <div className="flex justify-between">
-                                 <span>Rate Limits</span>
-                                 <span>100 req/min</span>
-                             </div>
-                             <div className="flex justify-between">
-                                 <span>Timeout</span>
-                                 <span>5000ms</span>
-                             </div>
-                             <div className="flex justify-between">
-                                 <span>Retry</span>
-                                 <span>3 attempts</span>
-                             </div>
-
-                             <div className="pt-4 mt-4 border-t border-gray-700">
-                                 <div className="flex justify-between mb-1">
-                                     <span className="text-white">Current Load</span>
-                                     <span className="text-green-400">78%</span>
-                                 </div>
-                                 <div className="flex justify-between mb-1">
-                                     <span>Request Count</span>
-                                     <span>1,245</span>
-                                 </div>
-                                 <div className="flex justify-between mb-1">
-                                     <span>Error Rate</span>
-                                     <span>0.1%</span>
-                                 </div>
-                             </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            {/* --- BOTTOM PANEL: LOGS --- */}
-            <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#2b2e35] border-t-4 border-gray-500 p-2 flex items-center justify-between z-50 shadow-2xl">
-                 <div className="flex flex-col h-full justify-center flex-1 px-4 border-r border-gray-700">
-                     <div className="text-[10px] font-mono text-blue-400 truncate">[INFO] 10:10 AM: User 'Admin_JD' enabled 'Testing Agent' circuit.</div>
-                     <div className="text-[10px] font-mono text-red-400 truncate">[ALERT] 10:08 AM: 'Repo 2 - UI' circuit tripped due to connection timeout.</div>
-                 </div>
-                 <div className="w-64 h-full px-4 flex flex-col justify-center space-y-1">
-                     <div className="flex items-center gap-2 text-[10px] text-gray-300 font-bold">
-                         <span className="text-red-500">⚠ Alerts and warnings</span>
-                     </div>
-                     <div className="flex items-center gap-2 text-[9px] text-yellow-500">
-                         <span>⚠ 1 Critical, 2 Warnings</span>
-                     </div>
-                 </div>
             </div>
         </div>
     );

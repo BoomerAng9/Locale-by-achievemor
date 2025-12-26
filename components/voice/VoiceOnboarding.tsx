@@ -1,10 +1,21 @@
 /**
- * Voice Clone Onboarding Modal
- * Shown on first login to offer voice cloning for ACHEEVY
+ * Voice Onboarding Modal - LIVE Integration
+ * ElevenLabs TTS, Deepgram/Groq STT, Voice Cloning
  */
 
-import React, { useState, useRef } from 'react';
-import { createVoiceClone, setCustomVoiceId, VOICE_LIBRARY, setSelectedVoice, previewVoice } from '../../lib/voice';
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+    createVoiceClone, 
+    VOICE_LIBRARY, 
+    setSelectedVoice, 
+    previewVoice,
+    getCustomVoices,
+    getVoiceApiStatus,
+    getSTTProvider,
+    setSTTProvider,
+    type STTProvider,
+    type CustomVoice
+} from '../../lib/voice';
 
 interface VoiceOnboardingProps {
     userName?: string;
@@ -13,14 +24,25 @@ interface VoiceOnboardingProps {
 }
 
 const VoiceOnboarding: React.FC<VoiceOnboardingProps> = ({ userName = 'there', onComplete, onSkip }) => {
-    const [step, setStep] = useState<'intro' | 'choose' | 'record' | 'processing' | 'success'>('intro');
+    const [step, setStep] = useState<'intro' | 'choose' | 'record' | 'processing' | 'success' | 'settings'>('intro');
     const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
     const [recordings, setRecordings] = useState<File[]>([]);
     const [isRecording, setIsRecording] = useState(false);
     const [recordingTime, setRecordingTime] = useState(0);
+    const [voiceName, setVoiceName] = useState('');
+    const [customVoices, setCustomVoices] = useState<CustomVoice[]>([]);
+    const [apiStatus, setApiStatus] = useState(getVoiceApiStatus());
+    const [sttProvider, setSttProvider] = useState<STTProvider>(getSTTProvider());
+    const [isPlaying, setIsPlaying] = useState<string | null>(null);
+    
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    useEffect(() => {
+        setCustomVoices(getCustomVoices());
+        setApiStatus(getVoiceApiStatus());
+    }, []);
 
     const handleChoosePreset = (voiceKey: string) => {
         setSelectedPreset(voiceKey);
@@ -28,7 +50,14 @@ const VoiceOnboarding: React.FC<VoiceOnboardingProps> = ({ userName = 'there', o
     };
 
     const handlePreview = async (voiceKey: string) => {
+        setIsPlaying(voiceKey);
         await previewVoice(voiceKey);
+        setTimeout(() => setIsPlaying(null), 3000);
+    };
+
+    const handleSTTChange = (provider: STTProvider) => {
+        setSttProvider(provider);
+        setSTTProvider(provider);
     };
 
     const startRecording = async () => {
@@ -60,6 +89,7 @@ const VoiceOnboarding: React.FC<VoiceOnboardingProps> = ({ userName = 'there', o
             }, 1000);
         } catch (err) {
             console.error("Failed to start recording:", err);
+            alert("Microphone access denied. Please allow microphone access and try again.");
         }
     };
 
@@ -74,21 +104,24 @@ const VoiceOnboarding: React.FC<VoiceOnboardingProps> = ({ userName = 'there', o
     };
 
     const handleCloneVoice = async () => {
-        if (recordings.length === 0) return;
+        if (recordings.length === 0 || !voiceName.trim()) {
+            alert("Please provide a name for your voice and at least one recording.");
+            return;
+        }
         
         setStep('processing');
         
         try {
-            const voiceId = await createVoiceClone(`${userName}'s Voice`, recordings, 'Custom ACHEEVY voice for Locale');
+            const voiceId = await createVoiceClone(voiceName.trim(), recordings, `Custom voice for ${userName}`);
             if (voiceId) {
+                setCustomVoices(getCustomVoices());
                 setStep('success');
             } else {
-                // Fallback to preset
-                setStep('choose');
+                setStep('record');
             }
         } catch (err) {
             console.error("Voice cloning failed:", err);
-            setStep('choose');
+            setStep('record');
         }
     };
 
@@ -108,11 +141,24 @@ const VoiceOnboarding: React.FC<VoiceOnboardingProps> = ({ userName = 'there', o
                         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-locale-blue to-purple-600 flex items-center justify-center mx-auto mb-6">
                             <span className="text-4xl">🎙️</span>
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-4">Welcome, {userName}!</h2>
-                        <p className="text-gray-400 mb-8">
-                            ACHEEVY can speak to you in your preferred voice. 
-                            Would you like to personalize how your AI assistant sounds?
+                        <h2 className="text-2xl font-bold text-white mb-4">Choose ACHEEVY's Voice</h2>
+                        <p className="text-gray-400 mb-4">
+                            Select a preset or clone your own voice
                         </p>
+                        
+                        {/* API Status */}
+                        <div className="flex justify-center gap-3 mb-6 text-xs">
+                            <span className={`px-2 py-1 rounded ${apiStatus.elevenlabs ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                ElevenLabs {apiStatus.elevenlabs ? '✓' : '✗'}
+                            </span>
+                            <span className={`px-2 py-1 rounded ${apiStatus.deepgram ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                Deepgram {apiStatus.deepgram ? '✓' : '○'}
+                            </span>
+                            <span className={`px-2 py-1 rounded ${apiStatus.groq ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                Groq {apiStatus.groq ? '✓' : '○'}
+                            </span>
+                        </div>
+                        
                         <div className="flex gap-4 justify-center">
                             <button
                                 onClick={() => setStep('choose')}
@@ -121,10 +167,82 @@ const VoiceOnboarding: React.FC<VoiceOnboardingProps> = ({ userName = 'there', o
                                 Choose a Voice
                             </button>
                             <button
+                                onClick={() => setStep('settings')}
+                                className="bg-carbon-700 hover:bg-carbon-600 text-white py-3 px-6 rounded-xl transition-colors"
+                            >
+                                ⚙️ Settings
+                            </button>
+                            <button
                                 onClick={onSkip}
                                 className="text-gray-400 hover:text-white py-3 px-6 transition-colors"
                             >
-                                Skip for now
+                                Skip
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* STEP: Settings */}
+                {step === 'settings' && (
+                    <div className="p-6">
+                        <h2 className="text-xl font-bold text-white mb-2">Voice Settings</h2>
+                        <p className="text-gray-500 text-sm mb-6">Configure voice input provider</p>
+                        
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-gray-400 text-sm block mb-2">Speech-to-Text Provider</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {(['groq', 'deepgram', 'browser'] as STTProvider[]).map((provider) => (
+                                        <button
+                                            key={provider}
+                                            onClick={() => handleSTTChange(provider)}
+                                            className={`p-3 rounded-xl border text-sm font-medium transition-all ${
+                                                sttProvider === provider
+                                                    ? 'bg-locale-blue/20 border-locale-blue text-white'
+                                                    : 'bg-carbon-900 border-carbon-700 text-gray-400 hover:border-carbon-500'
+                                            }`}
+                                        >
+                                            {provider === 'groq' && '🔊 Groq Whisper'}
+                                            {provider === 'deepgram' && '🎤 Deepgram'}
+                                            {provider === 'browser' && '🌐 Browser'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            {/* Saved Custom Voices */}
+                            {customVoices.length > 0 && (
+                                <div>
+                                    <label className="text-gray-400 text-sm block mb-2">Your Cloned Voices</label>
+                                    <div className="space-y-2">
+                                        {customVoices.map((voice) => (
+                                            <div key={voice.id} className="flex items-center justify-between p-3 bg-carbon-900 rounded-xl border border-carbon-700">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">🎙️</div>
+                                                    <div>
+                                                        <div className="text-white text-sm font-medium">{voice.name}</div>
+                                                        <div className="text-gray-500 text-xs">{new Date(voice.createdAt).toLocaleDateString()}</div>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => handleChoosePreset(voice.id)}
+                                                    className="text-locale-blue text-sm hover:underline"
+                                                >
+                                                    Use
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div className="flex gap-4 mt-6">
+                            <button
+                                onClick={() => setStep('intro')}
+                                className="flex-1 bg-carbon-700 hover:bg-carbon-600 text-white font-bold py-3 rounded-xl transition-colors"
+                            >
+                                Back
                             </button>
                         </div>
                     </div>
@@ -162,7 +280,7 @@ const VoiceOnboarding: React.FC<VoiceOnboardingProps> = ({ userName = 'there', o
                                                 e.stopPropagation();
                                                 handlePreview(key);
                                             }}
-                                            className="p-2 text-gray-400 hover:text-white"
+                                            className={`p-2 rounded-full ${isPlaying === key ? 'bg-locale-blue text-white' : 'text-gray-400 hover:text-white'}`}
                                             title="Preview"
                                         >
                                             ▶️
@@ -206,6 +324,17 @@ const VoiceOnboarding: React.FC<VoiceOnboardingProps> = ({ userName = 'there', o
                         <p className="text-gray-500 text-sm mb-6">
                             Record at least 1 sample (30+ seconds recommended) for best results
                         </p>
+
+                        {/* Voice Name Input */}
+                        <div className="mb-6">
+                            <input
+                                type="text"
+                                value={voiceName}
+                                onChange={(e) => setVoiceName(e.target.value)}
+                                placeholder="Name your voice (e.g., 'My Professional Voice')"
+                                className="w-full bg-carbon-900 border border-carbon-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:border-locale-blue focus:outline-none"
+                            />
+                        </div>
 
                         <div className={`w-32 h-32 rounded-full mx-auto mb-6 flex items-center justify-center ${
                             isRecording ? 'bg-red-500/20 animate-pulse' : 'bg-carbon-700'
@@ -251,7 +380,7 @@ const VoiceOnboarding: React.FC<VoiceOnboardingProps> = ({ userName = 'there', o
                         <div className="flex gap-4 justify-center">
                             <button
                                 onClick={handleCloneVoice}
-                                disabled={recordings.length === 0}
+                                disabled={recordings.length === 0 || !voiceName.trim()}
                                 className="bg-purple-600 hover:bg-purple-500 disabled:bg-carbon-600 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-xl transition-colors"
                             >
                                 Create My Voice Clone
@@ -289,7 +418,10 @@ const VoiceOnboarding: React.FC<VoiceOnboardingProps> = ({ userName = 'there', o
                             <span className="text-4xl">✅</span>
                         </div>
                         <h2 className="text-xl font-bold text-white mb-4">Voice Clone Created!</h2>
-                        <p className="text-gray-400 mb-8">
+                        <p className="text-gray-400 mb-2">
+                            Your voice "<span className="text-white">{voiceName}</span>" has been saved.
+                        </p>
+                        <p className="text-gray-500 text-sm mb-8">
                             ACHEEVY will now respond using your custom voice.
                         </p>
                         <button

@@ -138,10 +138,15 @@ const ConciergeBot: React.FC = () => {
             className="group flex items-center gap-3 bg-carbon-800 hover:bg-carbon-700 border-2 border-locale-blue/50 hover:border-locale-blue shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)] rounded-full px-5 py-3 transition-all"
           >
             {/* ACHEEVY Avatar */}
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-locale-blue to-purple-600 flex items-center justify-center border-2 border-locale-blue/50 group-hover:border-locale-blue">
-              <span className="text-xl">🤖</span>
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-locale-blue/50 group-hover:border-locale-blue">
+              <img 
+                src="/assets/acheevy-robot.jpg" 
+                alt="ACHEEVY" 
+                className="w-full h-full object-cover"
+                onError={(e) => { e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="%233B82F6"/><text x="20" y="26" text-anchor="middle" fill="white" font-size="16" font-weight="bold">A</text></svg>'; }}
+              />
             </div>
-            <span className="text-white font-medium hidden md:block">Ask ACHEEVY</span>
+            <span className="text-white font-medium hidden md:block">Chat w/ACHEEVY</span>
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse absolute top-2 right-2" />
           </button>
         )}
@@ -161,8 +166,13 @@ const ConciergeBot: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-carbon-700">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-locale-blue to-purple-600 flex items-center justify-center">
-                  <span className="text-lg">🤖</span>
+                <div className="w-8 h-8 rounded-full overflow-hidden border border-locale-blue/30">
+                  <img 
+                    src="/assets/acheevy-robot.jpg" 
+                    alt="ACHEEVY" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="%233B82F6"/><text x="16" y="21" text-anchor="middle" fill="white" font-size="14" font-weight="bold">A</text></svg>'; }}
+                  />
                 </div>
                 <div>
                   <h3 className="text-white font-bold text-sm">ACHEEVY</h3>
@@ -267,7 +277,7 @@ const ConciergeBot: React.FC = () => {
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Ask me anything..."
+                  placeholder="Think it. Prompt it..."
                   className="flex-1 bg-transparent text-white text-sm outline-none placeholder-gray-500"
                   disabled={isLoading}
                 />

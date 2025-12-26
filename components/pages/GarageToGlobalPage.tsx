@@ -1,6 +1,6 @@
 /**
  * Garage to Global Philosophy Page
- * Explains the G2G journey and Locale's mission
+ * Enhanced landing page explaining the G2G journey and Locale's mission
  */
 
 import React from 'react';
@@ -10,168 +10,299 @@ const GarageToGlobalPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-carbon-900">
             {/* Hero Section */}
-            <div className="relative bg-carbon-800 border-b border-carbon-700 overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-                <div className="absolute inset-0 bg-gradient-to-br from-locale-blue/20 via-transparent to-purple-500/10" />
+            <section className="relative overflow-hidden">
+                {/* Background Effects */}
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5" />
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-carbon-900 to-purple-900/20" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-locale-blue/10 rounded-full blur-[150px]" />
                 
-                <div className="max-w-5xl mx-auto px-6 py-24 relative z-10 text-center">
-                    <Link to="/explore" className="text-gray-500 hover:text-white text-sm mb-6 inline-block">← Back to Explore</Link>
-                    
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-locale-blue/10 border border-locale-blue/30 text-locale-blue text-xs font-bold tracking-widest mb-8 uppercase">
-                        Our Philosophy
-                    </div>
-                    
-                    <h1 className="text-5xl md:text-7xl font-black text-white mb-6">
-                        Garage to <span className="text-locale-blue">Global</span>
-                    </h1>
-                    
-                    <p className="text-xl text-gray-400 max-w-3xl mx-auto leading-relaxed">
-                        The journey from where you are to where you want to be. 
-                        Locale is the bridge that connects local talent with global opportunity.
-                    </p>
-                </div>
-            </div>
+                <div className="relative max-w-6xl mx-auto px-6 py-24 md:py-32">
+                    <div className="grid md:grid-cols-2 gap-16 items-center">
+                        {/* Content */}
+                        <div>
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-locale-blue/10 border border-locale-blue/30 text-locale-blue text-xs font-bold tracking-widest mb-8">
+                                <span className="w-2 h-2 rounded-full bg-locale-blue animate-pulse" />
+                                OUR PHILOSOPHY
+                            </div>
+                            
+                            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-[0.95]">
+                                From{' '}
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-gray-600">
+                                    Garage
+                                </span>
+                                <br />
+                                to{' '}
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-locale-blue via-purple-500 to-pink-500">
+                                    Global
+                                </span>
+                            </h1>
+                            
+                            <p className="text-xl text-gray-400 mb-8 leading-relaxed">
+                                Every world-changing company started somewhere small. Apple in a garage. 
+                                Amazon in a basement. <strong className="text-white">Your success story starts here.</strong>
+                            </p>
+                            
+                            <p className="text-gray-500 mb-10">
+                                Locale by ACHIEVEMOR isn't just a platform—it's the infrastructure 
+                                for your journey from local freelancer to global professional.
+                            </p>
 
-            {/* The Journey */}
-            <div className="max-w-5xl mx-auto px-6 py-24">
-                <h2 className="text-3xl font-bold text-white mb-12 text-center">The Journey</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {[
-                        { 
-                            stage: '01', 
-                            title: 'GARAGE', 
-                            color: 'text-gray-400',
-                            desc: 'Starting out. You have skills, ideas, and ambition. What you need is a platform to showcase your talent and connect with your first clients.',
-                            icon: '🏠'
-                        },
-                        { 
-                            stage: '02', 
-                            title: 'COMMUNITY', 
-                            color: 'text-blue-400',
-                            desc: 'Establishing trust. Get verified, build your reputation, and become part of a network of professionals who vouch for each other.',
-                            icon: '👥'
-                        },
-                        { 
-                            stage: '03', 
-                            title: 'ENTERPRISE', 
-                            color: 'text-purple-400',
-                            desc: 'Scaling up. With a track record of success, youre ready for bigger contracts, team collaborations, and enterprise clients.',
-                            icon: '🏢'
-                        },
-                        { 
-                            stage: '04', 
-                            title: 'GLOBAL', 
-                            color: 'text-green-400',
-                            desc: 'No boundaries. Serve clients anywhere, hire talent from everywhere, and operate as a truly global professional.',
-                            icon: '🌍'
-                        },
-                    ].map((item, i) => (
-                        <div key={i} className="bg-carbon-800 border border-carbon-700 rounded-2xl p-6 hover:border-locale-blue/50 transition-colors">
-                            <div className="text-4xl mb-4">{item.icon}</div>
-                            <div className="text-xs text-gray-600 font-mono mb-2">{item.stage}</div>
-                            <h3 className={`text-xl font-bold ${item.color} mb-3`}>{item.title}</h3>
-                            <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+                            <div className="flex flex-wrap gap-4">
+                                <Link 
+                                    to="/register"
+                                    className="px-8 py-4 bg-locale-blue hover:bg-locale-darkBlue text-white font-bold rounded-xl transition-all shadow-lg shadow-locale-blue/20 hover:shadow-locale-blue/40"
+                                >
+                                    Start Your Journey
+                                </Link>
+                                <Link 
+                                    to="/explore"
+                                    className="px-8 py-4 bg-carbon-800 text-white font-bold rounded-xl border border-carbon-600 hover:bg-carbon-700 transition-all"
+                                >
+                                    Explore Talent
+                                </Link>
+                            </div>
                         </div>
-                    ))}
-                </div>
-            </div>
 
-            {/* What We Do */}
-            <div className="bg-carbon-800 border-y border-carbon-700">
-                <div className="max-w-5xl mx-auto px-6 py-24">
+                        {/* Visual - Book/Concept */}
+                        <div className="relative hidden md:block">
+                            <div className="relative">
+                                {/* Glow Effect */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-locale-blue/20 via-purple-500/10 to-pink-500/20 rounded-3xl blur-3xl" />
+                                
+                                {/* Book Visual */}
+                                <div className="relative bg-gradient-to-br from-carbon-800 to-carbon-900 rounded-3xl border border-carbon-700 p-10 shadow-2xl">
+                                    <div className="aspect-[3/4] bg-gradient-to-br from-locale-blue via-purple-600 to-pink-600 rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-xl">
+                                        <div className="text-6xl mb-4">🚀</div>
+                                        <h3 className="text-2xl font-black text-white mb-1">GARAGE</h3>
+                                        <span className="text-white/60 text-sm">TO</span>
+                                        <h3 className="text-2xl font-black text-white">GLOBAL</h3>
+                                        <div className="mt-6 pt-4 border-t border-white/20">
+                                            <p className="text-white/70 text-sm">The Modern Playbook</p>
+                                            <p className="text-white/50 text-xs mt-1">by ACHIEVEMOR</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Floating Stats */}
+                                <div className="absolute -bottom-6 -right-6 bg-carbon-800 border border-carbon-700 rounded-xl p-4 shadow-xl">
+                                    <div className="text-2xl font-bold text-locale-blue">50K+</div>
+                                    <div className="text-xs text-gray-500">Partners Worldwide</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* The Journey Stages */}
+            <section className="py-24 bg-carbon-800/50 border-y border-carbon-700">
+                <div className="max-w-6xl mx-auto px-6">
                     <div className="text-center mb-16">
-                        <h2 className="text-3xl font-bold text-white mb-4">What Locale Provides</h2>
-                        <p className="text-gray-400 max-w-2xl mx-auto">
-                            We're building the infrastructure for the next generation of work — connecting service providers (Partners) 
-                            with customers (Clients) in a secure, AI-powered platform.
+                        <h2 className="text-4xl font-bold text-white mb-4">The Journey</h2>
+                        <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                            Your path from local service provider to global professional, powered by Locale.
                         </p>
                     </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        {[
+                            { 
+                                stage: '01', 
+                                title: 'GARAGE', 
+                                color: 'text-gray-400',
+                                borderColor: 'border-gray-600',
+                                desc: 'You have the skills. Create your profile, set your rates, and join the network.',
+                                icon: '🏠'
+                            },
+                            { 
+                                stage: '02', 
+                                title: 'COMMUNITY', 
+                                color: 'text-locale-blue',
+                                borderColor: 'border-locale-blue/50',
+                                desc: 'Get verified. Build your reputation with reviews. Unlock higher-value contracts.',
+                                icon: '👥'
+                            },
+                            { 
+                                stage: '03', 
+                                title: 'ENTERPRISE', 
+                                color: 'text-purple-400',
+                                borderColor: 'border-purple-500/50',
+                                desc: 'Scale your operation. Handle team projects and serve enterprise clients.',
+                                icon: '🏢'
+                            },
+                            { 
+                                stage: '04', 
+                                title: 'GLOBAL', 
+                                color: 'text-green-400',
+                                borderColor: 'border-green-500/50',
+                                desc: 'No boundaries. Serve clients anywhere in the world. Your garage is now HQ.',
+                                icon: '🌍'
+                            },
+                        ].map((item, i) => (
+                            <div 
+                                key={i} 
+                                className={`bg-carbon-800 border-2 ${item.borderColor} rounded-2xl p-6 hover:scale-[1.02] transition-all group`}
+                            >
+                                <div className="text-5xl mb-6 group-hover:scale-110 transition-transform">{item.icon}</div>
+                                <div className="text-xs text-gray-600 font-mono mb-2">{item.stage}</div>
+                                <h3 className={`text-xl font-bold ${item.color} mb-3`}>{item.title}</h3>
+                                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* For Partners & Clients */}
+            <section className="py-24">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* For Partners */}
-                        <div className="bg-carbon-900 rounded-2xl p-8 border border-carbon-700">
-                            <div className="w-12 h-12 bg-locale-blue/20 rounded-xl flex items-center justify-center text-2xl mb-6">🤝</div>
-                            <h3 className="text-2xl font-bold text-white mb-4">For Partners (Providers)</h3>
-                            <ul className="space-y-3">
+                        <div className="bg-carbon-800 rounded-3xl p-10 border border-carbon-700 hover:border-locale-blue/30 transition-colors">
+                            <div className="w-14 h-14 bg-locale-blue/20 rounded-2xl flex items-center justify-center text-3xl mb-6">🤝</div>
+                            <h3 className="text-3xl font-bold text-white mb-4">For Partners</h3>
+                            <p className="text-gray-400 mb-8">
+                                Whether you're a developer, designer, consultant, or creative—turn your skills into a thriving business.
+                            </p>
+                            <ul className="space-y-4 mb-10">
                                 {[
-                                    'Transition from employee to freelancer seamlessly',
-                                    'Access an AI Gateway powered by ACHEEVY to service clients',
-                                    'Find customers locally OR bring your existing clients here',
-                                    'All-in-one platform to manage work, invoices, and communication',
-                                    'Build reputation through verified reviews and credentials',
-                                    'Scale from solo to team with our collaboration tools',
+                                    'Create a professional profile in minutes',
+                                    'Get discovered by local and global clients',
+                                    'Secure payments with built-in escrow',
+                                    'Build reputation with verified reviews',
+                                    'Access AI tools to boost productivity',
+                                    'Scale from solo to team seamlessly',
                                 ].map((item, i) => (
-                                    <li key={i} className="flex items-start gap-3 text-gray-400 text-sm">
-                                        <span className="text-green-500 mt-0.5">✓</span>
+                                    <li key={i} className="flex items-start gap-3 text-gray-300 text-sm">
+                                        <span className="text-locale-blue mt-0.5">✓</span>
                                         {item}
                                     </li>
                                 ))}
                             </ul>
+                            <Link 
+                                to="/register" 
+                                className="inline-flex items-center gap-2 text-locale-blue hover:text-white font-bold transition-colors"
+                            >
+                                Join as Partner <span>→</span>
+                            </Link>
                         </div>
 
                         {/* For Clients */}
-                        <div className="bg-carbon-900 rounded-2xl p-8 border border-carbon-700">
-                            <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center text-2xl mb-6">🎯</div>
-                            <h3 className="text-2xl font-bold text-white mb-4">For Clients (Customers)</h3>
-                            <ul className="space-y-3">
+                        <div className="bg-carbon-800 rounded-3xl p-10 border border-carbon-700 hover:border-purple-500/30 transition-colors">
+                            <div className="w-14 h-14 bg-purple-500/20 rounded-2xl flex items-center justify-center text-3xl mb-6">🎯</div>
+                            <h3 className="text-3xl font-bold text-white mb-4">For Clients</h3>
+                            <p className="text-gray-400 mb-8">
+                                Find verified, trusted professionals for any project. From quick tasks to long-term partnerships.
+                            </p>
+                            <ul className="space-y-4 mb-10">
                                 {[
-                                    'Find verified, trusted local talent for in-person tasks',
-                                    'Access remote professionals for tasks that dont require physical presence',
-                                    'Secure escrow payments protect both parties',
-                                    'AI-powered matching finds the right partner for your needs',
-                                    'Track progress, communicate, and manage everything in one place',
-                                    'Enterprise solutions for businesses with ongoing needs',
+                                    'Browse verified local and remote talent',
+                                    'AI-powered matching for your needs',
+                                    'Protected escrow payments',
+                                    'Transparent reviews from past clients',
+                                    'Enterprise solutions for teams',
+                                    'Concierge support for complex projects',
                                 ].map((item, i) => (
-                                    <li key={i} className="flex items-start gap-3 text-gray-400 text-sm">
-                                        <span className="text-purple-500 mt-0.5">✓</span>
+                                    <li key={i} className="flex items-start gap-3 text-gray-300 text-sm">
+                                        <span className="text-purple-400 mt-0.5">✓</span>
                                         {item}
                                     </li>
                                 ))}
                             </ul>
+                            <Link 
+                                to="/explore" 
+                                className="inline-flex items-center gap-2 text-purple-400 hover:text-white font-bold transition-colors"
+                            >
+                                Find Talent <span>→</span>
+                            </Link>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            {/* The Promise */}
-            <div className="max-w-5xl mx-auto px-6 py-24">
-                <div className="bg-gradient-to-br from-locale-blue/10 to-purple-500/10 border border-locale-blue/30 rounded-3xl p-12 text-center">
-                    <h2 className="text-3xl font-bold text-white mb-6">Our Promise</h2>
-                    <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8">
-                        Whether you're in your garage with a laptop and a dream, or you're a global enterprise 
-                        looking for the best talent — Locale is your platform. We handle the infrastructure, 
-                        the verification, the payments, and the AI tools. You focus on doing great work.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link to="/register" className="bg-locale-blue hover:bg-locale-darkBlue text-white font-bold py-4 px-8 rounded-xl transition-colors">
-                            Start as a Partner
-                        </Link>
-                        <Link to="/explore" className="bg-carbon-700 hover:bg-carbon-600 text-white font-bold py-4 px-8 rounded-xl transition-colors">
-                            Find Talent
-                        </Link>
+            {/* Why Locale */}
+            <section className="py-24 bg-carbon-800/30">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl font-bold text-white mb-4">Why Locale?</h2>
+                        <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                            The infrastructure you need to succeed, without the complexity.
+                        </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {[
+                            {
+                                icon: '🔒',
+                                title: 'Verified Trust',
+                                desc: 'Every partner goes through identity verification. Every payment is protected by escrow. No exceptions.',
+                            },
+                            {
+                                icon: '🤖',
+                                title: 'AI-Powered',
+                                desc: 'ACHEEVY, our AI concierge, helps match clients with partners and streamlines every interaction.',
+                            },
+                            {
+                                icon: '🌐',
+                                title: 'Local + Global',
+                                desc: 'Find talent in your neighborhood or across the world. The choice is yours.',
+                            },
+                        ].map((item, i) => (
+                            <div key={i} className="text-center">
+                                <div className="text-5xl mb-6">{item.icon}</div>
+                                <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
+                                <p className="text-gray-500">{item.desc}</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
-            </div>
+            </section>
 
-            {/* Key Stats */}
-            <div className="bg-carbon-800 border-t border-carbon-700">
-                <div className="max-w-5xl mx-auto px-6 py-16">
+            {/* Stats */}
+            <section className="py-16 border-t border-carbon-700">
+                <div className="max-w-6xl mx-auto px-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                         {[
-                            { value: '50K+', label: 'Partners' },
+                            { value: '50K+', label: 'Partners Worldwide' },
                             { value: '100K+', label: 'Tasks Completed' },
                             { value: '95%', label: 'Satisfaction Rate' },
                             { value: '24/7', label: 'AI Support' },
                         ].map((stat, i) => (
                             <div key={i}>
-                                <div className="text-3xl font-bold text-locale-blue mb-2">{stat.value}</div>
+                                <div className="text-4xl font-black text-locale-blue mb-2">{stat.value}</div>
                                 <div className="text-gray-500 text-sm">{stat.label}</div>
                             </div>
                         ))}
                     </div>
                 </div>
-            </div>
+            </section>
+
+            {/* CTA */}
+            <section className="py-24 bg-gradient-to-br from-locale-blue/10 via-purple-500/5 to-pink-500/10">
+                <div className="max-w-4xl mx-auto px-6 text-center">
+                    <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                        Ready to Go Global?
+                    </h2>
+                    <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
+                        Your journey starts with a single step. Join thousands already building their future on Locale.
+                    </p>
+                    
+                    <div className="flex flex-wrap justify-center gap-4">
+                        <Link 
+                            to="/register"
+                            className="px-10 py-5 bg-white text-carbon-900 font-bold text-lg rounded-xl hover:bg-gray-100 transition-all shadow-xl"
+                        >
+                            Get Started Free
+                        </Link>
+                        <Link 
+                            to="/explore"
+                            className="px-10 py-5 bg-carbon-800 text-white font-bold text-lg rounded-xl border border-carbon-600 hover:bg-carbon-700 transition-all"
+                        >
+                            Browse Talent
+                        </Link>
+                    </div>
+                </div>
+            </section>
         </div>
     );
 };

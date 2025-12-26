@@ -6,7 +6,8 @@ import ProfessionalCard from './components/ProfessionalCard';
 import Localator from './components/Localator';
 import VerificationFlow from './components/verification/VerificationFlow';
 import ConciergeBot from './components/common/ConciergeBot';
-import TaskWorkspace from './components/workspace/TaskWorkspace';
+import ScrollToTop from './components/common/ScrollToTop';
+import LeftSidebar from './components/Navigation/LeftSidebar';
 import { Footer } from './components/Navigation/Footer';
 import { useGeoLocation } from './lib/hooks/useGeoLocation';
 import { MOCK_PROFILES, MOCK_CATEGORIES } from './lib/constants';
@@ -28,9 +29,19 @@ import AiIntroPage from './components/pages/About/AiIntro';
 import TokenEstimatorPage from './components/pages/TokenEstimatorPage';
 import CircuitBox from './components/admin/CircuitBox';
 import AdminControlPanel from './components/admin/AdminControlPanel';
+import SystemLogsViewer from './components/admin/SystemLogsViewer';
 import AboutPage from './components/pages/AboutPage';
 import GarageToGlobalPage from './components/pages/GarageToGlobalPage';
-import PlaygroundPage from './components/pages/PlaygroundPage'; 
+import PlaygroundPage from './components/pages/PlaygroundPage';
+
+// Tool/Feature Components
+import VideoGenerator from './components/video/VideoGenerator';
+import VoiceOnboarding from './components/voice/VoiceOnboarding';
+import AIChatWidget from './components/chat/AIChatWidget';
+import AIChatPage from './components/pages/AIChatPage';
+import TokenEstimator from './components/estimator/TokenEstimator';
+import BarsComposer from './components/BarsComposer';
+import BingePipelineBoard from './components/BingePipelineBoard'; 
 
 // --- DATA ENRICHMENT ---
 const ENHANCED_PROFILES: Profile[] = MOCK_PROFILES.map((p, i) => ({
@@ -52,13 +63,9 @@ const HOME_CATEGORIES = MOCK_CATEGORIES.slice(0, 4).map(c => ({
 // --- COMPONENTS ---
 
 const Navbar = ({ locationState, requestLocation }: any) => (
-  <nav className="sticky top-0 z-50 glass-panel border-b border-carbon-700 backdrop-blur-xl">
-    <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-      <Link to="/" className="flex items-center group">
-        <LocaleLogo className="h-10 transition-transform group-hover:scale-105" />
-      </Link>
-      
-      {/* Desktop Nav */}
+  <nav className="sticky top-0 z-40 glass-panel border-b border-carbon-700 backdrop-blur-xl">
+    <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      {/* Desktop Nav Links - No logo since sidebar has it */}
       <div className="hidden md:flex items-center gap-8 font-medium text-sm text-gray-400">
         <Link to="/explore" className="hover:text-white transition-colors tracking-wide">Explore</Link>
         <Link to="/categories" className="hover:text-white transition-colors tracking-wide">Categories</Link>
@@ -132,22 +139,48 @@ const Home = () => {
               Connect locally, scale globally. Secure payments, verified talent, and real growth.
             </p>
 
-            {/* Main Locator Search */}
-            <div className="max-w-4xl mx-auto w-full bg-carbon-800/60 backdrop-blur-xl p-3 rounded-2xl border border-carbon-600/50 flex flex-col md:flex-row gap-3 shadow-2xl transition-all hover:border-carbon-500">
-              <div className="flex-1 relative group">
-                <svg className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-500 group-focus-within:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                <input type="text" placeholder="What service do you need?" className="w-full bg-carbon-900/50 rounded-xl border-none text-white h-14 pl-14 pr-4 focus:ring-2 focus:ring-locale-blue/50 placeholder-gray-500 text-lg" />
+            {/* Main Locator Search - WIDE like OpenAI */}
+            <div className="w-full max-w-5xl mx-auto">
+              <div className="bg-carbon-800/80 backdrop-blur-xl p-2 rounded-2xl border border-carbon-600/50 shadow-2xl transition-all hover:border-carbon-500 hover:shadow-[0_0_40px_-10px_rgba(59,130,246,0.3)]">
+                <div className="flex items-center gap-2">
+                  {/* Search Icon */}
+                  <div className="pl-4">
+                    <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  
+                  {/* Main Input - Takes most space */}
+                  <input 
+                    type="text" 
+                    placeholder="What service do you need?" 
+                    className="flex-1 bg-transparent border-none text-white h-14 px-4 focus:ring-0 focus:outline-none placeholder-gray-500 text-lg" 
+                  />
+                  
+                  {/* Divider */}
+                  <div className="w-px h-8 bg-carbon-600"></div>
+                  
+                  {/* Location Input */}
+                  <div className="flex items-center gap-2 px-4">
+                    <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    </svg>
+                    <input 
+                      type="text" 
+                      placeholder="Zip Code" 
+                      className="w-28 bg-transparent border-none text-white h-14 focus:ring-0 focus:outline-none placeholder-gray-500 text-base" 
+                    />
+                    <button onClick={requestLocation} className="text-[10px] bg-carbon-700 hover:bg-carbon-600 px-3 py-1.5 rounded-lg text-gray-300 hover:text-white transition-colors font-bold tracking-wide">
+                      DETECT
+                    </button>
+                  </div>
+                  
+                  {/* Search Button */}
+                  <Link to="/explore" className="bg-locale-blue hover:bg-locale-darkBlue text-white font-bold px-8 py-4 rounded-xl transition-all flex items-center justify-center text-base shadow-lg hover:shadow-locale-blue/30 hover:scale-[1.02]">
+                    SEARCH
+                  </Link>
+                </div>
               </div>
-              <div className="flex-[0.6] relative group">
-                <svg className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-500 group-focus-within:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /></svg>
-                <input type="text" placeholder="Zip Code" className="w-full bg-carbon-900/50 rounded-xl border-none text-white h-14 pl-14 pr-24 focus:ring-2 focus:ring-locale-blue/50 placeholder-gray-500 text-lg" />
-                <button onClick={requestLocation} className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] bg-carbon-700 hover:bg-carbon-600 px-3 py-1.5 rounded-lg text-gray-300 hover:text-white transition-colors font-bold tracking-wide">
-                  DETECT
-                </button>
-              </div>
-              <Link to="/explore" className="bg-locale-blue hover:bg-locale-darkBlue text-white font-bold px-10 rounded-xl transition-all flex items-center justify-center text-lg shadow-glow hover:scale-[1.02]">
-                SEARCH
-              </Link>
             </div>
           </div>
         </div>
@@ -335,53 +368,108 @@ const Privacy = () => (
 // --- MAIN APP COMPONENT ---
 const App = () => {
   const { location, requestLocation } = useGeoLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
     <HashRouter>
-      <div className="min-h-screen bg-carbon-900 text-gray-200 font-sans selection:bg-locale-blue selection:text-white flex flex-col">
-        <Navbar locationState={location} requestLocation={requestLocation} />
+      <ScrollToTop />
+      <div className="min-h-screen bg-carbon-900 text-gray-200 font-sans selection:bg-locale-blue selection:text-white">
+        {/* Left Sidebar */}
+        <LeftSidebar 
+          isOpen={sidebarOpen} 
+          onToggle={() => setSidebarOpen(!sidebarOpen)} 
+          isAdmin={true}
+        />
         
-        <main className="flex-grow">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/about/ai" element={<AiIntroPage />} />
-            <Route path="/estimator" element={<TokenEstimatorPage />} />
-            <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/explore/garage-to-global" element={<GarageToGlobalPage />} />
-            <Route path="/explore/:categoryId" element={<CategoryLanding />} />
-            <Route path="/categories" element={<CategoriesPage />} />
-            <Route path="/book/:serviceId" element={<BookingsPage />} /> 
-            <Route path="/playground" element={<PlaygroundPage />} />
-            
-            <Route path="/profile/customize" element={<ProfileCustomizer />} />
-            <Route path="/admin/settings" element={<AdminSettings />} /> 
-            
-            {/* UPDATED ROUTES */}
-            <Route path="/localator" element={<LocalatorPage />} />
-            <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/partners" element={<PartnerProgramPage />} />
-            <Route path="/enterprise" element={<DashboardPage />} /> {/* Enterprise uses Dashboard for now */}
-
-            {/* Admin / Internal Operations */}
-            <Route path="/admin/circuit-box" element={<CircuitBox />} />
-            <Route path="/admin/control-panel" element={<AdminControlPanel />} />
-            <Route path="/admin" element={<Navigate to="/admin/control-panel" replace />} />
-
-            {/* Legal */}
-            <Route path="/legal/terms" element={<Terms />} />
-            <Route path="/legal/privacy" element={<Privacy />} />
-            <Route path="/legal/safety" element={<Privacy />} /> {/* Safety uses Privacy as placeholder */}
-          </Routes>
-        </main>
+        {/* Main Content Area - shifts based on sidebar */}
+        <div className={`transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
+          {/* Top Navbar */}
+          <Navbar locationState={location} requestLocation={requestLocation} />
+          
+          <main className="flex-grow">
+            <Routes>
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              {/* PUBLIC ROUTES */}
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              <Route path="/" element={<Home />} />
+              
+              {/* Explore & Discovery */}
+              <Route path="/explore" element={<ExplorePage />} />
+              <Route path="/explore/:categoryId" element={<CategoryLanding />} />
+              <Route path="/categories" element={<CategoriesPage />} />
+              <Route path="/book/:serviceId" element={<BookingsPage />} />
+              
+              {/* Garage to Global */}
+              <Route path="/garage-to-global" element={<GarageToGlobalPage />} />
+              <Route path="/explore/garage-to-global" element={<GarageToGlobalPage />} />
+              
+              {/* About Section */}
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/about/ai" element={<AiIntroPage />} />
+              <Route path="/about/ai-intro" element={<AiIntroPage />} />
+              <Route path="/about/technology" element={<AiIntroPage />} />
+              
+              {/* Tools */}
+              <Route path="/localator" element={<LocalatorPage />} />
+              <Route path="/estimator" element={<TokenEstimatorPage />} />
+              <Route path="/token-estimator" element={<TokenEstimatorPage />} />
+              
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              {/* PARTNER ROUTES */}
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/partners" element={<PartnerProgramPage />} />
+              <Route path="/partner-program" element={<PartnerProgramPage />} />
+              <Route path="/for-partners" element={<PartnerProgramPage />} />
+              
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              {/* PRO ACCESS / DASHBOARD */}
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/enterprise" element={<DashboardPage />} />
+              <Route path="/profile/customize" element={<ProfileCustomizer />} />
+              
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              {/* AI & CREATIVE TOOLS */}
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              <Route path="/tools/video" element={<VideoGenerator />} />
+              <Route path="/video" element={<VideoGenerator />} />
+              <Route path="/tools/voice" element={<VoiceOnboarding onComplete={() => {}} onSkip={() => {}} />} />
+              <Route path="/voice" element={<VoiceOnboarding onComplete={() => {}} onSkip={() => {}} />} />
+              <Route path="/tools/chat" element={<AIChatPage />} />
+              <Route path="/chat" element={<AIChatPage />} />
+              <Route path="/tools/bars" element={<BarsComposer />} />
+              <Route path="/bars" element={<BarsComposer />} />
+              <Route path="/tools/pipeline" element={<BingePipelineBoard jobs={[]} />} />
+              <Route path="/pipeline" element={<BingePipelineBoard jobs={[]} />} />
+              <Route path="/playground" element={<PlaygroundPage />} />
+              
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              {/* ADMIN ROUTES */}
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              <Route path="/admin" element={<Navigate to="/admin/control-panel" replace />} />
+              <Route path="/admin/control-panel" element={<AdminControlPanel />} />
+              <Route path="/admin/circuit-box" element={<CircuitBox />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/logs" element={<SystemLogsViewer />} />
+              
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              {/* LEGAL */}
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              <Route path="/legal/terms" element={<Terms />} />
+              <Route path="/legal/privacy" element={<Privacy />} />
+              <Route path="/legal/safety" element={<Privacy />} />
+            </Routes>
+          </main>
+          
+          <Footer />
+        </div>
         
+        {/* Floating ConciergeBot */}
         <ConciergeBot />
-        <TaskWorkspace userId="default" />
-        <Footer />
       </div>
     </HashRouter>
   );
