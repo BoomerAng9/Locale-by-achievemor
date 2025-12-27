@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import './index.css'; // Import Tailwind CSS
 import App from './App';
 
 console.log("Locale app bootstrapping...");
