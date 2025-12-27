@@ -133,13 +133,14 @@ def process_video_upload(bucket: str, name: str, data: dict) -> dict:
     return {"action": "video_queued", "file": name}
 
 # ============================================
-# AI COMPANION API (Gemini)
+# AI COMPANION API (Gemini via Vertex AI)
 # ============================================
 
 @app.route("/api/ai/chat", methods=["POST"])
 def ai_chat():
     """
-    AI Chat endpoint using Gemini via Cloud AI Companion
+    AI Chat endpoint using Gemini via Vertex AI
+    Wired to II-Agent / ACHEEVY ecosystem
     """
     try:
         data = request.get_json()
@@ -150,23 +151,128 @@ def ai_chat():
         if not message:
             return jsonify({"error": "Message required"}), 400
         
-        # TODO: Call Gemini via Vertex AI or direct API
-        # For now, return a structured response
-        response = {
-            "response": f"[AI Companion] Received: {message[:100]}...",
-            "model": "gemini-2.0-flash",
-            "context": context,
-            "tokens": {
-                "input": len(message.split()),
-                "output": 50,
-                "total": len(message.split()) + 50
+        # Try Vertex AI Gemini first
+        try:
+            import google.auth
+            from google.cloud import aiplatform
+            from google.protobuf import json_format
+            from google.protobuf.struct_pb2 import Value
+            
+            # Initialize Vertex AI
+            aiplatform.init(project=GCP_PROJECT_ID, location="us-central1")
+            
+            # Use Gemini model via Vertex AI
+            from vertexai.generative_models import GenerativeModel, Part
+            
+            model = GenerativeModel("gemini-2.0-flash-exp")
+            
+            # Build prompt with context
+            system_prompt = f"""You are ACHEEVY, an intelligent AI assistant for the Locale platform.
+You help users with:
+- Finding local professionals and services
+- Managing tasks and projects
+- Business intelligence and analytics
+- Code generation and technical help
+
+Context: {context}
+User query: {message}
+
+Respond helpfully and concisely."""
+            
+            response = model.generate_content(system_prompt)
+            
+            ai_response = response.text if response.text else "I'm processing your request..."
+            
+            return jsonify({
+                "response": ai_response,
+                "model": "gemini-2.0-flash-exp",
+                "context": context,
+                "agent": "ACHEEVY",
+                "tokens": {
+                    "input": len(message.split()),
+                    "output": len(ai_response.split()),
+                    "total": len(message.split()) + len(ai_response.split())
+                }
+            }), 200
+            
+        except Exception as vertex_error:
+            logger.warning(f"Vertex AI unavailable, using fallback: {str(vertex_error)}")
+            
+            # Fallback response when Vertex AI is not configured
+            response = {
+                "response": f"[ACHEEVY] Processing: {message[:200]}{'...' if len(message) > 200 else ''}\n\nI'm currently in setup mode. Once Vertex AI credentials are configured, I'll provide intelligent responses powered by Gemini 2.0 Flash.",
+                "model": "fallback",
+                "context": context,
+                "agent": "ACHEEVY",
+                "tokens": {
+                    "input": len(message.split()),
+                    "output": 50,
+                    "total": len(message.split()) + 50
+                }
             }
-        }
-        
-        return jsonify(response), 200
+            
+            return jsonify(response), 200
         
     except Exception as e:
         logger.error(f"AI chat error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# ============================================
+# II-AGENT RESEARCH ENDPOINT
+# ============================================
+
+@app.route("/api/ai/research", methods=["POST"])
+def ai_research():
+    """
+    Research endpoint using II-Researcher pattern
+    """
+    try:
+        data = request.get_json()
+        query = data.get("query", "")
+        depth = data.get("depth", "shallow")
+        
+        if not query:
+            return jsonify({"error": "Query required"}), 400
+        
+        # Mock research results for now
+        return jsonify({
+            "summary": f"Research results for: {query}",
+            "sources": [
+                {"url": "https://example.com", "title": "Source 1", "snippet": "Relevant information..."}
+            ],
+            "depth": depth
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Research error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# ============================================
+# II-AGENT CODE ENDPOINT
+# ============================================
+
+@app.route("/api/ai/code", methods=["POST"])
+def ai_code():
+    """
+    Code generation endpoint
+    """
+    try:
+        data = request.get_json()
+        task = data.get("task", "")
+        language = data.get("language", "python")
+        
+        if not task:
+            return jsonify({"error": "Task required"}), 400
+        
+        # Mock code generation for now
+        return jsonify({
+            "code": f"# Generated code for: {task}\n# Language: {language}\nprint('Hello from ACHEEVY!')",
+            "language": language,
+            "output": None
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Code generation error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 # ============================================
