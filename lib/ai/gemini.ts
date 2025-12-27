@@ -3,8 +3,17 @@
  * Upgraded for FUNCTION CALLING and TOOL USE
  */
 
-import { GoogleGenerativeAI, FunctionDeclarationSchemaType } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { updateBreakerState, dispatchTask } from '../agents/manager';
+
+// Schema types as string literals (compatible with all SDK versions)
+const SchemaType = {
+  OBJECT: 'OBJECT' as const,
+  STRING: 'STRING' as const,
+  BOOLEAN: 'BOOLEAN' as const,
+  NUMBER: 'NUMBER' as const,
+  ARRAY: 'ARRAY' as const,
+};
 
 const GEMINI_API_KEY = (import.meta as any).env?.VITE_GEMINI_API_KEY;
 
@@ -19,14 +28,14 @@ const tools = [
         name: "toggle_circuit_breaker",
         description: "Turn a system circuit breaker ON or OFF. Use this when users ask to enable/disable external services.",
         parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
             breaker_id: {
-              type: FunctionDeclarationSchemaType.STRING,
+              type: SchemaType.STRING,
               description: "The ID of the breaker (e.g., 'stripe', 'github', 'voice_stt', 'cloud_run')"
             },
             state: {
-              type: FunctionDeclarationSchemaType.BOOLEAN,
+              type: SchemaType.BOOLEAN,
               description: "True to enable (ON), False to disable (OFF)"
             }
           },
@@ -37,11 +46,11 @@ const tools = [
         name: "dispatch_agent_task",
         description: "Create a task for a specialized agent (e.g. Finder, Coder) to execute asynchronously.",
         parameters: {
-          type: FunctionDeclarationSchemaType.OBJECT,
+          type: SchemaType.OBJECT,
           properties: {
-             agent_id: { type: FunctionDeclarationSchemaType.STRING, description: "Target Agent ID (e.g. 'finder-ang', 'code-gen-agent')" },
-             task_type: { type: FunctionDeclarationSchemaType.STRING, description: "Type of work (e.g. 'research', 'code_refactor')" },
-             payload_json: { type: FunctionDeclarationSchemaType.STRING, description: "JSON string of task details" }
+             agent_id: { type: SchemaType.STRING, description: "Target Agent ID (e.g. 'finder-ang', 'code-gen-agent')" },
+             task_type: { type: SchemaType.STRING, description: "Type of work (e.g. 'research', 'code_refactor')" },
+             payload_json: { type: SchemaType.STRING, description: "JSON string of task details" }
           },
           required: ["agent_id", "task_type", "payload_json"]
         }
