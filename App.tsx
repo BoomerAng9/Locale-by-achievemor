@@ -41,7 +41,8 @@ import AIChatWidget from './components/chat/AIChatWidget';
 import AIChatPage from './components/pages/AIChatPage';
 import TokenEstimator from './components/estimator/TokenEstimator';
 import BarsComposer from './components/BarsComposer';
-import BingePipelineBoard from './components/BingePipelineBoard'; 
+import BingePipelineBoard from './components/BingePipelineBoard';
+import TaskWorkspace from './components/workspace/TaskWorkspace'; 
 
 // --- DATA ENRICHMENT ---
 const ENHANCED_PROFILES: Profile[] = MOCK_PROFILES.map((p, i) => ({
@@ -446,6 +447,8 @@ const App = () => {
               <Route path="/tools/pipeline" element={<BingePipelineBoard jobs={[]} />} />
               <Route path="/pipeline" element={<BingePipelineBoard jobs={[]} />} />
               <Route path="/playground" element={<PlaygroundPage />} />
+              <Route path="/workspace" element={<TaskWorkspace />} />
+              <Route path="/manus" element={<TaskWorkspace />} />
               
               {/* ═══════════════════════════════════════════════════════════════════ */}
               {/* ADMIN ROUTES */}
