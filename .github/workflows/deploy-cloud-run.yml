@@ -40,11 +40,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Check secrets exist
+        run: |
+          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
+            echo "❌ ERROR: GCP_SA_KEY secret is not set!"
+            echo "Go to: Settings → Secrets and variables → Actions → New repository secret"
+            echo "Name: GCP_SA_KEY"
+            echo "Value: The JSON service account key"
+            exit 1
+          fi
+          echo "✅ GCP_SA_KEY secret is configured"
+
       - name: Authenticate to Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
