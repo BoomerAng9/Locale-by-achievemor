@@ -28,5 +28,5 @@ COPY . .
 # Expose the port Cloud Run expects
 EXPOSE 8080
 
-# Run with gunicorn for production concurrency
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "4", "main:app"]
+# Run the application
+CMD ["python", "main.py"]

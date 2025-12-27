@@ -292,5 +292,3 @@ if __name__ == "__main__":
     # Run the Flask app
     # Cloud Run sets PORT env var automatically
     app.run(host="0.0.0.0", port=PORT, debug=False)
-
-# v1.0.1

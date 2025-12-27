@@ -6,27 +6,10 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { AGENT_REGISTRY, BoomerAng } from '../../lib/agents/registry';
 
-// Agent status interface for the workspace UI
-interface AgentStatus {
-  id: string;
-  name: string;
-  label: string;
-  specialty: string;
-  status: 'idle' | 'busy' | 'offline';
-  currentTask?: string;
-}
-
-// Initialize the agent registry for the TaskWorkspace
-const AGENT_REGISTRY: AgentStatus[] = [
-  { id: 'acheevy', name: 'ACHEEVY', label: 'Orchestrator', specialty: 'Task Delegation & Planning', status: 'idle' },
-  { id: 'finder-ang', name: 'Finder_Ang', label: 'Finder', specialty: 'Research & Discovery', status: 'idle' },
-  { id: 'execution-ang', name: 'Execution_Ang', label: 'Executor', specialty: 'Task Execution', status: 'idle' },
-  { id: 'critic-ang', name: 'Critic_Ang', label: 'Critic', specialty: 'Quality Assurance', status: 'idle' },
-  { id: 'data-ang', name: 'Data_Ang', label: 'Analyst', specialty: 'Data Analysis', status: 'idle' },
-  { id: 'market-ang', name: 'Market_Ang', label: 'Market Intel', specialty: 'Market Research', status: 'idle' },
-  { id: 'design-ang', name: 'Design_Ang', label: 'Designer', specialty: 'UI/UX Design', status: 'idle' },
-];
+// Alias BoomerAng as AgentStatus to match component usage
+type AgentStatus = BoomerAng;
 
 // Types for the TaskWorkspace
 interface ThinkingStep {

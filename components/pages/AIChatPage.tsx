@@ -182,25 +182,25 @@ const AIChatPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Input Area */}
-      <div className="bg-carbon-800 border-t border-carbon-700 px-6 py-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-4 bg-carbon-900 rounded-xl px-4 py-2 border border-carbon-600 focus-within:border-green-400 transition-colors">
+      {/* Input Area (Fixed Bottom) */}
+      <div className="fixed bottom-0 left-0 right-0 bg-carbon-800/95 backdrop-blur-xl border-t border-carbon-700 px-6 py-6 z-50 shadow-2xl">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center gap-4 bg-carbon-900 rounded-2xl px-6 py-4 border border-carbon-600 focus-within:border-green-400 focus-within:shadow-lg focus-within:shadow-green-500/10 transition-all">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Think it. Prompt it..."
-              className="flex-1 bg-transparent text-white outline-none placeholder-gray-500"
+              className="flex-1 bg-transparent text-white text-lg outline-none placeholder-gray-500 font-medium"
               disabled={isLoading}
             />
             <button
               onClick={handleSend}
               disabled={!input.trim() || isLoading}
-              className={`px-6 py-2 rounded-lg font-bold transition-all ${
+              className={`px-8 py-3 rounded-xl font-bold transition-all transform hover:scale-105 active:scale-95 ${
                 input.trim() && !isLoading
-                  ? 'bg-green-500 text-black hover:bg-green-400'
+                  ? 'bg-green-500 text-black hover:bg-green-400 shadow-lg shadow-green-500/20'
                   : 'bg-gray-700 text-gray-500 cursor-not-allowed'
               }`}
             >
@@ -208,20 +208,23 @@ const AIChatPage: React.FC = () => {
             </button>
           </div>
           
-          {/* Quick Actions */}
-          <div className="flex gap-2 mt-3">
+          {/* Quick Actions (Centered) */}
+          <div className="flex justify-center gap-2 mt-4">
             {['Find Talent', 'Estimate Tokens', 'Get Verified', 'AI Assist'].map((action) => (
               <button
                 key={action}
                 onClick={() => setInput(action)}
-                className="px-3 py-1.5 bg-carbon-700 hover:bg-carbon-600 text-gray-300 text-xs rounded-full border border-carbon-600 transition-colors"
+                className="px-4 py-2 bg-carbon-700/50 hover:bg-carbon-600 text-gray-400 hover:text-white text-xs font-medium rounded-full border border-carbon-600/50 transition-colors"
               >
-                🎯 {action}
+                {action}
               </button>
             ))}
           </div>
         </div>
       </div>
+      
+      {/* Spacer for fixed bottom input */}
+      <div className="h-48" />
     </div>
   );
 };

@@ -1,20 +1,26 @@
 /**
- * Video Generator Component - Kie AI Integration
- * Professional UI for generating AI videos from text prompts
+ * Video Generator Component - GCP Vertex AI Integration
+ * Professional UI for generating AI videos from text prompts using Imagen/Veo
  */
 
 import React, { useState, useEffect } from 'react';
-import { generateVideo, checkVideoStatus, getAvailableStyles, VideoGenerationResponse } from '../../lib/video/kieai';
+import { generateVertexVideo, checkGenerationStatus, GenerationResult } from '../../lib/video/vertexVideo';
 
-interface VideoJob {
-  id: string;
+interface VideoJob extends GenerationResult {
+  id: string; // Map job_id to id
   prompt: string;
-  status: 'processing' | 'completed' | 'failed';
-  videoUrl?: string;
-  thumbnailUrl?: string;
-  style: string;
   createdAt: Date;
+  style: string;
 }
+
+const VIDEO_STYLES = [
+  { id: 'cinematic', name: 'Cinematic' },
+  { id: 'anime', name: 'Anime' },
+  { id: 'photorealistic', name: 'Photorealistic' },
+  { id: '3d-render', name: '3D Render' },
+  { id: 'cyberpunk', name: 'Cyberpunk' },
+  { id: 'watercolor', name: 'Watercolor' },
+];
 
 const VideoGenerator: React.FC = () => {
   const [prompt, setPrompt] = useState('');
@@ -23,30 +29,33 @@ const VideoGenerator: React.FC = () => {
   const [duration, setDuration] = useState(5);
   const [isGenerating, setIsGenerating] = useState(false);
   const [jobs, setJobs] = useState<VideoJob[]>([]);
-  const [activeJob, setActiveJob] = useState<string | null>(null);
-
-  const styles = getAvailableStyles();
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
   // Poll for job status updates
   useEffect(() => {
-    if (!activeJob) return;
+    if (!activeJobId) return;
     
     const interval = setInterval(async () => {
-      const status = await checkVideoStatus(activeJob);
-      
-      setJobs(prev => prev.map(job => 
-        job.id === activeJob 
-          ? { ...job, status: status.status, videoUrl: status.videoUrl, thumbnailUrl: status.thumbnailUrl }
-          : job
-      ));
+      try {
+        const result = await checkGenerationStatus(activeJobId);
+        
+        setJobs(prev => prev.map(job => 
+          job.id === activeJobId 
+            ? { ...job, ...result, id: result.job_id } // Ensure merged
+            : job
+        ));
 
-      if (status.status === 'completed' || status.status === 'failed') {
-        setActiveJob(null);
+        if (result.status === 'completed' || result.status === 'failed') {
+          setActiveJobId(null);
+        }
+      } catch (e) {
+        console.error('Polling failed:', e);
+        setActiveJobId(null);
       }
-    }, 3000);
+    }, 2000);
 
     return () => clearInterval(interval);
-  }, [activeJob]);
+  }, [activeJobId]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -54,26 +63,32 @@ const VideoGenerator: React.FC = () => {
     setIsGenerating(true);
 
     try {
-      const response = await generateVideo({
-        prompt: prompt.trim(),
-        duration,
-        aspectRatio,
-        style: selectedStyle as any
+      // Append style to prompt
+      const styledPrompt = `${prompt} in ${selectedStyle} style`;
+      
+      const response = await generateVertexVideo({
+        prompt: styledPrompt,
+        duration_seconds: duration,
+        aspect_ratio: aspectRatio,
+        fps: 24
       });
 
       const newJob: VideoJob = {
-        id: response.id,
+        id: response.job_id,
         prompt: prompt.trim(),
-        status: response.status,
         style: selectedStyle,
-        createdAt: new Date()
+        createdAt: new Date(),
+        status: response.status,
+        progress: response.progress,
+        job_id: response.job_id
       };
 
       setJobs(prev => [newJob, ...prev]);
-      setActiveJob(response.id);
+      setActiveJobId(response.job_id);
       setPrompt('');
     } catch (error) {
       console.error('[VideoGenerator] Generation failed:', error);
+      alert('Failed to start generation. Check console for details.');
     } finally {
       setIsGenerating(false);
     }
@@ -84,12 +99,12 @@ const VideoGenerator: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold tracking-widest mb-4">
-            <span>🎬</span> KIE AI VIDEO
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-bold tracking-widest mb-4">
+            <span>☁️</span> GCP VERTEX AI (IMAGEN / VEO)
           </div>
           <h1 className="text-4xl font-bold text-white mb-4">AI Video Generator</h1>
           <p className="text-gray-400 max-w-xl mx-auto">
-            Transform your ideas into stunning videos using Kie AI's powerful generation capabilities.
+            Transform your ideas into stunning videos using Google's generative models via Cloud Run.
           </p>
         </div>
 
@@ -102,7 +117,7 @@ const VideoGenerator: React.FC = () => {
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="Describe the video you want to create... (e.g., 'A futuristic city at sunset with flying cars')"
-              className="w-full bg-carbon-900 border border-carbon-600 rounded-xl px-4 py-4 text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500/50 focus:border-transparent resize-none h-32"
+              className="w-full bg-carbon-900 border border-carbon-600 rounded-xl px-4 py-4 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500/50 focus:border-transparent resize-none h-32"
               disabled={isGenerating}
             />
           </div>
@@ -113,13 +128,13 @@ const VideoGenerator: React.FC = () => {
             <div>
               <label className="block text-gray-400 text-sm font-medium mb-2">Style</label>
               <div className="grid grid-cols-2 gap-2">
-                {styles.map(style => (
+                {VIDEO_STYLES.map(style => (
                   <button
                     key={style.id}
                     onClick={() => setSelectedStyle(style.id)}
                     className={`p-3 rounded-xl text-sm font-medium transition-all ${
                       selectedStyle === style.id
-                        ? 'bg-purple-500 text-white'
+                        ? 'bg-blue-500 text-white'
                         : 'bg-carbon-700 text-gray-400 hover:bg-carbon-600 hover:text-white'
                     }`}
                   >
@@ -155,14 +170,14 @@ const VideoGenerator: React.FC = () => {
               <input
                 type="range"
                 min="3"
-                max="30"
+                max="10" 
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
-                className="w-full h-2 bg-carbon-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                className="w-full h-2 bg-carbon-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
               <div className="flex justify-between text-xs text-gray-500 mt-1">
                 <span>3s</span>
-                <span>30s</span>
+                <span>10s</span>
               </div>
             </div>
           </div>
@@ -174,7 +189,7 @@ const VideoGenerator: React.FC = () => {
             className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 ${
               isGenerating
                 ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg shadow-purple-500/25'
+                : 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-lg shadow-blue-500/25'
             }`}
           >
             {isGenerating ? (
@@ -183,7 +198,7 @@ const VideoGenerator: React.FC = () => {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Generating...
+                Generating on Cloud Run...
               </>
             ) : (
               <>
@@ -205,14 +220,14 @@ const VideoGenerator: React.FC = () => {
                   className="bg-carbon-800 rounded-xl border border-carbon-700 p-6 flex items-center gap-6"
                 >
                   {/* Thumbnail / Status */}
-                  <div className="w-32 h-20 rounded-lg bg-carbon-700 flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {job.status === 'processing' ? (
+                  <div className="w-32 h-20 rounded-lg bg-carbon-700 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
+                    {job.status === 'processing' || job.status === 'pending' ? (
                       <div className="flex flex-col items-center">
-                        <div className="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-xs text-gray-400 mt-2">Processing...</span>
+                        <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-xs text-gray-400 mt-2">{job.progress}%</span>
                       </div>
-                    ) : job.status === 'completed' && job.thumbnailUrl ? (
-                      <img src={job.thumbnailUrl} alt="Thumbnail" className="w-full h-full object-cover" />
+                    ) : job.status === 'completed' && job.thumbnail_url ? (
+                      <img src={job.thumbnail_url} alt="Thumbnail" className="w-full h-full object-cover" />
                     ) : job.status === 'failed' ? (
                       <span className="text-red-500 text-2xl">❌</span>
                     ) : (
@@ -239,14 +254,16 @@ const VideoGenerator: React.FC = () => {
                   </div>
 
                   {/* Actions */}
-                  {job.status === 'completed' && job.videoUrl && (
+                  {job.status === 'completed' && job.video_url && (
                     <div className="flex gap-2">
-                      <button className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors text-sm">
-                        Play
-                      </button>
-                      <button className="px-4 py-2 bg-carbon-700 text-gray-300 rounded-lg font-medium hover:bg-carbon-600 transition-colors text-sm">
-                        Download
-                      </button>
+                      <a 
+                        href={job.video_url} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm flex items-center gap-2"
+                      >
+                         Play
+                      </a>
                     </div>
                   )}
                 </div>

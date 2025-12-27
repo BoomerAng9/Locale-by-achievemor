@@ -73,9 +73,19 @@ export const setCustomVoiceId = (voiceId: string): void => {
 };
 
 // === STT PROVIDER PREFERENCE ===
+import { GlobalConfig } from '../config/GlobalConfig';
+
 export type STTProvider = 'groq' | 'deepgram' | 'browser';
 
 export const getSTTProvider = (): STTProvider => {
+    // 1. Check Global Admin Config (The Scribe)
+    const globalConf = GlobalConfig.getProviderConfig();
+    const activeImplementation = globalConf['speech_to_text'];
+    
+    if (activeImplementation === 'groq_whisper') return 'groq';
+    if (activeImplementation === 'deepgram_nova') return 'deepgram';
+
+    // 2. Legacy / User Preference Fallback
     return (localStorage.getItem('acheevy_stt_provider') as STTProvider) || 
            (GROQ_API_KEY ? 'groq' : DEEPGRAM_API_KEY ? 'deepgram' : 'browser');
 };

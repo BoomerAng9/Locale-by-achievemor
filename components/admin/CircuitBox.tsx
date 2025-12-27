@@ -99,27 +99,25 @@ const ToggleSwitch = ({ isOn, onToggle, size = 'md' }: { isOn: boolean; onToggle
     const sizes = {
         sm: 'w-10 h-5',
         md: 'w-14 h-7',
-        lg: 'w-20 h-10',
+        lg: 'w-16 h-8',
     };
-    const knobSizes = {
-        sm: 'w-4 h-4',
-        md: 'w-6 h-6',
-        lg: 'w-9 h-9',
+    const circleSizes = {
+        sm: 'w-3 h-3',
+        md: 'w-5 h-5',
+        lg: 'w-6 h-6',
     };
+    const translations = {
+        sm: isOn ? 'translate-x-6' : 'translate-x-1',
+        md: isOn ? 'translate-x-8' : 'translate-x-1',
+        lg: isOn ? 'translate-x-9' : 'translate-x-1',
+    };
+
     return (
         <button 
             onClick={onToggle}
-            className={`${sizes[size]} rounded-full transition-all relative ${
-                isOn 
-                    ? 'bg-green-400/30 border-2 border-green-400 shadow-[0_0_15px_rgba(74,222,128,0.3)]' 
-                    : 'bg-carbon-800 border-2 border-carbon-600'
-            }`}
+            className={`${sizes[size]} rounded-full transition-colors relative ${isOn ? 'bg-green-500' : 'bg-gray-700'}`}
         >
-            <div className={`${knobSizes[size]} rounded-full absolute top-0.5 transition-all ${
-                isOn 
-                    ? 'right-0.5 bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]' 
-                    : 'left-0.5 bg-gray-500'
-            }`} />
+            <div className={`${circleSizes[size]} bg-white rounded-full absolute top-1 transition-transform ${translations[size]}`} />
         </button>
     );
 };
@@ -193,21 +191,33 @@ const DepartmentPanel = ({ title, agents, onToggle, selectedId, onSelect }: {
     </div>
 );
 
-// === MAIN COMPONENT ===
+interface CircuitBoxProps {
+    isAdmin?: boolean;
+}
 
-const CircuitBox: React.FC = () => {
-    const [apiStatus, setApiStatus] = useState(getApiStatus());
+import Link from 'react-router-dom';
+import ProviderConfig from './ProviderConfig';
+import KingModeConfig from '../kingmode/KingModeConfig';
+import PersonaFabric from '../synthetic/PersonaFabric';
+
+const CircuitBox: React.FC<CircuitBoxProps> = ({ isAdmin = false }) => {
+    const [status, setStatus] = useState(getApiStatus());
+    const [viewMode, setViewMode] = useState<'status' | 'providers' | 'governance' | 'simulation'>('status');
+    const [selectedDept, setSelectedDept] = useState<'all' | 'ai' | 'voice' | 'research' | 'infra'>(isAdmin ? 'all' : 'ai');
+    
+    // Departments
     const [aiAgents, setAiAgents] = useState(AI_DEPARTMENT);
     const [voiceAgents, setVoiceAgents] = useState(VOICE_DEPARTMENT);
     const [researchAgents, setResearchAgents] = useState(RESEARCH_DEPARTMENT);
     const [infraAgents, setInfraAgents] = useState(INFRA_DEPARTMENT);
-    const [selectedAgent, setSelectedAgent] = useState<string | null>('the-gateway');
+    
+    const [selectedAgentId, setSelectedAgentId] = useState<string | null>('the-gateway');
     const [systemStatus, setSystemStatus] = useState<'optimal' | 'warning' | 'critical'>('optimal');
-    const [logs, setLogs] = useState([
+    const logs = [
         { time: '10:05 AM', type: 'info', message: "User 'Admin' accessed Circuit Box" },
         { time: '10:04 AM', type: 'success', message: "Voice Agent processed 100 requests" },
         { time: '10:03 AM', type: 'warning', message: "The Forge approaching rate limit (85%)" },
-    ]);
+    ];
 
     const toggleAgent = (department: 'ai' | 'voice' | 'research' | 'infra', id: string) => {
         const setters = { ai: setAiAgents, voice: setVoiceAgents, research: setResearchAgents, infra: setInfraAgents };
@@ -216,160 +226,234 @@ const CircuitBox: React.FC = () => {
         ));
     };
 
-    const allAgents = [...aiAgents, ...voiceAgents, ...researchAgents, ...infraAgents];
-    const selected = allAgents.find(a => a.id === selectedAgent);
+    // Calculate lists based on role
+    const allAgents = isAdmin 
+        ? [...aiAgents, ...voiceAgents, ...researchAgents, ...infraAgents]
+        : [...aiAgents, ...voiceAgents]; // Users only see AI and Voice
+
+    const selectedAgent = allAgents.find(a => a.id === selectedAgentId);
     const activeCount = allAgents.filter(a => a.isEnabled).length;
-    const totalCount = allAgents.length;
-
+    
     return (
-        <div className="min-h-screen bg-carbon-900 text-white p-6">
-            {/* HEADER */}
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-carbon-800 border border-carbon-700 flex items-center justify-center">
-                        <span className="text-2xl">🔌</span>
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-black">
-                            <span className="text-neon-green">Circuit Box</span>
-                            <span className="text-gray-500 font-light"> - System Management</span>
-                        </h1>
-                        <div className="flex items-center gap-2 mt-1">
-                            <div className={`w-2 h-2 rounded-full ${systemStatus === 'optimal' ? 'bg-neon-green' : systemStatus === 'warning' ? 'bg-yellow-500' : 'bg-red-500'} animate-pulse`} />
-                            <span className="text-xs text-neon-green font-bold uppercase tracking-wider">
-                                System {systemStatus}
-                            </span>
+        <div className="min-h-screen bg-carbon-900 text-white p-6 font-sans">
+            <div className="max-w-7xl mx-auto">
+                {/* HEADER */}
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-carbon-800 border border-carbon-700 flex items-center justify-center">
+                            <span className="text-2xl">🔌</span>
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-black">
+                                <span className="text-neon-green">Circuit Box</span>
+                                <span className="text-gray-500 font-light"> - System Management</span>
+                            </h1>
+                            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mt-1">
+                                {isAdmin ? 'SUPERADMIN OVERRIDE ACTIVE' : 'USER DASHBOARD'}
+                            </p>
                         </div>
                     </div>
-                </div>
 
-                <div className="flex items-center gap-6">
-                    {/* Quick Stats */}
-                    <div className="text-right">
-                        <div className="text-2xl font-bold text-neon-green">{activeCount}/{totalCount}</div>
-                        <div className="text-xs text-gray-500">Agents Online</div>
-                    </div>
-                    
-                    {/* Emergency Shutoff */}
-                    <button className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-700 border-4 border-red-300/30 shadow-xl flex items-center justify-center hover:scale-95 active:scale-90 transition-transform">
-                        <div className="w-10 h-10 rounded-full border-2 border-red-300/50" />
-                    </button>
-                </div>
-            </div>
-
-            {/* MAIN GRID */}
-            <div className="grid grid-cols-12 gap-6">
-                {/* LEFT COLUMN - AI DEPARTMENT */}
-                <div className="col-span-12 lg:col-span-4 space-y-6">
-                    <DepartmentPanel 
-                        title="🤖 AI Department"
-                        agents={aiAgents}
-                        onToggle={(id) => toggleAgent('ai', id)}
-                        selectedId={selectedAgent}
-                        onSelect={setSelectedAgent}
-                    />
-                </div>
-
-                {/* MIDDLE COLUMN - VOICE & RESEARCH */}
-                <div className="col-span-12 lg:col-span-4 space-y-6">
-                    <DepartmentPanel 
-                        title="🎙️ Voice Department"
-                        agents={voiceAgents}
-                        onToggle={(id) => toggleAgent('voice', id)}
-                        selectedId={selectedAgent}
-                        onSelect={setSelectedAgent}
-                    />
-                    <DepartmentPanel 
-                        title="🔍 Research Department"
-                        agents={researchAgents}
-                        onToggle={(id) => toggleAgent('research', id)}
-                        selectedId={selectedAgent}
-                        onSelect={setSelectedAgent}
-                    />
-                </div>
-
-                {/* RIGHT COLUMN - DETAIL PANEL */}
-                <div className="col-span-12 lg:col-span-4 space-y-6">
-                    {/* Selected Agent Details */}
-                    {selected && (
-                        <div className="bg-carbon-900 rounded-2xl border border-carbon-700 overflow-hidden">
-                            <div className="bg-carbon-800 px-4 py-3 border-b border-carbon-700">
-                                <h3 className="text-neon-green font-bold text-sm uppercase">Agent Details</h3>
-                            </div>
-                            <div className="p-6">
-                                {/* Big Switch */}
-                                <div className="flex justify-center mb-6">
-                                    <div className="bg-carbon-800 rounded-2xl p-6 border border-carbon-700">
-                                        <ToggleSwitch 
-                                            isOn={selected.isEnabled} 
-                                            onToggle={() => toggleAgent(selected.department, selected.id)} 
-                                            size="lg" 
-                                        />
-                                    </div>
-                                </div>
-
-                                <h2 className="text-xl font-bold text-white text-center mb-1">{selected.name}</h2>
-                                <div className="text-neon-green text-sm font-mono text-center mb-6">{selected.codeName}</div>
-                                
-                                <div className="space-y-4 text-sm">
-                                    <div className="flex justify-between py-2 border-b border-carbon-800">
-                                        <span className="text-gray-500">Status</span>
-                                        <span className={selected.isEnabled ? 'text-neon-green' : 'text-red-500'}>
-                                            {selected.isEnabled ? 'ACTIVE' : 'DISABLED'}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between py-2 border-b border-carbon-800">
-                                        <span className="text-gray-500">API Key</span>
-                                        <span className="text-gray-400 font-mono">••••••••</span>
-                                    </div>
-                                    <div className="flex justify-between py-2 border-b border-carbon-800">
-                                        <span className="text-gray-500">Rate Limit</span>
-                                        <span className="text-white font-mono">{selected.rateLimit}</span>
-                                    </div>
-                                    <div className="flex justify-between py-2 border-b border-carbon-800">
-                                        <span className="text-gray-500">Cost/Call</span>
-                                        <span className="text-yellow-400 font-mono">{selected.costPerCall}</span>
-                                    </div>
-                                    <div className="flex justify-between py-2">
-                                        <span className="text-gray-500">Load</span>
-                                        <span className="text-white font-mono">{selected.load}%</span>
-                                    </div>
-                                    <LoadBar load={selected.load} className="mt-2" />
-                                </div>
-                            </div>
+                    <div className="flex items-center gap-6">
+                        <div className="text-right">
+                            <div className="text-2xl font-bold text-neon-green">{activeCount}/{allAgents.length}</div>
+                            <div className="text-xs text-gray-500">Agents Online</div>
                         </div>
-                    )}
-
-                    {/* Infrastructure */}
-                    <DepartmentPanel 
-                        title="⚡ Infrastructure"
-                        agents={infraAgents}
-                        onToggle={(id) => toggleAgent('infra', id)}
-                        selectedId={selectedAgent}
-                        onSelect={setSelectedAgent}
-                    />
+                        
+                        {isAdmin && (
+                            <button className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-700 border-4 border-red-300/30 shadow-xl flex items-center justify-center hover:scale-95 active:scale-90 transition-transform">
+                                <div className="w-10 h-10 rounded-full border-2 border-red-300/50" />
+                            </button>
+                        )}
+                    </div>
                 </div>
-            </div>
 
-            {/* BOTTOM LOG PANEL */}
-            <div className="fixed bottom-0 left-0 right-0 bg-carbon-900 border-t border-carbon-700 p-4">
-                <div className="flex items-center justify-between">
-                    <div className="flex-1 space-y-1">
-                        {logs.map((log, i) => (
-                            <div key={i} className={`text-xs font-mono ${
-                                log.type === 'info' ? 'text-blue-400' : 
-                                log.type === 'success' ? 'text-neon-green' : 
-                                log.type === 'warning' ? 'text-yellow-400' : 'text-red-400'
-                            }`}>
-                                [{log.time}] {log.message}
-                            </div>
+                {/* ADMIN TABS */}
+                {isAdmin && (
+                    <div className="flex gap-4 mb-8 border-b border-carbon-700 pb-1">
+                        {[
+                            { id: 'status', label: 'System Status', icon: '📊' },
+                            { id: 'providers', label: 'Runtime Providers', icon: '🔌' },
+                            { id: 'governance', label: 'Governance (KingMode)', icon: '👑' },
+                            { id: 'simulation', label: 'Synthetic Users', icon: '🧩' },
+                        ].map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setViewMode(tab.id as any)}
+                                className={`px-4 py-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-colors ${
+                                    viewMode === tab.id
+                                        ? 'border-neon-green text-neon-green'
+                                        : 'border-transparent text-gray-500 hover:text-white'
+                                }`}
+                            >
+                                <span>{tab.icon}</span>
+                                {tab.label}
+                            </button>
                         ))}
                     </div>
-                    <div className="text-right">
-                        <div className="text-xs text-gray-500">Monthly Usage</div>
-                        <div className="text-lg font-bold text-neon-green">$12.45</div>
-                    </div>
-                </div>
+                )}
+
+                {/* VIEW MODE CONTENT */}
+                {viewMode === 'status' && (
+                    <>
+                        {/* FILTER TABS */}
+                        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
+                            {(isAdmin 
+                                ? ['all', 'ai', 'voice', 'research', 'infra'] 
+                                : ['ai', 'voice']
+                            ).map((dept) => (
+                                <button
+                                    key={dept}
+                                    onClick={() => setSelectedDept(dept as any)}
+                                    className={`px-6 py-2 rounded-full text-sm font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                                        selectedDept === dept
+                                            ? 'bg-green-500 text-black shadow-[0_0_20px_rgba(74,222,128,0.3)]'
+                                            : 'bg-carbon-800 text-gray-400 hover:text-white border border-carbon-700'
+                                    }`}
+                                >
+                                    {dept === 'infra' ? 'Infrastructure' : dept === 'ai' ? 'AI Department' : `${dept} Dept`}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* MAIN GRID */}
+                        <div className="grid grid-cols-12 gap-6">
+                            {/* LEFT COLUMN - AI */}
+                            {(selectedDept === 'all' || selectedDept === 'ai') && (
+                                <div className="col-span-12 lg:col-span-4 space-y-6">
+                                    <DepartmentPanel 
+                                        title="🤖 AI Department"
+                                        agents={aiAgents}
+                                        onToggle={(id) => toggleAgent('ai', id)}
+                                        selectedId={selectedAgentId}
+                                        onSelect={setSelectedAgentId}
+                                    />
+                                </div>
+                            )}
+
+                            {/* MIDDLE COLUMN - VOICE & RESEARCH */}
+                            <div className="col-span-12 lg:col-span-4 space-y-6">
+                                {(selectedDept === 'all' || selectedDept === 'voice') && (
+                                    <DepartmentPanel 
+                                        title="🎙️ Voice Department"
+                                        agents={voiceAgents}
+                                        onToggle={(id) => toggleAgent('voice', id)}
+                                        selectedId={selectedAgentId}
+                                        onSelect={setSelectedAgentId}
+                                    />
+                                )}
+                                {(isAdmin && (selectedDept === 'all' || selectedDept === 'research')) && (
+                                    <DepartmentPanel 
+                                        title="🔍 Research Department"
+                                        agents={researchAgents}
+                                        onToggle={(id) => toggleAgent('research', id)}
+                                        selectedId={selectedAgentId}
+                                        onSelect={setSelectedAgentId}
+                                    />
+                                )}
+                            </div>
+
+                            {/* RIGHT COLUMN - INFRA OR DETAILS */}
+                            <div className="col-span-12 lg:col-span-4 space-y-6">
+                                {(isAdmin && (selectedDept === 'all' || selectedDept === 'infra')) && (
+                                    <DepartmentPanel 
+                                        title="⚡ Infrastructure"
+                                        agents={infraAgents}
+                                        onToggle={(id) => toggleAgent('infra', id)}
+                                        selectedId={selectedAgentId}
+                                        onSelect={setSelectedAgentId}
+                                    />
+                                )}
+                                
+                                {/* Selected Details Panel (Always visible if something selected) */}
+                                {selectedAgent && (
+                                     <div className="bg-carbon-900 rounded-2xl border border-carbon-700 overflow-hidden sticky top-6">
+                                        <div className="bg-carbon-800 px-4 py-3 border-b border-carbon-700">
+                                            <h3 className="text-green-400 font-bold text-sm uppercase">Agent Details</h3>
+                                        </div>
+                                        <div className="p-6">
+                                            <div className="flex justify-center mb-6">
+                                                <div className="bg-carbon-800 rounded-2xl p-6 border border-carbon-700">
+                                                    <ToggleSwitch 
+                                                        isOn={selectedAgent.isEnabled} 
+                                                        onToggle={() => toggleAgent(selectedAgent.department as any, selectedAgent.id)} 
+                                                        size="lg" 
+                                                    />
+                                                </div>
+                                            </div>
+                                            <h2 className="text-xl font-bold text-white text-center mb-1">{selectedAgent.name}</h2>
+                                            <div className="text-green-400 text-sm font-mono text-center mb-6">{selectedAgent.codeName}</div>
+                                            
+                                            <div className="space-y-4 text-sm">
+                                                <div className="flex justify-between py-2 border-b border-carbon-800">
+                                                    <span className="text-gray-500">Status</span>
+                                                    <span className={selectedAgent.isEnabled ? 'text-green-400' : 'text-red-500'}>
+                                                        {selectedAgent.isEnabled ? 'ACTIVE' : 'DISABLED'}
+                                                    </span>
+                                                </div>
+                                                {isAdmin && (
+                                                    <>
+                                                        <div className="flex justify-between py-2 border-b border-carbon-800">
+                                                            <span className="text-gray-500">API Key</span>
+                                                            <span className="text-gray-400 font-mono">••••••••</span>
+                                                        </div>
+                                                        <div className="flex justify-between py-2 border-b border-carbon-800">
+                                                            <span className="text-gray-500">Rate Limit</span>
+                                                            <span className="text-white font-mono">{selectedAgent.rateLimit}</span>
+                                                        </div>
+                                                        <div className="flex justify-between py-2 border-b border-carbon-800">
+                                                            <span className="text-gray-500">Cost/Call</span>
+                                                            <span className="text-yellow-400 font-mono">{selectedAgent.costPerCall}</span>
+                                                        </div>
+                                                    </>
+                                                )}
+                                                <div className="flex justify-between py-2">
+                                                    <span className="text-gray-500">Global Load</span>
+                                                    <span className="text-white font-mono">{selectedAgent.load}%</span>
+                                                </div>
+                                                <LoadBar load={selectedAgent.load} className="mt-2" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* BOTTOM LOGS (Admin Only) */}
+                        {isAdmin && (
+                            <div className="fixed bottom-0 left-0 right-0 bg-carbon-900 border-t border-carbon-700 p-4 z-40">
+                                <div className="max-w-7xl mx-auto flex items-center justify-between">
+                                    <div className="flex-1 space-y-1">
+                                        {logs.map((log, i) => (
+                                            <div key={i} className={`text-xs font-mono flex items-center gap-2 ${
+                                                log.type === 'info' ? 'text-blue-400' : 
+                                                log.type === 'success' ? 'text-green-400' : 
+                                                log.type === 'warning' ? 'text-yellow-400' : 'text-red-400'
+                                            }`}>
+                                                <span className="text-gray-600">[{log.time}]</span>
+                                                {log.message}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-xs text-gray-500">Monthly Usage</div>
+                                        <div className="text-lg font-bold text-green-400">$12.45</div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {/* PROVIDER CONFIG MODE */}
+                {viewMode === 'providers' && <ProviderConfig />}
+
+                {/* GOVERNANCE MODE */}
+                {viewMode === 'governance' && <KingModeConfig />}
+
+                {/* SIMULATION MODE */}
+                {viewMode === 'simulation' && <PersonaFabric />}
+
             </div>
         </div>
     );

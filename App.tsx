@@ -41,7 +41,9 @@ import AIChatWidget from './components/chat/AIChatWidget';
 import AIChatPage from './components/pages/AIChatPage';
 import TokenEstimator from './components/estimator/TokenEstimator';
 import BarsComposer from './components/BarsComposer';
-import BingePipelineBoard from './components/BingePipelineBoard';
+import VIBEAssessment from './components/assessment/VIBEAssessment';
+import SuperAdminDashboard from './components/admin/SuperAdminDashboard';
+import BingePipelineBoard from './components/BingePipelineBoard'; 
 import TaskWorkspace from './components/workspace/TaskWorkspace'; 
 
 // --- DATA ENRICHMENT ---
@@ -423,6 +425,8 @@ const App = () => {
               <Route path="/partners" element={<PartnerProgramPage />} />
               <Route path="/partner-program" element={<PartnerProgramPage />} />
               <Route path="/for-partners" element={<PartnerProgramPage />} />
+              <Route path="/assessment" element={<VIBEAssessment onComplete={() => window.location.href = '/#/dashboard'} onSkip={() => window.location.href = '/#/dashboard'} />} />
+              <Route path="/vibe" element={<VIBEAssessment onComplete={() => window.location.href = '/#/dashboard'} onSkip={() => window.location.href = '/#/dashboard'} />} />
               
               {/* ═══════════════════════════════════════════════════════════════════ */}
               {/* PRO ACCESS / DASHBOARD */}
@@ -455,9 +459,11 @@ const App = () => {
               {/* ═══════════════════════════════════════════════════════════════════ */}
               <Route path="/admin" element={<Navigate to="/admin/control-panel" replace />} />
               <Route path="/admin/control-panel" element={<AdminControlPanel />} />
-              <Route path="/admin/circuit-box" element={<CircuitBox />} />
+              <Route path="/admin/circuit-box" element={<CircuitBox isAdmin={true} />} />
+              <Route path="/circuit-box" element={<CircuitBox isAdmin={false} />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
               <Route path="/admin/logs" element={<SystemLogsViewer />} />
+              <Route path="/superadmin" element={<SuperAdminDashboard />} />
               
               {/* ═══════════════════════════════════════════════════════════════════ */}
               {/* LEGAL */}

@@ -42,7 +42,7 @@ resource "google_eventarc_trigger" "storage_upload" {
   destination {
     cloud_run_service {
       service = var.service_name
-      path    = "/webhook/storage"
+      path    = "/v1/webhook/storage-event"
       region  = var.region
     }
   }

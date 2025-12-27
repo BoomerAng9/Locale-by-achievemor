@@ -2,10 +2,13 @@
  * AI Integration for Concierge (ACHEEVY)
  * Uses OpenRouter as primary with Gemini fallback
  * NO HARDCODING - All API keys from environment variables
+ * 
+ * KINGMODE-OPS: Universal LLM governance layer
  */
 
 import { ChatMessage } from '../../types';
 import type { ConciergeQuery, ConciergeResponse } from '../firestore/schema';
+import { getKingModeSettings, getKingModePrompt } from '../kingmode/KingModePrompts';
 
 // === API KEYS FROM ENVIRONMENT ===
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
@@ -118,10 +121,26 @@ export async function callConciergeAI(
 }
 
 /**
- * Call OpenRouter API
+ * Call OpenRouter API with KingMode governance
  */
 async function callOpenRouter(userQuery: string): Promise<string> {
-  console.log('[ACHEEVY] Calling OpenRouter...');
+  console.log('[ACHEEVY] Calling OpenRouter with KingMode...');
+  
+  // Get KingMode settings and inject governance
+  const kingModeSettings = getKingModeSettings();
+  let systemPrompt = CONCIERGE_SYSTEM_PROMPT;
+  
+  if (kingModeSettings.enabled) {
+    const kingModePrompt = getKingModePrompt(kingModeSettings.defaultMode, userQuery);
+    systemPrompt = `${kingModePrompt}\n\n---\n\n${CONCIERGE_SYSTEM_PROMPT}`;
+    
+    // Add custom overrides if any
+    if (kingModeSettings.customOverrides) {
+      systemPrompt += `\n\n---\n\nCUSTOM DIRECTIVES:\n${kingModeSettings.customOverrides}`;
+    }
+    
+    console.log('[ACHEEVY] KingMode enabled, mode:', kingModeSettings.defaultMode);
+  }
   
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
@@ -132,15 +151,16 @@ async function callOpenRouter(userQuery: string): Promise<string> {
       'X-Title': 'Locale by ACHIEVEMOR',
     },
     body: JSON.stringify({
-      model: 'deepseek/deepseek-chat', // Fast and free
+      model: 'deepseek/deepseek-chat', // Fast and cost-effective
       messages: [
-        { role: 'system', content: CONCIERGE_SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: userQuery }
       ],
       max_tokens: 500,
       temperature: 0.7,
     }),
   });
+
 
   if (!response.ok) {
     throw new Error(`OpenRouter API Error: ${response.status}`);

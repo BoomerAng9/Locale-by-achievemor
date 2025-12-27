@@ -1,21 +1,28 @@
 /**
- * ProfessionalCard - Clean, Customizable Profile Card
+ * ProfessionalCard - V.I.B.E. Score Profile Card
  * 
- * A modern, professional card design that users can customize.
- * NOT an RPG card - clean typography with Locale branding.
+ * Displays partner profiles with V.I.B.E. scores instead of hourly rates.
+ * Shows personality type, tier badge, and verification status.
  * 
- * Fields: Avatar, Display Name, Stage Badge, Skills, Rate, Verification
- * Design: Carbon-800 background, Locale-Blue accents, clean typography
+ * V.I.B.E. = Verification Intelligence Behavioral Evaluation
  */
 
 import React from 'react';
 import { Profile, ProgressionStage } from '../types';
+import { 
+  VIBEScore, 
+  getScoreColor, 
+  VIBE_TIERS, 
+  PERSONALITY_PROFILES,
+  PersonalityType 
+} from '../lib/assessment/vibeScore';
 
 interface ProfessionalCardProps {
   profile: Profile;
+  vibeScore?: VIBEScore;  // V.I.B.E. score data
   onClick?: () => void;
-  showRate?: boolean;
-  isPro?: boolean;  // Show gold overlay for Pro tier
+  showVibe?: boolean;     // Show V.I.B.E. score (default true)
+  isPro?: boolean;
   compact?: boolean;
 }
 
@@ -37,10 +44,28 @@ const STAGE_CONFIG: Record<ProgressionStage, { label: string; color: string; bg:
   },
 };
 
+// Mock V.I.B.E. scores for demo (would come from database in production)
+const generateMockVibe = (name: string): VIBEScore => {
+  const hash = name.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+  const score = 65 + (hash % 35); // 65-99 range
+  const types: PersonalityType[] = ['D', 'I', 'S', 'C', 'DI', 'IS', 'SC', 'CD'];
+  return {
+    total: score,
+    verification: 70 + (hash % 30),
+    intelligence: 60 + (hash % 40),
+    behavioral: 75 + (hash % 25),
+    evaluation: 65 + (hash % 35),
+    personalityType: types[hash % types.length],
+    tier: score >= 95 ? 'elite' : score >= 85 ? 'platinum' : score >= 70 ? 'gold' : score >= 50 ? 'silver' : 'bronze',
+    badges: [],
+  };
+};
+
 const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ 
   profile, 
+  vibeScore,
   onClick, 
-  showRate = true,
+  showVibe = true,
   isPro = false,
   compact = false,
 }) => {
@@ -48,6 +73,11 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
   const stageConfig = STAGE_CONFIG[stage];
   const skills = profile.skills?.slice(0, 4) || [];
   const isVerified = profile.verificationStatus === 'verified';
+  
+  // Use provided V.I.B.E. score or generate mock
+  const vibe = vibeScore || generateMockVibe(profile.displayName);
+  const tierConfig = VIBE_TIERS[vibe.tier];
+  const personality = PERSONALITY_PROFILES[vibe.personalityType];
 
   return (
     <div 
@@ -63,15 +93,6 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
       {/* Pro Tier Gold Overlay */}
       {isPro && (
         <div className="absolute inset-0 pointer-events-none z-10">
-          <div 
-            className="absolute top-0 right-0 w-32 h-32 opacity-20"
-            style={{
-              backgroundImage: 'url(/assets/gold-overlay.png)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              mixBlendMode: 'overlay',
-            }}
-          />
           <div className="absolute top-3 right-3 px-2 py-1 bg-gradient-to-r from-yellow-600 to-amber-500 text-white text-[10px] font-bold rounded-full shadow-lg">
             PRO
           </div>
@@ -80,7 +101,7 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
 
       {/* Main Content */}
       <div className="relative z-0 flex flex-col h-full">
-        {/* Header: Avatar + Stage Badge + Rate */}
+        {/* Header: Avatar + V.I.B.E. Score */}
         <div className="flex items-start justify-between mb-4">
           {/* Avatar with Verification */}
           <div className="relative">
@@ -95,7 +116,7 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
               `}
             />
             {isVerified && (
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-locale-blue rounded-full flex items-center justify-center border-2 border-carbon-800">
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center border-2 border-carbon-800">
                 <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                 </svg>
@@ -103,20 +124,39 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
             )}
           </div>
 
-          {/* Right Side: Stage + Rate */}
+          {/* Right Side: V.I.B.E. Score + Stage */}
           <div className="flex flex-col items-end gap-2">
+            {/* V.I.B.E. Score Badge */}
+            {showVibe && (
+              <div 
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl border"
+                style={{ 
+                  borderColor: getScoreColor(vibe.total) + '50',
+                  backgroundColor: getScoreColor(vibe.total) + '15'
+                }}
+              >
+                <span 
+                  className="text-xl font-black" 
+                  style={{ color: getScoreColor(vibe.total) }}
+                >
+                  {vibe.total}
+                </span>
+                <div className="flex flex-col items-start">
+                  <span className="text-[10px] text-gray-400 uppercase tracking-wider leading-tight">V.I.B.E.</span>
+                  <span 
+                    className="text-[9px] font-medium leading-tight"
+                    style={{ color: tierConfig.color }}
+                  >
+                    {tierConfig.label.split(' ')[0]}
+                  </span>
+                </div>
+              </div>
+            )}
+            
             {/* Stage Badge */}
             <div className={`px-2.5 py-1 text-[10px] font-bold rounded-full border ${stageConfig.bg} ${stageConfig.color}`}>
               {stageConfig.label}
             </div>
-            
-            {/* Rate */}
-            {showRate && profile.hourlyRate && (
-              <div className="text-right">
-                <span className="text-xl font-bold text-white">${profile.hourlyRate}</span>
-                <span className="text-xs text-gray-500">/hr</span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -129,6 +169,16 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
         <p className="text-sm text-locale-blue font-medium mb-2">
           {profile.title}
         </p>
+
+        {/* Personality Type (new) */}
+        {showVibe && (
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-6 h-6 rounded-md bg-green-500/20 text-green-400 text-xs font-bold flex items-center justify-center">
+              {vibe.personalityType}
+            </span>
+            <span className="text-xs text-gray-400">{personality.name}</span>
+          </div>
+        )}
 
         {/* Bio (optional for compact) */}
         {!compact && profile.bio && (
