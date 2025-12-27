@@ -376,7 +376,7 @@ const App = () => {
   return (
     <HashRouter>
       <ScrollToTop />
-      <div className="min-h-screen bg-carbon-900 text-gray-200 font-sans selection:bg-locale-blue selection:text-white">
+      <div className="flex h-screen bg-carbon-900 text-gray-200 font-sans selection:bg-locale-blue selection:text-white overflow-hidden">
         {/* Left Sidebar */}
         <LeftSidebar 
           isOpen={sidebarOpen} 
@@ -384,12 +384,12 @@ const App = () => {
           isAdmin={true}
         />
         
-        {/* Main Content Area - shifts based on sidebar */}
-        <div className={`transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'}`}>
+        {/* Main Content Area - flex-1 to fill remaining space */}
+        <div className="flex-1 flex flex-col overflow-hidden">
           {/* Top Navbar */}
           <Navbar locationState={location} requestLocation={requestLocation} />
           
-          <main className="flex-grow">
+          <main className="flex-1 overflow-y-auto">
             <Routes>
               {/* ═══════════════════════════════════════════════════════════════════ */}
               {/* PUBLIC ROUTES */}

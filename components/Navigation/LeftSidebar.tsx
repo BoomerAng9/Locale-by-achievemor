@@ -124,18 +124,42 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggle, isAdmin = t
 
   return (
     <>
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={onToggle}
-        />
-      )}
+      {/* Mobile Sidebar - Fixed overlay */}
+      <div className={`lg:hidden fixed inset-0 z-50 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onToggle} />
+        <aside className={`absolute left-0 top-0 h-full w-64 bg-carbon-900 border-r border-carbon-700 flex flex-col transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+          {/* Mobile Header */}
+          <div className="h-16 flex items-center justify-between px-4 border-b border-carbon-700">
+            <Link to="/" onClick={onToggle}><LocaleLogo className="h-7" /></Link>
+            <button onClick={onToggle} className="p-2 text-gray-400 hover:text-white">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
+          {/* Mobile Nav Items */}
+          <nav className="flex-1 overflow-y-auto divide-y divide-carbon-700">
+            {allItems.map(item => (
+              <div key={item.id}>
+                <Link to={item.path} onClick={() => !item.children && onToggle()} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-carbon-800">
+                  <span className="w-8 h-8 rounded border border-carbon-700 bg-carbon-800 flex items-center justify-center text-xs font-mono font-bold">{item.initials}</span>
+                  <span className="font-medium">{item.label}</span>
+                </Link>
+                {item.children && (
+                  <div className="bg-carbon-950 border-t border-carbon-800">
+                    {item.children.map(child => (
+                      <Link key={child.path} to={child.path} onClick={onToggle} className="block px-12 py-2 text-xs text-gray-500 hover:text-white hover:bg-carbon-800">{child.label}</Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </nav>
+        </aside>
+      </div>
 
-      {/* Sidebar */}
+      {/* Desktop Sidebar - Static, participates in flex layout */}
       <aside 
-        className={`fixed left-0 top-0 h-full bg-carbon-900 border-r border-carbon-700 z-50 transition-all duration-300 flex flex-col ${
-          isOpen ? 'w-64' : 'w-0 lg:w-16'
+        className={`hidden lg:flex flex-col bg-carbon-900 border-r border-carbon-700 transition-all duration-300 flex-shrink-0 ${
+          isOpen ? 'w-64' : 'w-20'
         } overflow-hidden`}
       >
         {/* Header */}
