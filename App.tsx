@@ -371,7 +371,7 @@ const Privacy = () => (
 // --- MAIN APP COMPONENT ---
 const App = () => {
   const { location, requestLocation } = useGeoLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <HashRouter>
