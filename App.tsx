@@ -94,7 +94,7 @@ const Navbar = ({ locationState, requestLocation }: any) => (
           <div className="h-6 w-px bg-carbon-700 hidden md:block"></div>
           
           <Link to="/dashboard" className="text-sm font-medium text-gray-400 hover:text-white hidden md:block">Log In</Link>
-          <Link to="/register" className="bg-white hover:bg-gray-100 text-carbon-900 text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+          <Link to="/register" className="bg-locale-blue hover:bg-locale-darkBlue text-white text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-locale-blue/20 hover:shadow-locale-blue/40">
             Join Now
           </Link>
       </div>
@@ -144,7 +144,7 @@ const Home = () => {
 
             {/* Main Locator Search - WIDE like OpenAI */}
             <div className="w-full max-w-5xl mx-auto">
-              <div className="bg-carbon-800/80 backdrop-blur-xl p-2 rounded-2xl border border-carbon-600/50 shadow-2xl transition-all hover:border-carbon-500 hover:shadow-[0_0_40px_-10px_rgba(59,130,246,0.3)]">
+              <div className="bg-carbon-800/80 backdrop-blur-xl p-4 rounded-2xl border border-carbon-600/50 shadow-2xl transition-all hover:border-carbon-500 hover:shadow-[0_0_40px_-10px_rgba(59,130,246,0.3)]">
                 <div className="flex items-center gap-2">
                   {/* Search Icon */}
                   <div className="pl-4">

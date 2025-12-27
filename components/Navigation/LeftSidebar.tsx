@@ -10,68 +10,68 @@ import { LocaleLogo } from '../Brand/Logo';
 interface NavItem {
   id: string;
   label: string;
-  icon: string;
+  initials: string;
   path: string;
-  children?: { label: string; path: string; icon?: string }[];
+  children?: { label: string; path: string }[];
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'home', label: 'Home', icon: '🏠', path: '/' },
+  { id: 'home', label: 'Home', initials: 'HM', path: '/' },
   { 
     id: 'explore', 
     label: 'Explore', 
-    icon: '🔍', 
+    initials: 'EX',
     path: '/explore',
     children: [
-      { label: 'All Categories', path: '/categories', icon: '📂' },
-      { label: 'Garage to Global', path: '/garage-to-global', icon: '🚀' },
+      { label: 'All Categories', path: '/categories' },
+      { label: 'Garage to Global', path: '/garage-to-global' },
     ]
   },
   { 
     id: 'tools', 
     label: 'Tools', 
-    icon: '🛠️', 
+    initials: 'TL',
     path: '/tools',
     children: [
-      { label: 'Localator', path: '/localator', icon: '📍' },
-      { label: 'Token Estimator', path: '/estimator', icon: '🔢' },
-      { label: 'Video Generator', path: '/video', icon: '🎬' },
-      { label: 'Voice Setup', path: '/voice', icon: '🎤' },
-      { label: 'AI Chat', path: '/chat', icon: '💬' },
-      { label: 'BARS Composer', path: '/bars', icon: '🎵' },
-      { label: 'Pipeline', path: '/pipeline', icon: '⚡' },
-      { label: 'Playground', path: '/playground', icon: '🧪' },
+      { label: 'Localator', path: '/localator' },
+      { label: 'Token Estimator', path: '/estimator' },
+      { label: 'Video Generator', path: '/video' },
+      { label: 'Voice Setup', path: '/voice' },
+      { label: 'AI Chat', path: '/chat' },
+      { label: 'BARS Composer', path: '/bars' },
+      { label: 'Pipeline', path: '/pipeline' },
+      { label: 'Playground', path: '/playground' },
     ]
   },
   { 
     id: 'partners', 
     label: 'For Partners', 
-    icon: '🤝', 
+    initials: 'PT',
     path: '/register',
     children: [
-      { label: 'Partner Program', path: '/partner-program', icon: '📋' },
-      { label: 'Register', path: '/register', icon: '✍️' },
+      { label: 'Partner Program', path: '/partner-program' },
+      { label: 'Register', path: '/register' },
     ]
   },
   { 
     id: 'pro', 
     label: 'Pro Access', 
-    icon: '⭐', 
+    initials: 'PR',
     path: '/pricing',
     children: [
-      { label: 'Pricing', path: '/pricing', icon: '💰' },
-      { label: 'Dashboard', path: '/dashboard', icon: '📊' },
-      { label: 'Profile', path: '/profile/customize', icon: '👤' },
+      { label: 'Pricing', path: '/pricing' },
+      { label: 'Dashboard', path: '/dashboard' },
+      { label: 'Profile', path: '/profile/customize' },
     ]
   },
   { 
     id: 'about', 
     label: 'About', 
-    icon: 'ℹ️', 
+    initials: 'AB',
     path: '/about',
     children: [
-      { label: 'Overview', path: '/about', icon: '📄' },
-      { label: 'AI Technology', path: '/about/ai-intro', icon: '🤖' },
+      { label: 'Overview', path: '/about' },
+      { label: 'AI Technology', path: '/about/ai-intro' },
     ]
   },
 ];
@@ -80,13 +80,13 @@ const ADMIN_ITEMS: NavItem[] = [
   { 
     id: 'admin', 
     label: 'Admin', 
-    icon: '⚙️', 
+    initials: 'AD',
     path: '/admin',
     children: [
-      { label: 'Control Panel', path: '/admin/control-panel', icon: '🎛️' },
-      { label: 'Circuit Box', path: '/admin/circuit-box', icon: '🔌' },
-      { label: 'System Logs', path: '/admin/logs', icon: '📜' },
-      { label: 'Settings', path: '/admin/settings', icon: '⚙️' },
+      { label: 'Control Panel', path: '/admin/control-panel' },
+      { label: 'Circuit Box', path: '/admin/circuit-box' },
+      { label: 'System Logs', path: '/admin/logs' },
+      { label: 'Settings', path: '/admin/settings' },
     ]
   },
 ];
@@ -166,21 +166,21 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggle, isAdmin = t
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-2">
-          <div className="space-y-1">
+        <nav className="flex-1 overflow-y-auto py-0 px-0">
+          <div className="divide-y divide-carbon-700 border-y border-carbon-700">
             {allItems.map((item) => (
-              <div key={item.id}>
+              <div key={item.id} className="bg-carbon-900">
                 {/* Main Item */}
                 <div className="flex items-center">
                   <Link
                     to={item.path}
-                    className={`flex-1 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                    className={`flex-1 flex items-center gap-3 px-4 py-3 transition-all text-sm ${
                       isParentActive(item)
                         ? 'bg-locale-blue/10 text-white border-l-2 border-locale-blue'
                         : 'text-gray-400 hover:text-white hover:bg-carbon-800'
                     }`}
                   >
-                    <span className="text-base flex-shrink-0">{item.icon}</span>
+                    <span className="w-8 h-8 rounded border border-carbon-700 bg-carbon-800 flex items-center justify-center text-xs font-mono font-bold text-gray-400">{item.initials}</span>
                     {isOpen && (
                       <span className="font-medium truncate">{item.label}</span>
                     )}
@@ -208,18 +208,18 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggle, isAdmin = t
 
                 {/* Children (Subpages) */}
                 {isOpen && item.children && expandedItems.includes(item.id) && (
-                  <div className="ml-4 mt-1 space-y-0.5 border-l border-carbon-700 pl-3">
+                  <div className="bg-carbon-950 border-t border-carbon-800">
                     {item.children.map((child) => (
                       <Link
                         key={child.path}
                         to={child.path}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all ${
+                        className={`flex items-center gap-2 px-6 py-2.5 text-xs transition-all border-b border-carbon-800 last:border-0 ${
                           location.pathname === child.path
-                            ? 'text-locale-blue bg-locale-blue/5 font-medium'
+                            ? 'text-locale-blue bg-locale-blue/5 font-medium border-l-2 border-l-locale-blue'
                             : 'text-gray-500 hover:text-white hover:bg-carbon-800'
                         }`}
                       >
-                        {child.icon && <span className="text-sm">{child.icon}</span>}
+                        <span className="w-1.5 h-1.5 rounded-full bg-carbon-600"></span>
                         <span>{child.label}</span>
                       </Link>
                     ))}
