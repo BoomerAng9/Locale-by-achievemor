@@ -12,19 +12,27 @@ const OPENROUTER_API_KEY = (import.meta as any).env?.VITE_OPENROUTER_API_KEY;
 const SITE_URL = 'https://locale.achievemor.io'; // For OpenRouter headers
 const SITE_NAME = 'Locale by ACHIEVEMOR';
 
-if (!OPENROUTER_API_KEY) {
-    console.error("[OpenRouter] Missing API Key. Check .env file.");
-}
+// Lazy initialization to prevent crash when API key is missing
+let client: OpenAI | null = null;
 
-const client = new OpenAI({
-    baseURL: "https://openrouter.ai/api/v1",
-    apiKey: OPENROUTER_API_KEY,
-    dangerouslyAllowBrowser: true, // Allow client-side calls for demo (secure proxy recommended for prod)
-    defaultHeaders: {
-        "HTTP-Referer": SITE_URL,
-        "X-Title": SITE_NAME,
-    },
-});
+function getClient(): OpenAI | null {
+    if (!OPENROUTER_API_KEY) {
+        console.warn("[OpenRouter] Missing API Key. AI features will be limited.");
+        return null;
+    }
+    if (!client) {
+        client = new OpenAI({
+            baseURL: "https://openrouter.ai/api/v1",
+            apiKey: OPENROUTER_API_KEY,
+            dangerouslyAllowBrowser: true, // Allow client-side calls for demo (secure proxy recommended for prod)
+            defaultHeaders: {
+                "HTTP-Referer": SITE_URL,
+                "X-Title": SITE_NAME,
+            },
+        });
+    }
+    return client;
+}
 
 export type ModelTier = 'free' | 'premier';
 
@@ -54,7 +62,8 @@ export async function generateWithOpenRouter(
     messages: any[], 
     options: CompletionOptions
 ): Promise<string> {
-    if (!OPENROUTER_API_KEY) return "Simulation: OpenRouter API Key Missing.";
+    const openRouterClient = getClient();
+    if (!openRouterClient) return "Simulation: OpenRouter API Key Missing.";
 
     // Select Model
     let model = '';
@@ -67,7 +76,7 @@ export async function generateWithOpenRouter(
     console.log(`[OpenRouter] Routing to ${model} (Tier: ${options.tier})`);
 
     try {
-        const completion = await client.chat.completions.create({
+        const completion = await openRouterClient.chat.completions.create({
             model: model,
             messages: messages,
             temperature: options.temperature || 0.7,
