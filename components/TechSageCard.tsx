@@ -42,7 +42,7 @@ const TechSageCard: React.FC<TechSageCardProps> = ({ profile, size = 'medium', o
       </div>
 
       {/* Main Image Area */}
-      <div className="relative h-64 w-full bg-gradient-to-b from-gray-900 to-black overflow-hidden flex items-center justify-center">
+      <div className="relative h-64 w-full bg-linear-to-b from-gray-900 to-black overflow-hidden flex items-center justify-center">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
         <img 
           src={profile.avatarUrl} 

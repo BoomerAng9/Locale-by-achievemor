@@ -64,7 +64,7 @@ const DashboardPage: React.FC = () => {
       
       {/* Gold Overlay for Global Tier Users */}
       {isGoldTier && (
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-yellow-600 via-yellow-300 to-yellow-600 z-50 shadow-[0_0_20px_rgba(212,175,55,0.4)]"></div>
+          <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-yellow-600 via-yellow-300 to-yellow-600 z-50 shadow-[0_0_20px_rgba(212,175,55,0.4)]"></div>
       )}
 
       {/* Dashboard Hero */}

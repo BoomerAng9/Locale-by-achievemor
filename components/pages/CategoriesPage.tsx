@@ -67,7 +67,7 @@ const CategoriesPage: React.FC = () => {
               </div>
 
               {/* CTA */}
-              <section className="bg-gradient-to-r from-carbon-800 to-carbon-800/50 rounded-md p-8 border border-locale-blue/30 text-center mt-6 flex-1 flex flex-col justify-center">
+              <section className="bg-linear-to-r from-carbon-800 to-carbon-800/50 rounded-md p-8 border border-locale-blue/30 text-center mt-6 flex-1 flex flex-col justify-center">
                 <h2 className="text-xl font-bold text-white mb-2">Ready to Get Started?</h2>
                 <p className="text-sm text-gray-400 mb-6">Browse experts or post a project to get matched.</p>
                 <div className="flex gap-3 justify-center">

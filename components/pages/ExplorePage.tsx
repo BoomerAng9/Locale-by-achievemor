@@ -313,7 +313,7 @@ const ExplorePage: React.FC = () => {
             {/* AI-Powered Search Bar */}
         <div className="mb-8">
           <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 via-blue-500 to-purple-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+            <div className="absolute -inset-0.5 bg-linear-to-r from-emerald-500 via-blue-500 to-purple-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
             <div className="relative flex items-center gap-3 bg-carbon-800 border border-carbon-600 rounded-xl p-4 focus-within:border-locale-blue transition-all">
               <img src="/assets/ai-concierge.jpg" alt="AI Search" className="w-10 h-10 rounded-lg object-cover" />
               <div className="flex-1">
@@ -326,7 +326,7 @@ const ExplorePage: React.FC = () => {
                 />
                 <p className="text-xs text-gray-500 mt-1">Powered by ACHEEVY AI • Natural language search</p>
               </div>
-              <button className="px-6 py-3 bg-gradient-to-r from-locale-blue to-purple-600 hover:from-locale-darkBlue hover:to-purple-700 text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-locale-blue/20">
+              <button className="px-6 py-3 bg-linear-to-r from-locale-blue to-purple-600 hover:from-locale-darkBlue hover:to-purple-700 text-white font-bold rounded-lg transition-all shadow-lg hover:shadow-locale-blue/20">
                 Search
               </button>
             </div>
@@ -339,7 +339,7 @@ const ExplorePage: React.FC = () => {
           <div className="lg:col-span-3 space-y-6">
             
             {/* AI Quick Prompts */}
-            <div className="bg-gradient-to-br from-emerald-500/10 to-blue-500/10 p-4 rounded-xl border border-emerald-500/20">
+            <div className="bg-linear-to-br from-emerald-500/10 to-blue-500/10 p-4 rounded-xl border border-emerald-500/20">
               <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-3 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 AI Suggestions

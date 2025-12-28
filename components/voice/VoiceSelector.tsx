@@ -64,7 +64,7 @@ const VoiceSelector: React.FC<VoiceSelectorProps> = ({ onClose, onVoiceChange })
                     }`}
                 >
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                             <span className="text-lg">🎙️</span>
                         </div>
                         <div>

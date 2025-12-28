@@ -21,7 +21,7 @@ export const LocaleLogo: React.FC<LogoProps> = ({
       {useImage ? (
          <div className={`relative group ${isAvatar ? 'h-full aspect-square' : ''}`}>
             {!isAvatar && (
-               <div className="absolute -inset-1 bg-gradient-to-r from-locale-blue to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+               <div className="absolute -inset-1 bg-linear-to-r from-locale-blue to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
             )}
             <img 
               src="/assets/locale-logo.png" 

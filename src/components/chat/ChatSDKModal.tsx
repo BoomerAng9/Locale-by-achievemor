@@ -100,13 +100,13 @@ export const ChatSDKModal: React.FC = () => {
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="w-full max-w-2xl h-[80vh] bg-gradient-to-b from-carbon-800 to-carbon-900 rounded-3xl border border-carbon-700 shadow-2xl flex flex-col overflow-hidden"
+          className="w-full max-w-2xl h-[80vh] bg-linear-to-b from-carbon-800 to-carbon-900 rounded-3xl border border-carbon-700 shadow-2xl flex flex-col overflow-hidden"
         >
           {/* Header */}
           <div className="p-6 border-b border-carbon-700 bg-carbon-800/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-locale-blue to-purple-600 flex items-center justify-center shadow-lg shadow-locale-blue/20">
+                <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-locale-blue to-purple-600 flex items-center justify-center shadow-lg shadow-locale-blue/20">
                   <img 
                     src="/assets/ai-concierge.jpg" 
                     alt="AI Concierge"
@@ -149,7 +149,7 @@ export const ChatSDKModal: React.FC = () => {
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-locale-blue/20 to-purple-600/20 flex items-center justify-center mb-6">
+                <div className="w-20 h-20 rounded-full bg-linear-to-br from-locale-blue/20 to-purple-600/20 flex items-center justify-center mb-6">
                   <svg className="w-10 h-10 text-locale-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>

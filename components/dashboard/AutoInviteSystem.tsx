@@ -274,10 +274,10 @@ const AutoInviteSystem: React.FC = () => {
   return (
     <div className="bg-carbon-900 border border-carbon-700 rounded-2xl overflow-hidden">
       {/* Header */}
-      <div className="p-6 border-b border-carbon-700 bg-gradient-to-r from-purple-900/30 to-blue-900/30">
+      <div className="p-6 border-b border-carbon-700 bg-linear-to-r from-purple-900/30 to-blue-900/30">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-2xl shadow-lg shadow-purple-500/20">
+            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-purple-500 to-blue-500 flex items-center justify-center text-2xl shadow-lg shadow-purple-500/20">
               🚀
             </div>
             <div>
@@ -404,7 +404,7 @@ const AutoInviteSystem: React.FC = () => {
               </div>
               <div className="h-2 bg-carbon-800 rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-purple-500 to-blue-500"
+                  className="h-full bg-linear-to-r from-purple-500 to-blue-500"
                   initial={{ width: 0 }}
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: 0.3 }}
@@ -421,7 +421,7 @@ const AutoInviteSystem: React.FC = () => {
               w-full py-3 rounded-xl font-bold text-sm transition-all mt-4
               ${step !== 'idle'
                 ? 'bg-carbon-800 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg shadow-purple-500/20'}
+                : 'bg-linear-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg shadow-purple-500/20'}
             `}
           >
             {step === 'idle' ? `Launch Campaign (${filteredLeads.filter(l => l.inviteStatus === 'pending').length} leads)` : 'Campaign Running...'}

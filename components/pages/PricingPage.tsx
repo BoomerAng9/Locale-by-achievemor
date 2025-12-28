@@ -44,9 +44,9 @@ const PricingPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-carbon-900 pb-32">
       {/* Hero */}
-      <div className="relative pt-24 pb-12 px-6 text-center border-b border-carbon-800 bg-gradient-to-b from-carbon-900 via-carbon-800/50 to-carbon-900">
+      <div className="relative pt-24 pb-12 px-6 text-center border-b border-carbon-800 bg-linear-to-b from-carbon-900 via-carbon-800/50 to-carbon-900">
         <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight">
-          Invest in Your <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-locale-blue to-purple-500">Infrastructure</span>
+          Invest in Your <br/><span className="text-transparent bg-clip-text bg-linear-to-r from-locale-blue to-purple-500">Infrastructure</span>
         </h1>
         <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-10">
            Whether you are hiring or building, we have the tools you need.

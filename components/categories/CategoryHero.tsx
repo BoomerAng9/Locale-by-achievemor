@@ -23,7 +23,7 @@ export const CategoryHero: React.FC<CategoryHeroProps> = ({
   };
 
   return (
-    <div className="bg-gradient-to-b from-carbon-900 to-carbon-800 py-12 px-6 border-b border-carbon-700">
+    <div className="bg-linear-to-b from-carbon-900 to-carbon-800 py-12 px-6 border-b border-carbon-700">
       <div className="max-w-4xl mx-auto text-center">
         <h1 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">
           Find Your Perfect Specialist

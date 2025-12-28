@@ -391,7 +391,7 @@ export const TaskWorkspace: React.FC = () => {
 
       {/* Header */}
       <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b border-white/10 bg-slate-900/95 backdrop-blur-md">
-        <div className="flex items-center gap-3 text-xl font-bold bg-gradient-to-br from-cyan-400 to-purple-600 bg-clip-text text-transparent">
+        <div className="flex items-center gap-3 text-xl font-bold bg-linear-to-br from-cyan-400 to-purple-600 bg-clip-text text-transparent">
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
             <circle cx="16" cy="16" r="14" stroke="url(#grad1)" strokeWidth="2"/>
             <circle cx="16" cy="16" r="8" fill="url(#grad1)"/>
@@ -448,7 +448,7 @@ export const TaskWorkspace: React.FC = () => {
                 </div>
                 <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10">
                   <div 
-                    className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-purple-600 transition-all duration-300"
+                    className="h-full rounded-full bg-linear-to-r from-cyan-400 to-purple-600 transition-all duration-300"
                     style={{ width: `${task.progress}%` }} 
                   />
                 </div>
@@ -518,7 +518,7 @@ export const TaskWorkspace: React.FC = () => {
           )}
 
           {/* Input Area */}
-          <div className="fixed bottom-0 left-[300px] right-[350px] p-5 bg-gradient-to-t from-slate-900/95 via-slate-900/95 to-transparent backdrop-blur-md">
+          <div className="fixed bottom-0 left-[300px] right-[350px] p-5 bg-linear-to-t from-slate-900/95 via-slate-900/95 to-transparent backdrop-blur-md">
             <form onSubmit={handleSubmit}>
               <input
                 type="text"

@@ -109,7 +109,7 @@ const AIChatWidget: React.FC = () => {
              onClick={() => setIsOpen(true)}
              className="w-16 h-16 rounded-full bg-black border-2 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.5)] flex items-center justify-center hover:scale-110 transition-transform group"
            >
-             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-600 to-blue-600 animate-pulse group-hover:animate-none">
+             <div className="w-10 h-10 rounded-full bg-linear-to-tr from-purple-600 to-blue-600 animate-pulse group-hover:animate-none">
                 <svg className="w-6 h-6 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" /></svg>
              </div>
            </motion.button>
@@ -124,7 +124,7 @@ const AIChatWidget: React.FC = () => {
             <div className="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/50">
               <div className="flex items-center gap-3">
                  {/* ACHEEVY AVATAR */}
-                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black border border-purple-500/50 flex items-center justify-center shadow-lg relative">
+                 <div className="w-10 h-10 rounded-full bg-linear-to-br from-gray-800 to-black border border-purple-500/50 flex items-center justify-center shadow-lg relative">
                     <div className="absolute inset-0 bg-purple-500/20 blur-md rounded-full"></div>
                     <span className="text-purple-400 text-[10px] font-black tracking-tighter relative z-10">CORE</span>
                  </div>
@@ -164,7 +164,7 @@ const AIChatWidget: React.FC = () => {
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {msg.role === 'assistant' && (
-                     <div className="w-6 h-6 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center mr-2 flex-shrink-0 mt-1">
+                     <div className="w-6 h-6 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center mr-2 shrink-0 mt-1">
                         <span className="text-[8px] text-purple-400">AI</span>
                      </div>
                   )}
@@ -182,7 +182,7 @@ const AIChatWidget: React.FC = () => {
               
               {isTyping && (
                   <div className="flex justify-start items-center">
-                     <div className="w-6 h-6 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center mr-2 flex-shrink-0">
+                     <div className="w-6 h-6 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center mr-2 shrink-0">
                         <span className="text-[8px] text-purple-400 animate-pulse">AI</span>
                      </div>
                      <div className="bg-gray-800/50 px-4 py-3 rounded-2xl rounded-bl-none border border-gray-700/50">

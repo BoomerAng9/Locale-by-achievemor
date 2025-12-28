@@ -118,7 +118,7 @@ const Home = () => {
             className="w-full h-full object-cover opacity-10 grayscale mix-blend-luminosity"
             alt="City Infrastructure" 
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-carbon-900 via-carbon-900/80 to-carbon-900"></div>
+          <div className="absolute inset-0 bg-linear-to-b from-carbon-900 via-carbon-900/80 to-carbon-900"></div>
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-locale-blue/10 via-transparent to-transparent opacity-50"></div>
         </div>
 
@@ -132,7 +132,7 @@ const Home = () => {
             
             <h1 className="text-6xl md:text-9xl font-black text-white mb-8 tracking-tighter leading-[0.9] drop-shadow-2xl">
               BUILD YOUR <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-white via-gray-200 to-gray-500">
                 INFRASTRUCTURE
               </span>
             </h1>
@@ -191,7 +191,7 @@ const Home = () => {
 
       {/* Categories Grid (Preview) */}
       <section className="py-32 bg-carbon-800 border-y border-carbon-700 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-locale-blue/50 to-transparent"></div>
+        <div className="absolute top-0 left-0 w-full h-px bg-linear-to-r from-transparent via-locale-blue/50 to-transparent"></div>
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex justify-between items-end mb-16">
             <div>
@@ -207,7 +207,7 @@ const Home = () => {
             {HOME_CATEGORIES.map((cat) => (
               <Link to={`/explore/${cat.id}`} key={cat.id} className="group relative h-96 rounded-3xl overflow-hidden border border-carbon-700 hover:border-locale-blue/50 transition-all shadow-xl">
                 <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0" />
-                <div className="absolute inset-0 bg-gradient-to-t from-carbon-900 via-carbon-900/40 to-transparent opacity-90 group-hover:opacity-80 transition-opacity"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-carbon-900 via-carbon-900/40 to-transparent opacity-90 group-hover:opacity-80 transition-opacity"></div>
                 <div className="absolute bottom-0 left-0 p-8">
                    <div className="w-12 h-1 bg-locale-blue mb-4 transform origin-left group-hover:scale-x-150 transition-transform"></div>
                    <h3 className="text-2xl font-bold text-white mb-2 leading-tight">{cat.name}</h3>
@@ -299,7 +299,7 @@ const CategoryLanding = () => {
     <div className="min-h-screen">
        <div className="relative h-[40vh] bg-carbon-900 overflow-hidden">
           <img src={category.imageUrl} alt={category.name} className="absolute inset-0 w-full h-full object-cover opacity-40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-carbon-900 via-carbon-900/50 to-transparent"></div>
+          <div className="absolute inset-0 bg-linear-to-t from-carbon-900 via-carbon-900/50 to-transparent"></div>
           <div className="absolute bottom-0 left-0 w-full p-8 max-w-7xl mx-auto pb-16">
              <Link to="/categories" className="text-sm text-locale-blue mb-4 hover:underline font-bold tracking-wide uppercase">← Back to All Categories</Link>
              <h1 className="text-5xl md:text-6xl font-black text-white mb-4 flex items-center gap-4">

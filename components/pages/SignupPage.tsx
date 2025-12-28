@@ -110,7 +110,7 @@ const SignupPage: React.FC = () => {
        {/* Background */}
        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute -top-[20%] -right-[20%] w-[50%] h-[50%] bg-locale-blue/5 rounded-full blur-[120px]"></div>
-          <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-carbon-700 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 w-full h-[1px] bg-linear-to-r from-transparent via-carbon-700 to-transparent"></div>
        </div>
 
        <div className="w-full max-w-md bg-carbon-800 border border-carbon-700 rounded-2xl p-8 shadow-2xl relative z-10">

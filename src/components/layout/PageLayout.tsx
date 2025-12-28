@@ -52,7 +52,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({
         <div className="relative overflow-hidden">
           {/* Background Effects */}
           {heroBackground === 'gradient' && (
-            <div className="absolute inset-0 bg-gradient-to-br from-carbon-900 via-carbon-800 to-carbon-900" />
+            <div className="absolute inset-0 bg-linear-to-br from-carbon-900 via-carbon-800 to-carbon-900" />
           )}
           {heroBackground === 'glow' && (
             <>
@@ -106,7 +106,7 @@ export const Section: React.FC<SectionProps> = ({
   const bgClasses = {
     default: '',
     alt: 'bg-carbon-800/50',
-    gradient: 'bg-gradient-to-b from-carbon-800/50 to-transparent',
+    gradient: 'bg-linear-to-b from-carbon-800/50 to-transparent',
   };
 
   return (

@@ -116,6 +116,8 @@ const ToggleSwitch = ({ isOn, onToggle, size = 'md' }: { isOn: boolean; onToggle
         <button 
             onClick={onToggle}
             className={`${sizes[size]} rounded-full transition-colors relative ${isOn ? 'bg-green-500' : 'bg-gray-700'}`}
+            title={isOn ? 'Turn off' : 'Turn on'}
+            aria-label={isOn ? 'Turn off' : 'Turn on'}
         >
             <div className={`${circleSizes[size]} bg-white rounded-full absolute top-1 transition-transform ${translations[size]}`} />
         </button>
@@ -261,7 +263,11 @@ const CircuitBox: React.FC<CircuitBoxProps> = ({ isAdmin = false }) => {
                         </div>
                         
                         {isAdmin && (
-                            <button className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-700 border-4 border-red-300/30 shadow-xl flex items-center justify-center hover:scale-95 active:scale-90 transition-transform">
+                            <button 
+                                className="w-16 h-16 rounded-full bg-linear-to-br from-red-500 to-red-700 border-4 border-red-300/30 shadow-xl flex items-center justify-center hover:scale-95 active:scale-90 transition-transform"
+                                title="Emergency shutdown"
+                                aria-label="Emergency shutdown"
+                            >
                                 <div className="w-10 h-10 rounded-full border-2 border-red-300/50" />
                             </button>
                         )}

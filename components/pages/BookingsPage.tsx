@@ -83,7 +83,7 @@ const BookingsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-carbon-900 pt-12 pb-24">
       {/* Header Background */}
-      <div className="fixed top-0 left-0 w-full h-[30vh] bg-gradient-to-b from-carbon-800 to-carbon-900 -z-10" />
+      <div className="fixed top-0 left-0 w-full h-[30vh] bg-linear-to-b from-carbon-800 to-carbon-900 -z-10" />
 
       <div className="max-w-6xl mx-auto px-6">
         <div className="mb-8">

@@ -277,7 +277,7 @@ const SmelterOSPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-carbon-900 text-white">
       {/* HEADER */}
-      <div className="border-b border-carbon-700 bg-gradient-to-r from-carbon-900 via-carbon-800 to-carbon-900">
+      <div className="border-b border-carbon-700 bg-linear-to-r from-carbon-900 via-carbon-800 to-carbon-900">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -383,7 +383,7 @@ const SmelterOSPage: React.FC = () => {
               {/* CENTER: Chat w/ACHEEVY */}
               <div className="col-span-6 flex flex-col h-[600px]">
                 {/* BEZEL HEADER */}
-                <div className="bg-gradient-to-r from-orange-600 to-orange-500 rounded-t-xl p-3 flex items-center justify-between">
+                <div className="bg-linear-to-r from-orange-600 to-orange-500 rounded-t-xl p-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">🤖</span>
                     <div>
@@ -553,7 +553,7 @@ const SmelterOSPage: React.FC = () => {
                 </div>
 
                 {/* V.I.B.E. Score */}
-                <div className="bg-gradient-to-br from-purple-900/40 to-carbon-800 rounded-xl border border-purple-500/30 p-4">
+                <div className="bg-linear-to-br from-purple-900/40 to-carbon-800 rounded-xl border border-purple-500/30 p-4">
                   <h3 className="text-xs font-bold text-purple-300 uppercase mb-3 flex items-center gap-2">
                     <span className="text-lg">✨</span> V.I.B.E. Score
                   </h3>
@@ -561,7 +561,7 @@ const SmelterOSPage: React.FC = () => {
                     0.92
                   </div>
                   <div className="h-2 bg-carbon-700 rounded-full overflow-hidden mb-2">
-                    <div className="h-full bg-gradient-to-r from-purple-500 to-blue-500 w-[92%]" />
+                    <div className="h-full bg-linear-to-r from-purple-500 to-blue-500 w-[92%]" />
                   </div>
                   <p className="text-[10px] text-gray-500 text-center">
                     Virtue-Indexed Bio-Energy
@@ -641,7 +641,7 @@ const SmelterOSPage: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
-              <div className="bg-gradient-to-r from-purple-500/10 to-carbon-800 rounded-xl border border-purple-500/30 p-6">
+              <div className="bg-linear-to-r from-purple-500/10 to-carbon-800 rounded-xl border border-purple-500/30 p-6">
                 <h2 className="text-xl font-bold mb-2">🔌 External Integrations</h2>
                 <p className="text-gray-400 text-sm">
                   Connect AI providers, media engines, and payment systems to the Circuit Box foundry.
@@ -782,7 +782,7 @@ const SmelterOSPage: React.FC = () => {
               exit={{ opacity: 0, y: -10 }}
               className="space-y-6"
             >
-              <div className="bg-gradient-to-r from-orange-500/10 to-carbon-800 rounded-xl border border-orange-500/30 p-6">
+              <div className="bg-linear-to-r from-orange-500/10 to-carbon-800 rounded-xl border border-orange-500/30 p-6">
                 <h2 className="text-2xl font-bold mb-2">🏛️ Boomer_Ang Executive Guild</h2>
                 <p className="text-gray-400">AI agents that power Circuit Box operations.</p>
               </div>
@@ -859,7 +859,7 @@ const SmelterOSPage: React.FC = () => {
               </div>
 
               {/* AVVA-NOON Plausibility Equation */}
-              <div className="bg-gradient-to-r from-carbon-800 to-orange-500/10 rounded-xl border border-orange-500/30 p-6 text-center">
+              <div className="bg-linear-to-r from-carbon-800 to-orange-500/10 rounded-xl border border-orange-500/30 p-6 text-center">
                 <p className="text-gray-500 text-xs uppercase mb-2">AVVA-NOON Plausibility Bound</p>
                 <p className="text-3xl font-mono font-bold text-orange-400">
                   (-10<sup>18</sup> ≤ x, y ≤ 10<sup>18</sup>)

@@ -189,7 +189,7 @@ const VideoGenerator: React.FC = () => {
             className={`w-full py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 ${
               isGenerating
                 ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-lg shadow-blue-500/25'
+                : 'bg-linear-to-r from-blue-600 to-cyan-600 text-white hover:from-blue-700 hover:to-cyan-700 shadow-lg shadow-blue-500/25'
             }`}
           >
             {isGenerating ? (
@@ -220,7 +220,7 @@ const VideoGenerator: React.FC = () => {
                   className="bg-carbon-800 rounded-xl border border-carbon-700 p-6 flex items-center gap-6"
                 >
                   {/* Thumbnail / Status */}
-                  <div className="w-32 h-20 rounded-lg bg-carbon-700 flex items-center justify-center overflow-hidden flex-shrink-0 relative">
+                  <div className="w-32 h-20 rounded-lg bg-carbon-700 flex items-center justify-center overflow-hidden shrink-0 relative">
                     {job.status === 'processing' || job.status === 'pending' ? (
                       <div className="flex flex-col items-center">
                         <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin" />

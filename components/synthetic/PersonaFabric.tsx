@@ -43,7 +43,7 @@ const PersonaFabric: React.FC<PersonaFabricProps> = ({ onSimulateChat }) => {
   return (
     <div className="bg-carbon-900 border border-carbon-700 rounded-3xl overflow-hidden shadow-2xl">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-900 to-carbon-900 px-8 py-6 border-b border-carbon-700 flex justify-between items-center">
+      <div className="bg-linear-to-r from-indigo-900 to-carbon-900 px-8 py-6 border-b border-carbon-700 flex justify-between items-center">
         <div>
            <div className="flex items-center gap-3 mb-2">
              <span className="text-3xl">🧩</span>

@@ -8,7 +8,7 @@ const LocalatorPage: React.FC = () => {
       {/* Hero Section */}
       <div className="relative bg-carbon-800 border-b border-carbon-700 overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-carbon-900 via-transparent to-carbon-900/50"></div>
+        <div className="absolute inset-0 bg-linear-to-r from-carbon-900 via-transparent to-carbon-900/50"></div>
         
         <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-locale-blue/10 border border-locale-blue/30 text-locale-blue text-xs font-bold tracking-widest mb-6 uppercase">

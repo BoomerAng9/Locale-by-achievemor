@@ -7,14 +7,14 @@ const PartnerProgramPage: React.FC = () => {
     <div className="min-h-screen bg-carbon-900 pb-32">
       {/* Hero */}
       <div className="relative pt-32 pb-20 px-6 text-center overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-purple-900/20 to-carbon-900 z-0"></div>
+        <div className="absolute top-0 left-0 w-full h-[500px] bg-linear-to-b from-purple-900/20 to-carbon-900 z-0"></div>
         
         <div className="relative z-10 max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-bold tracking-widest mb-6 uppercase">
             Locale Partner Program
           </div>
           <h1 className="text-5xl md:text-7xl font-black text-white mb-8 tracking-tight">
-            Build Solutions with <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-locale-blue">Superpowers</span>
+            Build Solutions with <br/><span className="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-locale-blue">Superpowers</span>
           </h1>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
              Join as a verified Partner. Access our exclusive AI Solution Suite to deliver work 10x faster, reduce overhead, and connect with high-value enterprise clients.

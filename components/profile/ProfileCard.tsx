@@ -36,13 +36,13 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
     const defaultImage = 'https://via.placeholder.com/300x350/1a1a2e/00ff88?text=NURD';
     
     return (
-        <div className="relative w-72 aspect-[3/4] rounded-2xl overflow-hidden bg-gradient-to-b from-[#0a1628] to-[#0d0d1a] border-4 border-[#00d4ff] shadow-[0_0_30px_rgba(0,212,255,0.3),inset_0_0_30px_rgba(0,212,255,0.1)]">
+        <div className="relative w-72 aspect-[3/4] rounded-2xl overflow-hidden bg-linear-to-b from-[#0a1628] to-[#0d0d1a] border-4 border-[#00d4ff] shadow-[0_0_30px_rgba(0,212,255,0.3),inset_0_0_30px_rgba(0,212,255,0.1)]">
             {/* Outer Frame Glow */}
             <div className="absolute inset-1 rounded-xl border border-[#00d4ff]/30" />
             
             {/* Name Tag */}
             <div className="absolute top-4 left-4 right-4 z-10">
-                <div className="bg-gradient-to-r from-[#ff6b35] to-[#d94a26] rounded-lg px-4 py-2 border-2 border-[#ff8c5a] shadow-lg">
+                <div className="bg-linear-to-r from-[#ff6b35] to-[#d94a26] rounded-lg px-4 py-2 border-2 border-[#ff8c5a] shadow-lg">
                     <span className="font-bold text-white text-lg tracking-wide">{profile.name || 'NAME'}</span>
                 </div>
             </div>
@@ -56,7 +56,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                         className="max-w-full max-h-full object-contain"
                     />
                     {/* Glow Ring Effect */}
-                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-8 bg-gradient-to-t from-[#ff6b00] to-transparent rounded-full blur-xl opacity-80" />
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-8 bg-linear-to-t from-[#ff6b00] to-transparent rounded-full blur-xl opacity-80" />
                 </div>
 
                 {/* Edit Image Button (if editable) */}
@@ -71,7 +71,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
             </div>
 
             {/* Stats Panel */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#0a1628] via-[#0a1628] to-transparent pt-16 pb-4 px-4">
+            <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-[#0a1628] via-[#0a1628] to-transparent pt-16 pb-4 px-4">
                 {/* Class & Level Row */}
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -126,7 +126,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({
                     </button>
                     <button 
                         onClick={onDraft}
-                        className="flex-1 bg-gradient-to-r from-[#ff6b35] to-[#d94a26] hover:from-[#ff8c5a] hover:to-[#e05a36] text-white text-xs font-bold py-2 rounded-lg transition-colors"
+                        className="flex-1 bg-linear-to-r from-[#ff6b35] to-[#d94a26] hover:from-[#ff8c5a] hover:to-[#e05a36] text-white text-xs font-bold py-2 rounded-lg transition-colors"
                     >
                         SWIPE TO DRAFT
                     </button>

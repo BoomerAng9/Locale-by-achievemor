@@ -53,7 +53,7 @@ const AiIntroPage: React.FC = () => {
                             onClick={() => setIsChestOpen(true)}
                             whileHover={{ scale: 1.05 }}
                         >   
-                            <div className="w-64 h-48 bg-gradient-to-b from-carbon-700 to-black rounded-xl border border-carbon-600 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex items-center justify-center relative overflow-hidden">
+                            <div className="w-64 h-48 bg-linear-to-b from-carbon-700 to-black rounded-xl border border-carbon-600 shadow-[0_0_50px_rgba(0,0,0,0.8)] flex items-center justify-center relative overflow-hidden">
                                 {/* Carbon Fiber Texture */}
                                 <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
                                 <div className="text-center z-10">
@@ -78,7 +78,7 @@ const AiIntroPage: React.FC = () => {
                                 </div>
                                 <div className="h-64 mb-6 rounded-2xl overflow-hidden border border-carbon-600 relative">
                                     <img src="/assets/branding/acheevy_helmet.png" alt="Acheevy" className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                                    <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent"></div>
                                     <div className="absolute bottom-4 left-4 text-white/90 font-mono text-sm max-w-[80%]">
                                         "I orchestrate the system. You set the vision."
                                     </div>
@@ -100,7 +100,7 @@ const AiIntroPage: React.FC = () => {
                                 </div>
                                 <div className="h-64 mb-6 rounded-2xl overflow-hidden border border-carbon-600 relative">
                                     <img src="/assets/branding/ang_device.jpg" alt="Boomer_Ang" className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                                    <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent"></div>
                                     <div className="absolute bottom-4 left-4 text-white/90 font-mono text-sm">
                                         Status: Deployed
                                     </div>
@@ -119,7 +119,7 @@ const AiIntroPage: React.FC = () => {
                 </div>
 
                 {/* MANUS POWER SECTION */}
-                <div className="max-w-4xl mx-auto bg-gradient-to-r from-carbon-900 to-black rounded-3xl border border-carbon-700 p-12 relative overflow-hidden">
+                <div className="max-w-4xl mx-auto bg-linear-to-r from-carbon-900 to-black rounded-3xl border border-carbon-700 p-12 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
                     
                     <h3 className="text-2xl font-bold mb-4 flex items-center gap-3">

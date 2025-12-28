@@ -319,7 +319,7 @@ const ConciergeBot: React.FC = () => {
                       setQuery(item.query);
                       inputRef.current?.focus();
                     }}
-                    className="flex-shrink-0 px-3 py-1 bg-carbon-700 hover:bg-carbon-600 text-gray-400 hover:text-white text-xs rounded-full transition-colors"
+                    className="shrink-0 px-3 py-1 bg-carbon-700 hover:bg-carbon-600 text-gray-400 hover:text-white text-xs rounded-full transition-colors"
                   >
                     {item.label}
                   </button>

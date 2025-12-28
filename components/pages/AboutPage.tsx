@@ -141,7 +141,7 @@ const AboutPage: React.FC = () => {
             </div>
 
             {/* CTA */}
-            <div className="bg-gradient-to-r from-locale-blue/10 to-purple-500/10 border-t border-carbon-700">
+            <div className="bg-linear-to-r from-locale-blue/10 to-purple-500/10 border-t border-carbon-700">
                 <div className="max-w-5xl mx-auto px-6 py-16 text-center">
                     <h2 className="text-2xl font-bold text-white mb-4">Ready to Get Started?</h2>
                     <p className="text-gray-400 mb-8">Join thousands of partners and clients building the future of work.</p>

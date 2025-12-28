@@ -121,7 +121,7 @@ const ProjectScopeCard: React.FC<ProjectScopeCardProps> = ({
             >
               <button
                 onClick={() => toggleTask(obligation.id)}
-                className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
+                className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                   completedTasks[obligation.id]
                     ? 'bg-green-500 border-green-500 text-black'
                     : 'border-gray-600 hover:border-green-400'

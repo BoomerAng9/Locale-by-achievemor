@@ -106,7 +106,7 @@ const FileSystem: React.FC = () => {
          <button 
             disabled={!selectedFile || processing}
             onClick={handleProcessWithGemma}
-            className="w-full py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-linear-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-purple-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
          >
             {processing ? 'Processing...' : 'Run Analysis'}
          </button>

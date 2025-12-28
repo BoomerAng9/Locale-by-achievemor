@@ -197,7 +197,7 @@ const ProfileCustomizer: React.FC = () => {
                </div>
                
                <div className="mt-8 bg-carbon-800 p-4 rounded-xl border border-carbon-700 text-xs text-gray-400 flex gap-3 items-start">
-                  <svg className="w-5 h-5 text-locale-blue flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <svg className="w-5 h-5 text-locale-blue shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   <p>
                     Pro Tip: Choosing a distinctive theme helps you stand out in the Expert Locator grid. Neon is popular for creative roles.
                   </p>

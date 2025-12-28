@@ -39,7 +39,7 @@ const VoiceFinanceDashboard: React.FC<VoiceFinanceDashboardProps> = ({
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               {/* Fish Icon - Pure CSS */}
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-locale-blue to-locale-darkBlue flex items-center justify-center text-white text-lg shadow-glow">
+              <div className="w-10 h-10 rounded-lg bg-linear-to-br from-locale-blue to-locale-darkBlue flex items-center justify-center text-white text-lg shadow-glow">
                 ⟨◊⟩
               </div>
               <div>

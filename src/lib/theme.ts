@@ -189,7 +189,7 @@ export const componentStyles = {
 // Hero section styles
 export const heroStyles = {
   container: 'relative min-h-[60vh] flex items-center justify-center overflow-hidden',
-  background: 'absolute inset-0 bg-gradient-to-br from-carbon-900 via-carbon-800 to-carbon-900',
+  background: 'absolute inset-0 bg-linear-to-br from-carbon-900 via-carbon-800 to-carbon-900',
   content: 'relative z-10 text-center max-w-4xl mx-auto px-4',
   title: 'text-5xl md:text-7xl font-black text-white tracking-tight mb-6',
   subtitle: 'text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-8',

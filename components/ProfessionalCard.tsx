@@ -95,7 +95,7 @@ const ProfessionalCard: React.FC<ProfessionalCardProps> = ({
       {/* Pro Tier Gold Overlay */}
       {isPro && (
         <div className="absolute inset-0 pointer-events-none z-10">
-          <div className="absolute top-3 right-3 px-2 py-1 bg-gradient-to-r from-yellow-600 to-amber-500 text-white text-[10px] font-bold rounded-full shadow-lg">
+          <div className="absolute top-3 right-3 px-2 py-1 bg-linear-to-r from-yellow-600 to-amber-500 text-white text-[10px] font-bold rounded-full shadow-lg">
             PRO
           </div>
         </div>

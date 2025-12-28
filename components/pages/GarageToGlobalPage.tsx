@@ -13,7 +13,7 @@ const GarageToGlobalPage: React.FC = () => {
             <section className="relative overflow-hidden">
                 {/* Background Effects */}
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5" />
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 via-carbon-900 to-purple-900/20" />
+                <div className="absolute inset-0 bg-linear-to-br from-blue-900/30 via-carbon-900 to-purple-900/20" />
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-locale-blue/10 rounded-full blur-[150px]" />
                 
                 <div className="relative max-w-6xl mx-auto px-6 py-24 md:py-32">
@@ -27,12 +27,12 @@ const GarageToGlobalPage: React.FC = () => {
                             
                             <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-[0.95]">
                                 From{' '}
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 to-gray-600">
+                                <span className="text-transparent bg-clip-text bg-linear-to-r from-gray-400 to-gray-600">
                                     Garage
                                 </span>
                                 <br />
                                 to{' '}
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-locale-blue via-purple-500 to-pink-500">
+                                <span className="text-transparent bg-clip-text bg-linear-to-r from-locale-blue via-purple-500 to-pink-500">
                                     Global
                                 </span>
                             </h1>
@@ -67,11 +67,11 @@ const GarageToGlobalPage: React.FC = () => {
                         <div className="relative hidden md:block">
                             <div className="relative">
                                 {/* Glow Effect */}
-                                <div className="absolute inset-0 bg-gradient-to-br from-locale-blue/20 via-purple-500/10 to-pink-500/20 rounded-3xl blur-3xl" />
+                                <div className="absolute inset-0 bg-linear-to-br from-locale-blue/20 via-purple-500/10 to-pink-500/20 rounded-3xl blur-3xl" />
                                 
                                 {/* Book Visual */}
-                                <div className="relative bg-gradient-to-br from-carbon-800 to-carbon-900 rounded-3xl border border-carbon-700 p-10 shadow-2xl">
-                                    <div className="aspect-[3/4] bg-gradient-to-br from-locale-blue via-purple-600 to-pink-600 rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-xl">
+                                <div className="relative bg-linear-to-br from-carbon-800 to-carbon-900 rounded-3xl border border-carbon-700 p-10 shadow-2xl">
+                                    <div className="aspect-[3/4] bg-linear-to-br from-locale-blue via-purple-600 to-pink-600 rounded-2xl flex flex-col items-center justify-center p-8 text-center shadow-xl">
                                         <div className="text-6xl mb-4">🚀</div>
                                         <h3 className="text-2xl font-black text-white mb-1">GARAGE</h3>
                                         <span className="text-white/60 text-sm">TO</span>
@@ -278,7 +278,7 @@ const GarageToGlobalPage: React.FC = () => {
             </section>
 
             {/* CTA */}
-            <section className="py-24 bg-gradient-to-br from-locale-blue/10 via-purple-500/5 to-pink-500/10">
+            <section className="py-24 bg-linear-to-br from-locale-blue/10 via-purple-500/5 to-pink-500/10">
                 <div className="max-w-4xl mx-auto px-6 text-center">
                     <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                         Ready to Go Global?

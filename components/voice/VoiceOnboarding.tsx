@@ -138,7 +138,7 @@ const VoiceOnboarding: React.FC<VoiceOnboardingProps> = ({ userName = 'there', o
                 {/* STEP: Intro */}
                 {step === 'intro' && (
                     <div className="p-8 text-center">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-locale-blue to-purple-600 flex items-center justify-center mx-auto mb-6">
+                        <div className="w-20 h-20 rounded-full bg-linear-to-br from-locale-blue to-purple-600 flex items-center justify-center mx-auto mb-6">
                             <span className="text-4xl">🎙️</span>
                         </div>
                         <h2 className="text-2xl font-bold text-white mb-4">Choose ACHEEVY's Voice</h2>

@@ -127,7 +127,7 @@ const VerificationPage: React.FC = () => {
 
       {/* Ballerine Partnership */}
       <div className="max-w-4xl mx-auto px-6 py-12">
-        <div className="bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-2xl p-8 border border-purple-500/30 text-center">
+        <div className="bg-linear-to-r from-purple-500/10 to-blue-500/10 rounded-2xl p-8 border border-purple-500/30 text-center">
           <h3 className="text-2xl font-bold text-white mb-4">Powered by Ballerine</h3>
           <p className="text-gray-400 mb-6">
             Our identity verification is powered by Ballerine, ensuring bank-grade security 

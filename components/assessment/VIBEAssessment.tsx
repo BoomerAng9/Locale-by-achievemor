@@ -126,7 +126,7 @@ const VIBEAssessment: React.FC<VIBEAssessmentProps> = ({ userId = 'demo', onComp
           </div>
           <div className="h-2 bg-carbon-800 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all duration-500"
+              className="h-full bg-linear-to-r from-green-500 to-green-400 transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>

@@ -158,19 +158,19 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggle, isAdmin = t
 
       {/* Desktop Sidebar - Static, participates in flex layout */}
       <aside 
-        className={`hidden lg:flex flex-col bg-carbon-900 border-r border-carbon-700 transition-all duration-300 flex-shrink-0 ${
+        className={`hidden lg:flex flex-col bg-carbon-900 border-r border-carbon-700 transition-all duration-300 shrink-0 ${
           isOpen ? 'w-64' : 'w-20'
         } overflow-hidden`}
       >
         {/* Header */}
-        <div className="h-20 flex items-center justify-between px-4 border-b border-carbon-700 flex-shrink-0">
+        <div className="h-20 flex items-center justify-between px-4 border-b border-carbon-700 shrink-0">
           {isOpen ? (
             <Link to="/" className="flex items-center group">
               <LocaleLogo className="h-8 transition-transform group-hover:scale-105" />
             </Link>
           ) : (
             <Link to="/" className="w-full flex justify-center">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-locale-blue to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-locale-blue to-purple-600 flex items-center justify-center text-white font-bold text-sm">
                 L
               </div>
             </Link>
@@ -256,9 +256,9 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggle, isAdmin = t
 
         {/* Footer - User Section */}
         {isOpen && (
-          <div className="p-3 border-t border-carbon-700 flex-shrink-0">
+          <div className="p-3 border-t border-carbon-700 shrink-0">
             <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-carbon-800">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-locale-blue to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+              <div className="w-8 h-8 rounded-full bg-linear-to-br from-locale-blue to-purple-600 flex items-center justify-center text-white text-xs font-bold">
                 U
               </div>
               <div className="flex-1 min-w-0">

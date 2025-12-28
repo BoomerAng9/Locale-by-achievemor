@@ -136,7 +136,7 @@ const AIChatPage: React.FC = () => {
               className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
             >
               {/* Avatar */}
-              <div className={`w-10 h-10 rounded-full flex-shrink-0 overflow-hidden ${
+              <div className={`w-10 h-10 rounded-full shrink-0 overflow-hidden ${
                 msg.role === 'assistant' 
                   ? 'border-2 border-green-400/50' 
                   : 'bg-locale-blue'
@@ -165,7 +165,7 @@ const AIChatPage: React.FC = () => {
           {/* Typing Indicator */}
           {isLoading && (
             <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-400/50 flex-shrink-0">
+              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-400/50 shrink-0">
                 <img src="/assets/acheevy-robot.jpg" alt="ACHEEVY" className="w-full h-full object-cover" />
               </div>
               <div className="bg-carbon-800 border border-carbon-700 rounded-2xl rounded-tl-none px-4 py-3">

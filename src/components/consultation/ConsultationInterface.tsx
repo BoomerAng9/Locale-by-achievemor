@@ -207,13 +207,13 @@ export const ConsultationInterface = () => {
              
              {activeIndustry.dashboard_layout === 'media_heavy' && (
                <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                 <div className="w-full bg-gradient-to-r from-transparent via-white to-transparent animate-pulse h-[2px]" />
-                 <div className="absolute w-full bg-gradient-to-r from-transparent via-white to-transparent animate-pulse delay-75 h-[2px] rotate-45" />
+                 <div className="w-full bg-linear-to-r from-transparent via-white to-transparent animate-pulse h-[2px]" />
+                 <div className="absolute w-full bg-linear-to-r from-transparent via-white to-transparent animate-pulse delay-75 h-[2px] rotate-45" />
                </div>
              )}
 
              {activeIndustry.dashboard_layout === 'data_heavy' && (
-               <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle,#ffffff_1px,transparent_1px)] bg-[length:20px_20px]" />
+               <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle,#ffffff_1px,transparent_1px)] bg-size-[20px_20px]" />
              )}
 
              {activeIndustry.dashboard_layout === 'generative' && (
@@ -232,7 +232,7 @@ export const ConsultationInterface = () => {
                className="bg-white/5 border border-white/10 p-8 rounded-2xl mb-8 shadow-2xl backdrop-blur-md"
              >
                <div className="flex items-start gap-4">
-                 <div className="p-3 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 shadow-lg">
+                 <div className="p-3 rounded-xl bg-linear-to-br from-slate-800 to-slate-900 border border-white/10 shadow-lg">
                    <Icons.Bot className="w-8 h-8 text-white" />
                  </div>
                  <div>
