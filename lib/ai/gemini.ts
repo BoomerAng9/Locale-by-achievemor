@@ -3,60 +3,52 @@
  * Upgraded for FUNCTION CALLING and TOOL USE
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, SchemaType, Tool, FunctionDeclaration } from '@google/generative-ai';
 import { updateBreakerState, dispatchTask } from '../agents/manager';
-
-// Schema types as string literals (compatible with all SDK versions)
-const SchemaType = {
-  OBJECT: 'OBJECT' as const,
-  STRING: 'STRING' as const,
-  BOOLEAN: 'BOOLEAN' as const,
-  NUMBER: 'NUMBER' as const,
-  ARRAY: 'ARRAY' as const,
-};
 
 const GEMINI_API_KEY = (import.meta as any).env?.VITE_GEMINI_API_KEY;
 
 // 1. Initialize SDK
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY || 'MISSING_KEY');
 
-// 2. Define Tools (The "Hands" of the AI)
-const tools = [
+// 2. Define Function Declarations for Tools
+const functionDeclarations: FunctionDeclaration[] = [
   {
-    functionDeclarations: [
-      {
-        name: "toggle_circuit_breaker",
-        description: "Turn a system circuit breaker ON or OFF. Use this when users ask to enable/disable external services.",
-        parameters: {
-          type: SchemaType.OBJECT,
-          properties: {
-            breaker_id: {
-              type: SchemaType.STRING,
-              description: "The ID of the breaker (e.g., 'stripe', 'github', 'voice_stt', 'cloud_run')"
-            },
-            state: {
-              type: SchemaType.BOOLEAN,
-              description: "True to enable (ON), False to disable (OFF)"
-            }
-          },
-          required: ["breaker_id", "state"]
+    name: "toggle_circuit_breaker",
+    description: "Turn a system circuit breaker ON or OFF. Use this when users ask to enable/disable external services.",
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {
+        breaker_id: {
+          type: SchemaType.STRING,
+          description: "The ID of the breaker (e.g., 'stripe', 'github', 'voice_stt', 'cloud_run')"
+        },
+        state: {
+          type: SchemaType.BOOLEAN,
+          description: "True to enable (ON), False to disable (OFF)"
         }
       },
-      {
-        name: "dispatch_agent_task",
-        description: "Create a task for a specialized agent (e.g. Finder, Coder) to execute asynchronously.",
-        parameters: {
-          type: SchemaType.OBJECT,
-          properties: {
-             agent_id: { type: SchemaType.STRING, description: "Target Agent ID (e.g. 'finder-ang', 'code-gen-agent')" },
-             task_type: { type: SchemaType.STRING, description: "Type of work (e.g. 'research', 'code_refactor')" },
-             payload_json: { type: SchemaType.STRING, description: "JSON string of task details" }
-          },
-          required: ["agent_id", "task_type", "payload_json"]
-        }
-      }
-    ]
+      required: ["breaker_id", "state"]
+    }
+  },
+  {
+    name: "dispatch_agent_task",
+    description: "Create a task for a specialized agent (e.g. Finder, Coder) to execute asynchronously.",
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {
+         agent_id: { type: SchemaType.STRING, description: "Target Agent ID (e.g. 'finder-ang', 'code-gen-agent')" },
+         task_type: { type: SchemaType.STRING, description: "Type of work (e.g. 'research', 'code_refactor')" },
+         payload_json: { type: SchemaType.STRING, description: "JSON string of task details" }
+      },
+      required: ["agent_id", "task_type", "payload_json"]
+    }
   }
+];
+
+// 3. Define Tools wrapper
+const tools: Tool[] = [
+  { functionDeclarations }
 ];
 
 // 3. System Instruction
@@ -97,7 +89,7 @@ export async function sendMessageToGLM(messages: any[], context?: string): Promi
         if (call && call.length > 0) {
             const fc = call[0];
             const fnName = fc.name;
-            const args = fc.args;
+            const args = fc.args as Record<string, unknown>;
             
             console.log(`[ACHEEVY] Executing Tool: ${fnName}`, args);
 

@@ -138,6 +138,8 @@ const AdminControlPanel: React.FC = () => {
                                                 value={value}
                                                 onChange={(e) => setApiSettings(prev => ({ ...prev, [key]: e.target.value }))}
                                                 className="flex-1 bg-black/50 border border-carbon-600 rounded-lg px-4 py-2 text-white font-mono text-sm"
+                                                title={`Enter ${key} API key`}
+                                                placeholder={`Enter ${key} API key`}
                                             />
                                             <button
                                                 onClick={() => toggleApiVisibility(key)}
@@ -154,7 +156,11 @@ const AdminControlPanel: React.FC = () => {
                         {/* Default Voice Setting */}
                         <div className="bg-carbon-800 border border-carbon-700 rounded-xl p-6">
                             <h2 className="text-xl font-bold text-white mb-4">Default ACHEEVY Voice</h2>
-                            <select className="w-full bg-black/50 border border-carbon-600 rounded-lg px-4 py-3 text-white">
+                            <select 
+                                className="w-full bg-black/50 border border-carbon-600 rounded-lg px-4 py-3 text-white"
+                                title="Select default voice"
+                                aria-label="Default ACHEEVY Voice"
+                            >
                                 <option value="drew">Drew (Confident & Clear)</option>
                                 <option value="rachel">Rachel (Warm & Professional)</option>
                                 <option value="bella">Bella (Soft & Expressive)</option>
@@ -184,12 +190,16 @@ const AdminControlPanel: React.FC = () => {
                                             value={themeSettings[key as keyof ThemeSettings] as string}
                                             onChange={(e) => setThemeSettings(prev => ({ ...prev, [key]: e.target.value }))}
                                             className="w-12 h-10 rounded cursor-pointer"
+                                            title={`Select ${label}`}
+                                            aria-label={label}
                                         />
                                         <input
                                             type="text"
                                             value={themeSettings[key as keyof ThemeSettings] as string}
                                             onChange={(e) => setThemeSettings(prev => ({ ...prev, [key]: e.target.value }))}
                                             className="flex-1 bg-black/50 border border-carbon-600 rounded-lg px-4 py-2 text-white font-mono text-sm"
+                                            title={`${label} hex value`}
+                                            placeholder="#000000"
                                         />
                                     </div>
                                 ))}
@@ -266,6 +276,8 @@ const AdminControlPanel: React.FC = () => {
                                         value={themeSettings.brandName}
                                         onChange={(e) => setThemeSettings(prev => ({ ...prev, brandName: e.target.value }))}
                                         className="w-full bg-black/50 border border-carbon-600 rounded-lg px-4 py-3 text-white"
+                                        title="Brand Name"
+                                        placeholder="Enter your brand name"
                                     />
                                 </div>
                                 <div>
@@ -285,6 +297,8 @@ const AdminControlPanel: React.FC = () => {
                                             type="file"
                                             accept="image/*"
                                             className="flex-1 bg-black/50 border border-carbon-600 rounded-lg px-4 py-3 text-white"
+                                            title="Upload favicon image"
+                                            aria-label="Favicon upload"
                                         />
                                     </div>
                                 </div>
@@ -297,6 +311,8 @@ const AdminControlPanel: React.FC = () => {
                                 type="text"
                                 placeholder="app.yourbrand.com"
                                 className="w-full bg-black/50 border border-carbon-600 rounded-lg px-4 py-3 text-white mb-4"
+                                title="Custom domain"
+                                aria-label="Custom domain"
                             />
                             <button className="bg-locale-blue hover:bg-locale-darkBlue text-white px-6 py-2 rounded-lg font-bold">
                                 Configure DNS
@@ -327,7 +343,9 @@ const AdminControlPanel: React.FC = () => {
                                             <input 
                                                 type="checkbox" 
                                                 defaultChecked={item.enabled}
-                                                className="sr-only peer" 
+                                                className="sr-only peer"
+                                                title={`Toggle ${item.label}`}
+                                                aria-label={`Enable or disable ${item.label}`}
                                             />
                                             <div className="w-11 h-6 bg-carbon-600 peer-focus:ring-2 peer-focus:ring-locale-blue rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-locale-blue"></div>
                                         </label>

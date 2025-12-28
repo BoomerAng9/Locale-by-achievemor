@@ -29,7 +29,7 @@ import { AGENT_REGISTRY } from './registry';
 
 // --- AGENT REGISTRATION ---
 
-export const registerAgentHeartbeat = async (agentId: string, status: AgentState['status'] = 'active') => {
+export const registerAgentHeartbeat = async (agentId: string, status: AgentState['status'] = 'idle') => {
   if (!db) return; // Guard for dev/mock mode
   
   const agentRef = doc(db, 'agent_registry', agentId);

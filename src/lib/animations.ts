@@ -4,13 +4,13 @@ import { Variants } from "framer-motion";
 // "Organic, Snappy, Professional"
 
 export const springTransition = {
-  type: "spring",
+  type: "spring" as const,
   stiffness: 400,
   damping: 30,
 };
 
 export const softSpringTransition = {
-  type: "spring",
+  type: "spring" as const,
   stiffness: 300,
   damping: 30,
 };

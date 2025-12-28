@@ -229,6 +229,12 @@ export interface ConciergeQuery {
     current_page: string;
     user_role?: 'client' | 'nurd' | 'partner' | 'admin';
     location?: string;
+    // AI Plug context
+    plugId?: string;
+    plug_id?: string;
+    capabilities?: string[];
+    category?: string;
+    [key: string]: string | string[] | undefined; // Allow additional properties
   };
 }
 
@@ -248,7 +254,7 @@ export interface ConciergeResponse {
 export interface AgentState {
   id: string; // e.g., 'finder-ang', 'acheevy-core'
   name: string;
-  role: 'orchestrator' | 'finder' | 'maker' | 'debugger' | 'visualizer';
+  role: 'orchestrator' | 'researcher' | 'executor' | 'critic' | 'analyst' | 'finder' | 'maker' | 'debugger' | 'visualizer';
   status: 'active' | 'idle' | 'busy' | 'offline' | 'error';
   current_task_id?: string;
   last_heartbeat: string; // ISO date

@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { AI_PLUG_REGISTRY, AIPlug } from '../../lib/ai-plugs/registry';
-import { aiPlugEngine, AIPlugExecution } from '../../lib/ai-plugs/engine';
+import { AI_PLUG_REGISTRY, AIPlug, AIPlugExecution } from '../../lib/ai-plugs/registry';
+import { aiPlugEngine } from '../../lib/ai-plugs/engine';
 
 interface AIPlugInterfaceProps {
   userId: string;

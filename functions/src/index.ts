@@ -356,14 +356,17 @@ export const triggerBusinessHarvest = functions.https.onCall(async (data, contex
     throw new functions.https.HttpsError("unauthenticated", "Must be authenticated to harvest data.");
   }
 
-  const { city, state, industry } = data;
+  const { city, state, coordinates } = data;
   if (!city || !state) {
     throw new functions.https.HttpsError("invalid-argument", "City and State are required.");
   }
+  
+  // Default coordinates if not provided (will use geocoding fallback)
+  const coords = coordinates || { lat: 0, lng: 0 };
 
   try {
-    const leads = await harvestCityBusinesses(city, state, industry || 'General Services');
-    return { success: true, count: leads.length, leads };
+    const count = await harvestCityBusinesses(city, state, coords);
+    return { success: true, count };
   } catch (error: any) {
     console.error("Harvest failed:", error);
     throw new functions.https.HttpsError("internal", error.message);

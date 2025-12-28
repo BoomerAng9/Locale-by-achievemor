@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { IndustryTemplate } from '../types';
+import { IndustryTemplate } from '../../types';
 
 interface ConsultationContextType {
   mode: 'standard' | 'consultation';

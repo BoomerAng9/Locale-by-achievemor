@@ -5,8 +5,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { AI_PLUG_REGISTRY, AIPlug, AIPlugExecution, IIAgentCapability } from '../../lib/ai-plugs/registry';
-import { aiPlugEngine } from '../../lib/ai-plugs/engine';
+import { AI_PLUG_REGISTRY, AIPlug, AIPlugExecution, IIAgentCapability } from '../lib/ai-plugs/registry';
+import { aiPlugEngine } from '../lib/ai-plugs/engine';
 
 interface AIPlugDashboardProps {
   userId: string;
@@ -97,7 +97,9 @@ export const AIPlugDashboard: React.FC<AIPlugDashboardProps> = ({
       'video-processing': '🎥',
       'deep-research': '🔬',
       'context-management': '📚',
-      'token-optimization': '⚡'
+      'token-optimization': '⚡',
+      'workflow-automation': '🔄',
+      'alternative-path-exploration': '🛤️'
     };
     return icons[capability] || '🤖';
   };
@@ -170,7 +172,7 @@ export const AIPlugDashboard: React.FC<AIPlugDashboardProps> = ({
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="text-lg font-semibold text-gray-900">{plug.name}</h3>
                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    plug.accessLevel === 'premium' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
+                    plug.accessLevel === 'ownership' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
                   }`}>
                     {plug.accessLevel}
                   </span>

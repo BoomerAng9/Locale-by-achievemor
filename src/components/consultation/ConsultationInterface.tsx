@@ -5,8 +5,11 @@ import * as Icons from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 import { clsx } from 'clsx';
 import { slideUpVariants, springTransition, popHover } from '../../lib/animations';
-import { sendToGemini, ChatMessage } from '../../../lib/ai/gemini';
+import { sendToGemini } from '../../../lib/ai/gemini';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+
+// Local ChatMessage type (not exported from gemini.ts)
+type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
 interface Message {
   id: string;

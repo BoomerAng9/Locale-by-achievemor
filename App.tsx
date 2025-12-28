@@ -298,7 +298,7 @@ const CategoryLanding = () => {
   return (
     <div className="min-h-screen">
        <div className="relative h-[40vh] bg-carbon-900 overflow-hidden">
-          <img src={category.imageUrl} className="absolute inset-0 w-full h-full object-cover opacity-40" />
+          <img src={category.imageUrl} alt={category.name} className="absolute inset-0 w-full h-full object-cover opacity-40" />
           <div className="absolute inset-0 bg-gradient-to-t from-carbon-900 via-carbon-900/50 to-transparent"></div>
           <div className="absolute bottom-0 left-0 w-full p-8 max-w-7xl mx-auto pb-16">
              <Link to="/categories" className="text-sm text-locale-blue mb-4 hover:underline font-bold tracking-wide uppercase">← Back to All Categories</Link>

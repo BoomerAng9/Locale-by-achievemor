@@ -183,7 +183,7 @@ function matchAgentToIntent(intents: string[], industry: string): BoomerAng | nu
     const capabilities = intentCapabilityMap[intent] || [];
     for (const cap of capabilities) {
       const agent = AGENT_REGISTRY.find(a => 
-        a.status === 'active' && 
+        a.status === 'idle' && 
         a.capabilities.some(c => c.toLowerCase().includes(cap.toLowerCase()))
       );
       if (agent) return agent;

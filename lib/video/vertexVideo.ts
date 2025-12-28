@@ -30,6 +30,9 @@ export interface GenerationResult {
 // Environment variables for the Cloud Run service
 const CLOUD_RUN_ENDPOINT = import.meta.env.VITE_GCP_VIDEO_SERVICE_URL || 'https://api.locale.achievemor.io/v1/video';
 
+// Mock jobs storage for simulation mode
+const MOCK_JOBS: Record<string, GenerationResult> = {};
+
 import { GlobalConfig } from '../config/GlobalConfig';
 
 /**

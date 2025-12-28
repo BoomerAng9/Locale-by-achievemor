@@ -295,6 +295,7 @@ export class AIPlugEngine {
       const response = await callConciergeAI({
         query: prompt,
         context: {
+          current_page: 'ai-plug-execution',
           plugId: plug.id,
           capabilities: plug.capabilities,
           category: plug.category
@@ -343,6 +344,7 @@ export class AIPlugEngine {
     const response = await callConciergeAI({
       query: prompt,
       context: {
+        current_page: 'ai-plug-execution',
         plugId: plug.id,
         capabilities: plug.capabilities
       }
@@ -433,7 +435,7 @@ export class AIPlugEngine {
 
     return AGENT_REGISTRY.find(agent =>
       agent.role === requiredRole &&
-      agent.status === 'active'
+      agent.status === 'idle'
     ) || null;
   }
 
@@ -453,6 +455,7 @@ export class AIPlugEngine {
       const response = await callConciergeAI({
         query: prompt,
         context: {
+          current_page: 'ai-plug-execution',
           plug_id: plug.id,
           plug_category: plug.category,
           execution_mode: 'direct'

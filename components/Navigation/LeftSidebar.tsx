@@ -131,7 +131,7 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({ isOpen, onToggle, isAdmin = t
           {/* Mobile Header */}
           <div className="h-16 flex items-center justify-between px-4 border-b border-carbon-700">
             <Link to="/" onClick={onToggle}><LocaleLogo className="h-7" /></Link>
-            <button onClick={onToggle} className="p-2 text-gray-400 hover:text-white">
+            <button onClick={onToggle} className="p-2 text-gray-400 hover:text-white" title="Close menu" aria-label="Close sidebar menu">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>

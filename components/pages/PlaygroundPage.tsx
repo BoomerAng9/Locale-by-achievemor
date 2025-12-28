@@ -7,9 +7,20 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { speakText, listenToSpeech, VOICE_LIBRARY, getSelectedVoice, setSelectedVoice } from '../../lib/voice';
 import { AGENT_REGISTRY, BoomerAng } from '../../lib/agents/registry';
-import { sendToGemini, ChatMessage } from '../../lib/ai/gemini';
+import { sendToGemini } from '../../lib/ai/gemini';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
+
+// Local ChatMessage type
+type ChatMessage = { role: 'user' | 'assistant'; content: string };
+
+// Available AI models
+const AVAILABLE_MODELS = [
+    { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash' },
+    { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+    { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet' },
+    { id: 'gpt-4o', name: 'GPT-4o' }
+];
 
 interface Message {
     id: string;
@@ -27,6 +38,7 @@ const PlaygroundPage: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const [attachments, setAttachments] = useState<File[]>([]);
+    const [selectedModel, setSelectedModel] = useState('gemini-1.5-flash');
     
     // Select default agent (ACHEEVY)
     const [selectedAgentId, setSelectedAgentId] = useState<string>(AGENT_REGISTRY[0].id);
@@ -335,6 +347,8 @@ const PlaygroundPage: React.FC = () => {
                             multiple
                             onChange={handleFileSelect}
                             className="hidden"
+                            title="Select files to attach"
+                            aria-label="File upload"
                         />
 
                         {/* Text Input */}

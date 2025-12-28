@@ -12,11 +12,19 @@ import React, { useState } from 'react';
 import { analyzeTokenCost } from '../../lib/ai/openrouter';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const TokenEstimator: React.FC = () => {
+interface TokenEstimatorProps {
+    userPlanTier?: string;
+    currentBalance?: number;
+}
+
+const TokenEstimator: React.FC<TokenEstimatorProps> = ({ 
+    userPlanTier = 'medium',
+    currentBalance = 150000 
+}) => {
     const [prompt, setPrompt] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [quote, setQuote] = useState<any>(null);
-    const [userBalance] = useState(150000); // Mock User Balance
+    const [userBalance] = useState(currentBalance); // Use prop or default
 
     const handleAnalyze = async () => {
         if (!prompt.trim()) return;

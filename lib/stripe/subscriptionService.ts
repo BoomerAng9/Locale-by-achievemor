@@ -41,8 +41,8 @@ export interface SubscriptionInfo extends SubscriptionData {
 // TIER HIERARCHY
 // ==========================================
 
-const CLIENT_TIER_ORDER: ClientTier[] = ['access', 'starter', 'pro', 'enterprise'];
-const PARTNER_TIER_ORDER: PartnerTier[] = ['garage', 'toolkit', 'community', 'global'];
+const CLIENT_TIER_ORDER: readonly ClientTier[] = ['access', 'starter', 'pro', 'enterprise'] as const;
+const PARTNER_TIER_ORDER: readonly PartnerTier[] = ['garage', 'toolkit', 'community', 'global'] as const;
 
 // ==========================================
 // CORE FUNCTIONS
@@ -83,7 +83,7 @@ export async function getUserSubscription(userId: string): Promise<SubscriptionI
     }
 
     const tierOrder = userType === 'partner' ? PARTNER_TIER_ORDER : CLIENT_TIER_ORDER;
-    const currentIndex = tierOrder.indexOf(subscription.subscription_tier as any);
+    const currentIndex = (tierOrder as readonly string[]).indexOf(subscription.subscription_tier);
     const upgradePath = tierOrder.slice(currentIndex + 1);
 
     return {
@@ -249,7 +249,7 @@ export function getUpgradeOptions(
   const tierOrder = userType === 'partner' ? PARTNER_TIER_ORDER : CLIENT_TIER_ORDER;
   const priceIds = userType === 'partner' ? STRIPE_PRICE_IDS.partner : STRIPE_PRICE_IDS.client;
   
-  const currentIndex = tierOrder.indexOf(currentTier as any);
+  const currentIndex = (tierOrder as readonly string[]).indexOf(currentTier);
   
   return tierOrder
     .slice(currentIndex + 1)
@@ -281,11 +281,14 @@ export function priceIdToTier(priceId: string): ClientTier | PartnerTier | null 
 // EXPORTS
 // ==========================================
 
-export {
+export type {
   ClientTier,
   PartnerTier,
   SubscriptionStatus,
   TierFeatures,
+};
+
+export {
   DEFAULT_TIER_FEATURES,
   STRIPE_PRICE_IDS,
 };

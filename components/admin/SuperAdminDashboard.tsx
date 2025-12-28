@@ -84,7 +84,7 @@ const SuperAdminDashboard: React.FC = () => {
                       <div key={tool.id} className="p-4 bg-black rounded-xl border border-zinc-800 flex justify-between items-center">
                         <div>
                           <div className="font-bold text-white text-sm">{tool.name}</div>
-                          <div className="text-xs text-gray-500">{tool.provider} • {tool.category}</div>
+                          <div className="text-xs text-gray-500">{tool.default_implementation} • {tool.category}</div>
                         </div>
                         <div className={`w-2 h-2 rounded-full ${tool.enabled ? 'bg-green-500' : 'bg-red-500'}`} />
                       </div>

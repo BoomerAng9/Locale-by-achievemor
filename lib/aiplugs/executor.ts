@@ -202,6 +202,3 @@ class AIPlugExecutor {
 
 // Singleton instance
 export const aiPlugExecutor = new AIPlugExecutor();
-
-// Export types
-export type { ExecutionTask };

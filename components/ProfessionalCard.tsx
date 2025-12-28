@@ -24,6 +24,8 @@ interface ProfessionalCardProps {
   showVibe?: boolean;     // Show V.I.B.E. score (default true)
   isPro?: boolean;
   compact?: boolean;
+  previewTheme?: string;  // Theme preview for customization
+  previewSkills?: string[]; // Skills preview for customization
 }
 
 const STAGE_CONFIG: Record<ProgressionStage, { label: string; color: string; bg: string }> = {

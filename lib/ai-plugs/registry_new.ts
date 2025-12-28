@@ -66,7 +66,9 @@ export type IIAgentCapability =
   | 'video-processing'
   | 'deep-research'
   | 'context-management'
-  | 'token-optimization';
+  | 'token-optimization'
+  | 'workflow-automation'
+  | 'alternative-path-exploration';
 
 export interface AutonomousTrigger {
   type: 'schedule' | 'event' | 'condition' | 'api-call';
