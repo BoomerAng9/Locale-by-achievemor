@@ -38,10 +38,10 @@ You have **two options** for deploying to Google Cloud Run:
 
 ### Workflows Created
 
-| Workflow               | Trigger               | Purpose                        |
-|------------------------|----------------------|--------------------------------|
-| `deploy-cloud-run.yml` | Push to `backend/**` | Builds & deploys Flask backend |
-| `terraform-infra.yml`  | Push to `terraform/**` | Provisions GCP infrastructure |
+| Workflow               | Trigger                | Purpose                          |
+|------------------------|------------------------|----------------------------------|
+| `deploy-cloud-run.yml` | Push to `backend/**`   | Builds & deploys Flask backend   |
+| `terraform-infra.yml`  | Push to `terraform/**` | Provisions GCP infrastructure    |
 
 ---
 
