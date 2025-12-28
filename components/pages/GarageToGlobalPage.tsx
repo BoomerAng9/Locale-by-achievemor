@@ -14,7 +14,7 @@ const GarageToGlobalPage: React.FC = () => {
                 {/* Background Effects */}
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5" />
                 <div className="absolute inset-0 bg-linear-to-br from-blue-900/30 via-carbon-900 to-purple-900/20" />
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-locale-blue/10 rounded-full blur-[150px]" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-200 bg-locale-blue/10 rounded-full blur-[150px]" />
                 
                 <div className="relative max-w-6xl mx-auto px-6 py-24 md:py-32">
                     <div className="grid md:grid-cols-2 gap-16 items-center">

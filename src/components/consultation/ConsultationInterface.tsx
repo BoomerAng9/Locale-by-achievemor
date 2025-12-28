@@ -139,7 +139,7 @@ export const ConsultationInterface = () => {
         initial="hidden"
         animate="visible"
         exit="exit"
-        className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-xl flex flex-col font-sans"
+        className="fixed inset-0 z-100 bg-slate-950/95 backdrop-blur-xl flex flex-col font-sans"
       >
         {/* Header */}
         <div className="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/50">
@@ -195,7 +195,7 @@ export const ConsultationInterface = () => {
                animate={{ scale: 1, opacity: 1 }}
                transition={{ duration: 1 }}
                className={clsx(
-                 "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[100px] opacity-10",
+                 "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 rounded-full blur-[100px] opacity-10",
                  `bg-${activeIndustry.theme_color}/20`
                )} 
              />
@@ -207,8 +207,8 @@ export const ConsultationInterface = () => {
              
              {activeIndustry.dashboard_layout === 'media_heavy' && (
                <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                 <div className="w-full bg-linear-to-r from-transparent via-white to-transparent animate-pulse h-[2px]" />
-                 <div className="absolute w-full bg-linear-to-r from-transparent via-white to-transparent animate-pulse delay-75 h-[2px] rotate-45" />
+                 <div className="w-full bg-linear-to-r from-transparent via-white to-transparent animate-pulse h-0.5" />
+                 <div className="absolute w-full bg-linear-to-r from-transparent via-white to-transparent animate-pulse delay-75 h-0.5 rotate-45" />
                </div>
              )}
 

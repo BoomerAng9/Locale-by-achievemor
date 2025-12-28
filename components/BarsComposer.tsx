@@ -80,7 +80,7 @@ const BarsComposer: React.FC = () => {
             <span className="text-xs text-gray-500">Notation of Resonance</span>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[400px]">
+          <div className="grid grid-cols-1 md:grid-cols-2 min-h-100">
             {/* Editor */}
             <div className="border-r border-carbon-700 flex flex-col">
               <div className="px-4 py-2 bg-carbon-900/50 border-b border-carbon-700">

@@ -57,7 +57,7 @@ const PageLayout: React.FC<PageLayoutProps> = ({
           {heroBackground === 'glow' && (
             <>
               <div className="absolute inset-0 bg-carbon-900" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-locale-blue/10 rounded-full blur-[100px]" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-[500px] bg-locale-blue/10 rounded-full blur-[100px]" />
             </>
           )}
           

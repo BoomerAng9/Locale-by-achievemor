@@ -117,7 +117,7 @@ export const JigsawMap: React.FC = () => {
   }
 
   return (
-    <div className="w-full h-full min-h-[600px] bg-slate-900 relative overflow-hidden p-8 flex flex-col items-center justify-center">
+    <div className="w-full h-full min-h-150 bg-slate-900 relative overflow-hidden p-8 flex flex-col items-center justify-center">
       <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
       </div>
@@ -130,7 +130,7 @@ export const JigsawMap: React.FC = () => {
         <p className="text-slate-400">Select a region to claim your digital territory.</p>
       </div>
 
-      <div className="relative w-[500px] h-[300px]">
+      <div className="relative w-125 h-75">
         {grid.map((cell, i) => (
           <motion.div
             key={`${cell.x}-${cell.y}`}

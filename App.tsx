@@ -119,7 +119,7 @@ const Home = () => {
             alt="City Infrastructure" 
           />
           <div className="absolute inset-0 bg-linear-to-b from-carbon-900 via-carbon-900/80 to-carbon-900"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-locale-blue/10 via-transparent to-transparent opacity-50"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--tw-gradient-stops))] from-locale-blue/10 via-transparent to-transparent opacity-50"></div>
         </div>
 
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center flex flex-col items-center pt-12">
@@ -261,7 +261,7 @@ const Home = () => {
             </div>
             <div className="relative pl-10">
                <div className="absolute inset-0 bg-locale-blue/20 rounded-[3rem] blur-[100px]"></div>
-               <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" alt="Team working" className="relative rounded-[2rem] border border-carbon-600 shadow-2xl z-10 w-full transform hover:scale-[1.02] transition-transform duration-700" />
+               <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" alt="Team working" className="relative rounded-4xl border border-carbon-600 shadow-2xl z-10 w-full transform hover:scale-[1.02] transition-transform duration-700" />
                
                {/* Floating Card */}
                <div className="absolute -bottom-10 -left-6 bg-carbon-800/95 backdrop-blur-xl p-6 rounded-2xl border border-carbon-600 shadow-2xl z-20 max-w-sm w-full animate-fade-in-up">

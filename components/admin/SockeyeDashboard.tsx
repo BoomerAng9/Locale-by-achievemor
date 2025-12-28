@@ -80,7 +80,7 @@ const SockeyeDashboard: React.FC = () => {
           </div>
 
           {/* Center Panel: Circuit Visualization */}
-          <div className="col-span-12 lg:col-span-6 relative flex items-center justify-center min-h-[400px]">
+          <div className="col-span-12 lg:col-span-6 relative flex items-center justify-center min-h-100">
              {/* Central Core */}
              <div className="relative w-64 h-64">
                 {/* Rings */}
@@ -99,7 +99,7 @@ const SockeyeDashboard: React.FC = () => {
                 </div>
 
                 {/* Connecting Lines (Decorations) */}
-                <svg className="absolute inset-[-50px] w-[calc(100%+100px)] h-[calc(100%+100px)] pointer-events-none">
+                <svg className="absolute -inset-12.5 w-[calc(100%+100px)] h-[calc(100%+100px)] pointer-events-none">
                    <path d="M50 180 L120 180 L150 150" fill="none" stroke="rgba(220,38,38,0.4)" strokeWidth="1" />
                    <path d="M350 180 L280 180 L250 150" fill="none" stroke="rgba(220,38,38,0.4)" strokeWidth="1" />
                    <circle cx="50" cy="180" r="3" fill="#dc2626" />

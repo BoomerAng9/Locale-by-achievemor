@@ -82,7 +82,7 @@ const VoiceFinanceDashboard: React.FC<VoiceFinanceDashboardProps> = ({
         {/* Waveform + Balance Card */}
         <div className="voice-card p-5">
           <div className="waveform-container mb-4">
-            <div className="flex items-end justify-center gap-[2px] h-16">
+            <div className="flex items-end justify-center gap-0.5 h-16">
               {waveformData.slice(0, 32).map((level, i) => (
                 <motion.div
                   key={i}

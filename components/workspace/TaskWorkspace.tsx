@@ -415,7 +415,7 @@ export const TaskWorkspace: React.FC = () => {
       </header>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-[300px_1fr_350px] h-[calc(100vh-73px)] gap-[1px] bg-white/5">
+      <div className="grid grid-cols-[300px_1fr_350px] h-[calc(100vh-73px)] gap-px bg-white/5">
         {/* Left Panel - Task Queue */}
         <div className="relative overflow-y-auto p-5 bg-slate-900/95">
           <div className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-gray-400">
@@ -462,7 +462,7 @@ export const TaskWorkspace: React.FC = () => {
         </div>
 
         {/* Center Panel - Thinking Stream */}
-        <div className="relative overflow-y-auto p-5 bg-slate-900/95 pb-[100px]" ref={thinkingRef}>
+        <div className="relative overflow-y-auto p-5 bg-slate-900/95 pb-25" ref={thinkingRef}>
           <div className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-widest text-gray-400">
             <span>🧠</span> Thinking Process
             {isProcessing && (
@@ -518,7 +518,7 @@ export const TaskWorkspace: React.FC = () => {
           )}
 
           {/* Input Area */}
-          <div className="fixed bottom-0 left-[300px] right-[350px] p-5 bg-linear-to-t from-slate-900/95 via-slate-900/95 to-transparent backdrop-blur-md">
+          <div className="fixed bottom-0 left-75 right-87.5 p-5 bg-linear-to-t from-slate-900/95 via-slate-900/95 to-transparent backdrop-blur-md">
             <form onSubmit={handleSubmit}>
               <input
                 type="text"
@@ -558,7 +558,7 @@ export const TaskWorkspace: React.FC = () => {
                   </span>
                   <span className="text-[13px] font-medium">{artifact.name}</span>
                 </div>
-                <pre className="text-[11px] text-gray-400 bg-black/30 p-2.5 rounded-md overflow-auto max-h-[120px] m-0">
+                <pre className="text-[11px] text-gray-400 bg-black/30 p-2.5 rounded-md overflow-auto max-h-30 m-0">
                   {artifact.content}
                 </pre>
               </div>
@@ -570,7 +570,7 @@ export const TaskWorkspace: React.FC = () => {
             <span>🤖</span> Agent Fleet
           </div>
           
-          <div className="max-h-[300px] overflow-y-auto">
+          <div className="max-h-75 overflow-y-auto">
             {agents.map(agent => (
               <div key={agent.id} className="mb-2 flex items-center gap-3 rounded-lg border border-white/5 bg-slate-800/40 p-3">
                 <div 
