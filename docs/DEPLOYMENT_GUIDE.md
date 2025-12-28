@@ -27,10 +27,10 @@ You have **two options** for deploying to Google Cloud Run:
 3. **Add GitHub Secrets**
    Go to your repository → Settings → Secrets and variables → Actions → New repository secret
    
-   | Secret Name | Value |
-   |-------------|-------|
-   | `GCP_PROJECT_ID` | `locale-by-achievemor` |
-   | `GCP_SA_KEY` | Paste the entire JSON key content |
+   | Secret Name       | Value                             |
+   |-------------------|-----------------------------------|
+   | `GCP_PROJECT_ID`  | `locale-by-achievemor`            |
+   | `GCP_SA_KEY`      | Paste the entire JSON key content |
 
 4. **Deploy**
    - Push changes to `main` branch → Triggers automatically
@@ -38,10 +38,10 @@ You have **two options** for deploying to Google Cloud Run:
 
 ### Workflows Created
 
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
+| Workflow               | Trigger               | Purpose                        |
+|------------------------|----------------------|--------------------------------|
 | `deploy-cloud-run.yml` | Push to `backend/**` | Builds & deploys Flask backend |
-| `terraform-infra.yml` | Push to `terraform/**` | Provisions GCP infrastructure |
+| `terraform-infra.yml`  | Push to `terraform/**` | Provisions GCP infrastructure |
 
 ---
 
@@ -124,6 +124,7 @@ Invoke-RestMethod "$URL/health"
 ```
 
 Expected response:
+
 ```json
 {
   "status": "healthy",
@@ -136,7 +137,7 @@ Expected response:
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    GitHub Repository                        │
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
