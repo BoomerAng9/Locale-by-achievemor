@@ -360,7 +360,7 @@ export const ConsultationInterface = () => {
             </form>
             <div className="text-center mt-3">
               <p className="text-xs text-slate-500">
-                AI Context: <span className="text-slate-400">{activeIndustry.name}</span> • Powered by SmelterOS
+                AI Context: <span className="text-slate-400">{activeIndustry.name}</span> • Powered by ACHEEVY
               </p>
             </div>
           </div>

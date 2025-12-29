@@ -1,8 +1,8 @@
 /**
  * Super Admin Dashboard
  * 
- * CENTRAL COMMAND CENTER (The "Split Brain" Logic)
- * - KingMode-OPS Governance
+ * CENTRAL COMMAND CENTER
+ * - Agent Health Monitoring
  * - Global Infrastructure Settings
  * - Tenant Provisioning
  * - Billing & Metering
@@ -11,12 +11,10 @@
  */
 
 import React, { useState } from 'react';
-import KingModeConfig from '../kingmode/KingModeConfig';
-import { getToolsByCategory, STRATA_TOOLS } from '../../lib/strata/ToolRegistry';
+import HealthDashboard from './HealthDashboard';
 
 const SuperAdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'governance' | 'tenants' | 'billing'>('governance');
-  const [showKingMode, setShowKingMode] = useState(true);
+  const [activeTab, setActiveTab] = useState<'health' | 'tenants' | 'billing'>('health');
 
   return (
     <div className="min-h-screen bg-black text-white p-8 font-sans">
@@ -32,7 +30,7 @@ const SuperAdminDashboard: React.FC = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            {['governance', 'tenants', 'billing'].map(tab => (
+            {['health', 'tenants', 'billing'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as any)}
@@ -53,45 +51,8 @@ const SuperAdminDashboard: React.FC = () => {
           
           {/* Main Panel */}
           <div className="col-span-8 space-y-8">
-            {activeTab === 'governance' && (
-              <>
-                {/* KingMode Config - The "Intel Inside" */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-                  <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
-                    <div>
-                      <h2 className="text-xl font-bold text-white">KingMode-OPS Protocol</h2>
-                      <p className="text-sm text-gray-400">Universal LLM Governance Engine</p>
-                    </div>
-                    <button 
-                      onClick={() => setShowKingMode(!showKingMode)}
-                      className="text-xs text-gray-500 hover:text-white"
-                    >
-                      {showKingMode ? 'Collapse' : 'Expand'}
-                    </button>
-                  </div>
-                  {showKingMode && (
-                    <div className="p-6">
-                      <KingModeConfig />
-                    </div>
-                  )}
-                </div>
-
-                {/* STRATA Registry Snapshot */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden p-6">
-                  <h3 className="text-lg font-bold text-white mb-4">STRATA Tool Registry</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    {STRATA_TOOLS.map(tool => (
-                      <div key={tool.id} className="p-4 bg-black rounded-xl border border-zinc-800 flex justify-between items-center">
-                        <div>
-                          <div className="font-bold text-white text-sm">{tool.name}</div>
-                          <div className="text-xs text-gray-500">{tool.default_implementation} • {tool.category}</div>
-                        </div>
-                        <div className={`w-2 h-2 rounded-full ${tool.enabled ? 'bg-green-500' : 'bg-red-500'}`} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
+            {activeTab === 'health' && (
+              <HealthDashboard />
             )}
 
             {activeTab === 'tenants' && (
@@ -121,8 +82,8 @@ const SuperAdminDashboard: React.FC = () => {
                   <span className="text-xs font-bold text-green-400">CONNECTED</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-300">KingMode Engine</span>
-                  <span className="text-xs font-bold text-green-400">ENFORCING</span>
+                  <span className="text-sm text-gray-300">Agent Health</span>
+                  <span className="text-xs font-bold text-green-400">MONITORING</span>
                 </div>
               </div>
             </div>
