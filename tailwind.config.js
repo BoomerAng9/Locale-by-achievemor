@@ -24,10 +24,16 @@ export default {
           950: '#0A0A0A',
         },
         locale: {
-          blue: '#3B82F6',
-          darkBlue: '#2563EB',
-          lightBlue: '#60A5FA',
+          blue: '#EF4444', // Red-500 (Sockeye Primary)
+          darkBlue: '#DC2626', // Red-600
+          lightBlue: '#F87171', // Red-400
         },
+        sockeye: {
+          red: '#EF4444',
+          dark: '#0F172A', // Slate-900
+          panel: '#1E293B', // Slate-800
+        },
+        'neon-green': '#39FF14',
       },
       animation: {
         'spin-slow': 'spin 10s linear infinite',

@@ -14,9 +14,9 @@
   --color-carbon-900: #121212;
   --color-carbon-950: #0A0A0A;
   
-  --color-locale-blue: #3B82F6;
-  --color-locale-darkBlue: #2563EB;
-  --color-locale-lightBlue: #60A5FA;
+  --color-locale-blue: #EF4444;
+  --color-locale-darkBlue: #DC2626;
+  --color-locale-lightBlue: #F87171;
 }
 
 /* Locale by: ACHIEVEMOR - Global Styles */
@@ -55,10 +55,16 @@ a {
 
 /* Glass Panel Effect */
 .glass-panel {
-  background: rgba(26, 29, 33, 0.8);
+  background: rgba(15, 23, 42, 0.8); /* Slate-900 base */
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.15); /* Sockeye Red Tint */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+::selection {
+  background: rgba(239, 68, 68, 0.3);
+  color: white;
 }
 
 /* Animations */

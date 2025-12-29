@@ -39,12 +39,13 @@ import VideoGenerator from './components/video/VideoGenerator';
 import VoiceOnboarding from './components/voice/VoiceOnboarding';
 import AIChatWidget from './components/chat/AIChatWidget';
 import AIChatPage from './components/pages/AIChatPage';
-import TokenEstimator from './components/estimator/TokenEstimator';
-import BarsComposer from './components/BarsComposer';
-import VIBEAssessment from './components/assessment/VIBEAssessment';
 import SuperAdminDashboard from './components/admin/SuperAdminDashboard';
-import BingePipelineBoard from './components/BingePipelineBoard'; 
 import TaskWorkspace from './components/workspace/TaskWorkspace'; 
+
+// Gateway & Workspace Components (Binge Code DEVELOP Phase)
+import LocaleGateway from './components/gateway/LocaleGateway';
+import ClientWorkspace from './components/workspace/ClientWorkspace';
+import PartnerWorkspace from './components/workspace/PartnerWorkspace';
 
 // --- DATA ENRICHMENT ---
 const ENHANCED_PROFILES: Profile[] = MOCK_PROFILES.map((p, i) => ({
@@ -396,6 +397,15 @@ const App = () => {
               {/* ═══════════════════════════════════════════════════════════════════ */}
               <Route path="/" element={<Home />} />
               
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              {/* LOCALE GATEWAY SYSTEM (Binge Code DEVELOP Phase) */}
+              {/* ═══════════════════════════════════════════════════════════════════ */}
+              <Route path="/gateway" element={<LocaleGateway />} />
+              <Route path="/workspace/client" element={<ClientWorkspace />} />
+              <Route path="/workspace/client/*" element={<ClientWorkspace />} />
+              <Route path="/workspace/partner" element={<PartnerWorkspace />} />
+              <Route path="/workspace/partner/*" element={<PartnerWorkspace />} />
+              
               {/* Explore & Discovery */}
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/explore/:categoryId" element={<CategoryLanding />} />
@@ -425,8 +435,6 @@ const App = () => {
               <Route path="/partners" element={<PartnerProgramPage />} />
               <Route path="/partner-program" element={<PartnerProgramPage />} />
               <Route path="/for-partners" element={<PartnerProgramPage />} />
-              <Route path="/assessment" element={<VIBEAssessment onComplete={() => window.location.href = '/#/dashboard'} onSkip={() => window.location.href = '/#/dashboard'} />} />
-              <Route path="/vibe" element={<VIBEAssessment onComplete={() => window.location.href = '/#/dashboard'} onSkip={() => window.location.href = '/#/dashboard'} />} />
               
               {/* ═══════════════════════════════════════════════════════════════════ */}
               {/* PRO ACCESS / DASHBOARD */}
@@ -446,10 +454,6 @@ const App = () => {
               <Route path="/voice" element={<VoiceOnboarding onComplete={() => {}} onSkip={() => {}} />} />
               <Route path="/tools/chat" element={<AIChatPage />} />
               <Route path="/chat" element={<AIChatPage />} />
-              <Route path="/tools/bars" element={<BarsComposer />} />
-              <Route path="/bars" element={<BarsComposer />} />
-              <Route path="/tools/pipeline" element={<BingePipelineBoard jobs={[]} />} />
-              <Route path="/pipeline" element={<BingePipelineBoard jobs={[]} />} />
               <Route path="/playground" element={<PlaygroundPage />} />
               <Route path="/workspace" element={<TaskWorkspace />} />
               <Route path="/manus" element={<TaskWorkspace />} />

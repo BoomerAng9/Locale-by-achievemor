@@ -8,7 +8,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { speakText, listenToSpeech, VOICE_LIBRARY, getSelectedVoice, setSelectedVoice } from '../../lib/voice';
 import { AGENT_REGISTRY, BoomerAng } from '../../lib/agents/registry';
 import { sendToGemini } from '../../lib/ai/gemini';
-import { motion, AnimatePresence } from 'framer-motion';
 import * as Icons from 'lucide-react';
 
 // Local ChatMessage type

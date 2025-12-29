@@ -1,10 +1,15 @@
 /**
  * Circuit Box - AI Department Management
- * NANO BANANA PRO Design - Dark with Neon Green Accents
+ * Binge Code Phase: DEVELOP (Cycle 2)
+ * Agent: CodeAng
+ * 
+ * Clean Architecture - Toggle-based settings panel
  * Manages all AI agents, APIs, and system integrations
  */
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import ProviderConfig from './ProviderConfig';
 
 // === API STATUS CHECK ===
 const getApiStatus = () => ({
@@ -196,11 +201,6 @@ const DepartmentPanel = ({ title, agents, onToggle, selectedId, onSelect }: {
 interface CircuitBoxProps {
     isAdmin?: boolean;
 }
-
-import Link from 'react-router-dom';
-import ProviderConfig from './ProviderConfig';
-import KingModeConfig from '../kingmode/KingModeConfig';
-import PersonaFabric from '../synthetic/PersonaFabric';
 
 const CircuitBox: React.FC<CircuitBoxProps> = ({ isAdmin = false }) => {
     const [status, setStatus] = useState(getApiStatus());
@@ -454,11 +454,21 @@ const CircuitBox: React.FC<CircuitBoxProps> = ({ isAdmin = false }) => {
                 {/* PROVIDER CONFIG MODE */}
                 {viewMode === 'providers' && <ProviderConfig />}
 
-                {/* GOVERNANCE MODE */}
-                {viewMode === 'governance' && <KingModeConfig />}
+                {/* HEALTH & ECONOMICS MODE (Binge Code) */}
+                {viewMode === 'governance' && (
+                    <div className="p-8 text-center">
+                        <h3 className="text-xl font-bold text-white mb-4">Agent Health & Economics</h3>
+                        <p className="text-gray-400">Health scoring, tap-out logic, and profit ledger coming soon.</p>
+                    </div>
+                )}
 
-                {/* SIMULATION MODE */}
-                {viewMode === 'simulation' && <PersonaFabric />}
+                {/* CAPABILITIES MODE */}
+                {viewMode === 'simulation' && (
+                    <div className="p-8 text-center">
+                        <h3 className="text-xl font-bold text-white mb-4">Intelligent Internet Capabilities</h3>
+                        <p className="text-gray-400">II-Agent, Researcher, and other capabilities configuration.</p>
+                    </div>
+                )}
 
             </div>
         </div>

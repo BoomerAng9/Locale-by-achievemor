@@ -9,7 +9,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AGENT_REGISTRY, BoomerAng } from '../../lib/agents/registry';
-import { executeAgentTask, ThinkingStep as IIThinkingStep } from '../../lib/ii-agent/IIAgentBridge';
 
 // Backend URL
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://locale-backend-6vy2c3elqq-uc.a.run.app';

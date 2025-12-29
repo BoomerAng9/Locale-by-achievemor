@@ -298,35 +298,53 @@ export interface DraftPartnerPage {
 }
 
 // ============================================
-// SMELTEROS & BOOMER_ANG HIERARCHY TYPES
+// LOCALE GATEWAY SYSTEM TYPES
 // ============================================
 
 /**
- * Boomer_Ang C-Suite Roles
+ * User Gateway Role - Determines which portal the user accesses
  */
-export type BoomerAngRole = 
-  | 'cto' // Chief Technology Officer - Manages Code & Infra
-  | 'cfo' // Chief Financial Officer - Manages Stripe & Value
-  | 'coo' // Chief Operating Officer - Manages Flow & Crawlers
-  | 'cmo' // Chief Marketing Officer - Manages Social & Ads
-  | 'cdo' // Chief Design Officer - Manages Nano Banana/Images
-  | 'cpo' // Chief Publication Officer - Manages Content
-  | 'finder' // Legacy role
-  | 'debugger' // Legacy role
-  | 'orchestrator'; // AVVA NOON
+export type GatewayRole = 'client' | 'partner' | 'admin';
 
 /**
- * SmelterOS System Status
+ * Agent Health Score - Used for tap-out/tag-in logic
  */
-export interface SmelterOSStatus {
-  isOnline: boolean;
-  activeAgents: number;
-  systemLoad: number;
-  plausibilityBound: {
-    min: number; // -10^18
-    max: number; // 10^18
-  };
-  lastHealthCheck: Date;
+export interface AgentHealthScore {
+  coherence: number;      // 0-1: Response makes logical sense
+  accuracy: number;       // 0-1: Factual correctness
+  contextRetention: number; // 0-1: Maintains conversation context
+  efficiency: number;     // 0-1: Token usage efficiency
+  responseTime: number;   // 0-1: Speed of response
+  overall: number;        // 0-1: Weighted average
+}
+
+/**
+ * Profit Ledger Entry - Per-task economics tracking
+ */
+export interface ProfitLedgerEntry {
+  taskId: string;
+  userId: string;
+  modelTier: string;
+  providerCost: number;
+  userBilledPrice: number;
+  reserveAmount: number;   // 1/3 of profit held for refunds
+  netProfit: number;       // 2/3 of profit to platform
+  success: boolean;
+  refunded: boolean;
+  refundReason?: string;
+  createdAt: Date;
+}
+
+/**
+ * Circuit Box Toggle - Admin panel toggle state
+ */
+export interface CircuitBoxToggle {
+  id: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  category: 'core' | 'integrations' | 'capabilities' | 'workspace';
+  adminOnly: boolean;
 }
 
 /**
