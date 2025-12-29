@@ -280,8 +280,8 @@ const CircuitBox: React.FC<CircuitBoxProps> = ({ isAdmin = false }) => {
                         {[
                             { id: 'status', label: 'System Status', icon: '📊' },
                             { id: 'providers', label: 'Runtime Providers', icon: '🔌' },
-                            { id: 'governance', label: 'Agent Health', icon: '🤖' },
-                            { id: 'simulation', label: 'Profit Ledger', icon: '💰' },
+                            { id: 'governance', label: 'Governance (KingMode)', icon: '👑' },
+                            { id: 'simulation', label: 'Synthetic Users', icon: '🧩' },
                         ].map(tab => (
                             <button
                                 key={tab.id}

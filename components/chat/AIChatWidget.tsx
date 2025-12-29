@@ -65,7 +65,7 @@ const AIChatWidget: React.FC = () => {
       );
 
       // 2. DISPATCH TASK (Nervous System)
-      dispatchTask('chat_interaction', { prompt: input }, 'acheevy-core');
+      dispatchTask('acheevy-core', 'chat_interaction', { prompt: input });
 
       const botMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),

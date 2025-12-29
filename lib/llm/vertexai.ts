@@ -2,13 +2,20 @@
  * AI Integration for Concierge (ACHEEVY)
  * Uses OpenRouter as primary with Gemini fallback
  * NO HARDCODING - All API keys from environment variables
- * 
- * KINGMODE-OPS: Universal LLM governance layer
  */
 
 import { ChatMessage } from '../../types';
 import type { ConciergeQuery, ConciergeResponse } from '../firestore/schema';
-import { getKingModeSettings, getKingModePrompt } from '../kingmode/KingModePrompts';
+
+// Simplified LLM settings (replaces deleted KingMode governance)
+const getLLMSettings = () => ({
+  temperature: 0.7,
+  maxTokens: 2048,
+  model: 'gemini-2.0-flash-exp',
+  fallbackModel: 'deepseek/deepseek-chat'
+});
+
+const getSystemPrompt = () => CONCIERGE_SYSTEM_PROMPT;
 
 // === API KEYS FROM ENVIRONMENT ===
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
@@ -121,26 +128,16 @@ export async function callConciergeAI(
 }
 
 /**
- * Call OpenRouter API with KingMode governance
+ * Call OpenRouter API
  */
 async function callOpenRouter(userQuery: string): Promise<string> {
-  console.log('[ACHEEVY] Calling OpenRouter with KingMode...');
+  console.log('[ACHEEVY] Calling OpenRouter...');
   
-  // Get KingMode settings and inject governance
-  const kingModeSettings = getKingModeSettings();
-  let systemPrompt = CONCIERGE_SYSTEM_PROMPT;
+  // Use simplified LLM settings
+  const llmSettings = getLLMSettings();
+  const systemPrompt = getSystemPrompt();
   
-  if (kingModeSettings.enabled) {
-    const kingModePrompt = getKingModePrompt(kingModeSettings.defaultMode, userQuery);
-    systemPrompt = `${kingModePrompt}\n\n---\n\n${CONCIERGE_SYSTEM_PROMPT}`;
-    
-    // Add custom overrides if any
-    if (kingModeSettings.customOverrides) {
-      systemPrompt += `\n\n---\n\nCUSTOM DIRECTIVES:\n${kingModeSettings.customOverrides}`;
-    }
-    
-    console.log('[ACHEEVY] KingMode enabled, mode:', kingModeSettings.defaultMode);
-  }
+  console.log('[ACHEEVY] Using model:', llmSettings.fallbackModel);
   
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
