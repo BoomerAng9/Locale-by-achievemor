@@ -1,36 +1,43 @@
 {
   "name": "locale-by-achievemor",
+  "version": "4.0.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "firebase:deploy": "firebase deploy --only hosting,functions"
   },
   "dependencies": {
-    "@deepgram/sdk": "^4.11.3",
-    "@google/generative-ai": "^0.24.1",
+    "next": "14.2.5",
+    "react": "^18",
+    "react-dom": "^18",
+    "@firebase/app": "latest",
+    "@firebase/auth": "latest",
+    "@firebase/firestore": "latest",
+    "@firebase/storage": "latest",
+    "firebase-admin": "latest",
+    "stripe": "latest",
+    "@stripe/stripe-js": "latest",
+    "@radix-ui/react-slot": "^1.1.0",
+    "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "firebase": "^10.8.1",
-    "framer-motion": "^12.23.26",
-    "lucide-react": "^0.562.0",
-    "openai": "^6.15.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.22.3",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^2.5.2",
+    "tailwindcss-animate": "^1.0.7",
+    "@groq/sdk": "latest",
+    "elevenlabs": "latest",
+    "openai": "latest"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
-    "@types/node": "^22.14.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@vitejs/plugin-react": "^4.2.1",
-    "autoprefixer": "^10.4.23",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.18",
-    "typescript": "~5.4.0",
-    "vite": "^5.2.0"
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5",
+    "postcss": "^8",
+    "tailwindcss": "^4.0.0-alpha.20",
+    "typescript": "^5",
+    "shadcn-ui": "latest"
   }
 }
